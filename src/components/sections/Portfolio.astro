@@ -1,5 +1,5 @@
 ---
-import Section from "../Section.astro"
+import Section from "@/components/Section.astro"
 
 interface PortfolioItem {
   title: string
@@ -33,27 +33,6 @@ const defaultItems: PortfolioItem[] = [
     image:
       "https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?w=800&h=600&fit=crop",
     description: "Capturing the essence of city life",
-  },
-  {
-    title: "Brand Identity",
-    category: "Branding",
-    image:
-      "https://images.unsplash.com/photo-1561070791-2526d30994b5?w=800&h=600&fit=crop",
-    description: "Cohesive visual identity system",
-  },
-  {
-    title: "Nature Studies",
-    category: "Illustration",
-    image:
-      "https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=800&h=600&fit=crop",
-    description: "Organic forms and natural beauty",
-  },
-  {
-    title: "Modern Interface",
-    category: "UI/UX",
-    image:
-      "https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?w=800&h=600&fit=crop",
-    description: "Intuitive user experience design",
   },
 ]
 
