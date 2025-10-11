@@ -1,5 +1,5 @@
 ---
-import Section from "../Section.astro"
+import Section from "@/components/Section.astro"
 ---
 
 <Section
@@ -10,16 +10,13 @@ import Section from "../Section.astro"
     class="max-w-6xl mx-auto grid md:grid-cols-2 gap-12 items-center px-4"
   >
     <!-- Imagen de perfil -->
-    <div class="flex justify-center">
-      <div
-        class="relative w-full max-w-md aspect-square rounded-2xl overflow-hidden shadow-2xl bg-gradient-to-br from-[#B22222] to-[#F3AC9E]"
-      >
-        <div
-          class="absolute inset-0 flex items-center justify-center text-white text-8xl font-bold"
-        >
-          ?
-        </div>
-      </div>
+    <div class="md:w-1/2">
+      <img
+        class="rounded-xl shadow-lg w-full max-w-md mx-auto"
+        data-alt="Sketch-style portrait of the artist"
+        src="https://lh3.googleusercontent.com/aida-public/AB6AXuBI7q19WxSAaP53ivnyXPffjKUajIGNK6sobybmMBSLRhGYLWc-lZNo5XDjDPmYKDztD0Hyq1-n9OA6iwVmpudeyxJNTnq7RbdhjQ2CCsEET-0YnwHjmFOgApAo3zsULFoPGMhYVmGprWbQchH5aebIh0y1a7Y-HH9qDKFguO94HJHtOYvUQ4eYPmi1YqyMs-wBfU97VLsLlO3TjtoihLCTdFC1HEe-TltHuiG1c7htL4UImypQYZKzbl7Wi7zSJC04UIRuNCU95eF_"
+        style="border: 10px solid white; transform: rotate(-3deg);"
+      />
     </div>
 
     <!-- Contenido Bio -->
