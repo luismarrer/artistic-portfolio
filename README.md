@@ -23,28 +23,28 @@ A beautiful, minimal, and fully responsive portfolio template built with Astro a
 
 1. **Use this template** by clicking the "Use this template" button above, or clone the repository:
 
-```bash
-git clone https://github.com/luismarrer/artistic-portfolio.git
-cd artistic-portfolio
-```
+    ```bash
+    git clone https://github.com/luismarrer/artistic-portfolio.git
+    cd artistic-portfolio
+    ```
 
 2. **Install dependencies:**
 
-```bash
-npm install
-```
+    ```bash
+    npm install
+    ```
 
 3. **Start the development server:**
 
-```bash
-npm run dev
-```
+    ```bash
+    npm run dev
+    ```
 
 4. **Open your browser** and visit `http://localhost:4321`
 
 ## 📁 Project Structure
 
-```
+```bash
 artistic-portfolio/
 ├── public/
 │   └── favicon.svg
@@ -68,6 +68,7 @@ artistic-portfolio/
 ## 🎨 Components
 
 ### Hero
+
 The main landing section with a headline, subtitle, and call-to-action button.
 
 ```astro
@@ -80,6 +81,7 @@ The main landing section with a headline, subtitle, and call-to-action button.
 ```
 
 ### Services
+
 Showcase your services with icons and descriptions.
 
 ```astro
@@ -95,6 +97,7 @@ Showcase your services with icons and descriptions.
 ```
 
 ### Portfolio Gallery
+
 Display your work in a responsive grid layout.
 
 ```astro
@@ -111,6 +114,7 @@ Display your work in a responsive grid layout.
 ```
 
 ### Contact Form
+
 A ready-to-use contact form (you'll need to set up the backend endpoint).
 
 ```astro
@@ -121,6 +125,7 @@ A ready-to-use contact form (you'll need to set up the backend endpoint).
 ```
 
 ### Footer
+
 Complete footer with navigation links and social media icons.
 
 ```astro
@@ -135,6 +140,7 @@ Complete footer with navigation links and social media icons.
 ## 🛠️ Customization
 
 ### Colors & Styling
+
 Edit `tailwind.config.mjs` to customize colors, fonts, and other design tokens:
 
 ```js
@@ -151,9 +157,11 @@ theme: {
 ```
 
 ### Content
+
 All components accept props for easy customization. Edit `src/pages/index.astro` to modify the content and pass custom props to components.
 
 ### Images
+
 - Replace placeholder images in `PortfolioGallery.astro` with your own
 - Add your favicon to `public/favicon.svg`
 - Place other static assets in the `public/` directory
@@ -169,6 +177,7 @@ The built site will be in the `dist/` directory, ready to be deployed to any sta
 ## 🚢 Deployment
 
 This template can be deployed to:
+
 - [Vercel](https://vercel.com/)
 - [Netlify](https://netlify.com/)
 - [GitHub Pages](https://pages.github.com/)
@@ -178,6 +187,7 @@ This template can be deployed to:
 ## 📱 Mobile Responsiveness
 
 The template is fully responsive with:
+
 - Mobile-first design approach
 - Responsive grid layouts
 - Touch-friendly interactive elements
@@ -197,8 +207,5 @@ This project is open source and available under the [MIT License](LICENSE).
 
 - Built with [Astro](https://astro.build/)
 - Styled with [Tailwind CSS](https://tailwindcss.com/)
-- Icons from [Heroicons](https://heroicons.com/)
-
----
-
+- Icons from [Heroicons](https://heroicons.com/)\
 **Made with ❤️ for the creative community**
