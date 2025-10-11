@@ -1,10 +1,9 @@
 ---
 import BaseLayout from "@/layouts/BaseLayout.astro"
-import Hero from "@/components/Hero.astro"
-import Services from "@/components/Services.astro"
-import PortfolioGallery from "@/components/PortfolioGallery.astro"
-import ContactForm from "@/components/ContactForm.astro"
-import Footer from "@/components/Footer.astro"
+import Hero from "@/components/sections/Hero.astro"
+import About from "@/components/sections/About.astro"
+import Portfolio from "@/components/sections/Portfolio.astro"
+import Footer from "@/components/sections/Footer.astro"
 ---
 
 <BaseLayout
@@ -12,7 +11,7 @@ import Footer from "@/components/Footer.astro"
   description="A beautiful and minimal portfolio template for artists, designers, and creatives to showcase their work"
 >
   <Hero />
-  <Services />
-  <PortfolioGallery />
+  <About />
+  <Portfolio />
   <Footer />
 </BaseLayout>
