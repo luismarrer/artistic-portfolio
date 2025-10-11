@@ -1,86 +1,47 @@
-<section>
-    <div
-        class="relative
-        min-h-screen
-        flex
-        flex-col
-        items-center
-        justify-center
-        text-center
-        px-4
-        overflow-hidden
-        grid-background"
-    >
-        <div class="z-10 flex flex-col items-center max-w-4xl mx-auto">
-            <h1
-                class="text-6xl md:text-8xl font-bold text-[#F9FAFB] leading-tight"
-            >
-                Ideas Visualized
-            </h1>
-            <div class="mt-10">
-                <button
-                    class="bg-[#B22222] text-[#FFFDD0] font-semibold py-3 px-8 rounded-lg shadow-lg hover:bg-[#A52A2A] transform hover:-translate-y-1 transition-all duration-300 text-lg"
-                >
-                    Start Brainstorming
-                </button>
-            </div>
-        </div>
-        <!-- Soft blended overlay at the bottom of the hero to smoothly transition into the Services section -->
-        <div
-            class="absolute left-0 right-0 bottom-0 pointer-events-none overflow-hidden z-20"
-            style="height:260px;"
+<section
+    class="relative
+            min-h-screen
+            flex
+            flex-col
+            items-center
+            justify-center
+            text-center
+            px-4
+            overflow-hidden
+            grid-background"
+>
+    <div class="z-10 flex flex-col items-center max-w-4xl mx-auto">
+        <h1 class="text-6xl md:text-8xl font-bold text-[#F9FAFB] leading-tight">
+            Ideas Visualized
+        </h1>
+        <button
+            class="mt-10
+                bg-[#B22222]
+                text-[#FFFDD0]
+                font-semibold
+                py-3
+                px-8
+                rounded-lg
+                shadow-lg
+                hover:bg-[#A52A2A]
+                transform
+                hover:-translate-y-1
+                transition-all
+                duration-300
+                text-lg"
         >
-            <svg
-                viewBox="0 0 1440 320"
-                preserveAspectRatio="none"
-                class="w-full h-full"
-                xmlns="http://www.w3.org/2000/svg"
-                aria-hidden="true"
-            >
-                <defs>
-                    <linearGradient
-                        id="g-hero-to-services"
-                        x1="0"
-                        x2="0"
-                        y1="0"
-                        y2="1"
-                    >
-                        <stop
-                            offset="110%"
-                            stop-color="#FEEACA"
-                            stop-opacity="1"></stop>
-                        <stop
-                            offset="55%"
-                            stop-color="#FEEACA"
-                            stop-opacity="0.6"></stop>
-                        <stop
-                            offset="100%"
-                            stop-color="#FEEACA"
-                            stop-opacity="0"></stop>
-                    </linearGradient>
-                    <filter id="blur-filter">
-                        <feGaussianBlur stdDeviation="28"></feGaussianBlur>
-                    </filter>
-                </defs>
-
-                <!-- simple bottom gradient overlay for smooth transition -->
-                <rect
-                    x="0"
-                    y="200"
-                    width="1440"
-                    height="320"
-                    fill="url(#g-hero-to-services)"
-                    filter="url(#blur-filter)"
-                    style="mix-blend-mode:normal;"></rect>
-            </svg>
-        </div>
+            Start Brainstorming
+        </button>
     </div>
+    <div class="scroll-indicator">↓</div>
 </section>
 
 <style>
     body {
         background-image: linear-gradient(to bottom right, #ffdac1, #e57373);
         background-size: 100% 100%;
+        background: linear-gradient(to bottom, #f3ac9e 0%, #ffeaca 100%);
+        box-shadow: 0 40px 60px -20px rgba(243, 172, 158, 0.5) inset;
     }
     .grid-background {
         background-image: linear-gradient(
@@ -107,6 +68,25 @@
         50% {
             transform: translateY(0);
             animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+        }
+    }
+    .scroll-indicator {
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 24px;
+        color: #fff;
+        font-weight: bold;
+        animation: scroll-indicator 2s infinite;
+    }
+    @keyframes scroll-indicator {
+        0%,
+        100% {
+            opacity: 1;
+        }
+        50% {
+            opacity: 0;
         }
     }
 </style>
