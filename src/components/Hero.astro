@@ -1,42 +1,112 @@
----
-interface Props {
-  title?: string;
-  subtitle?: string;
-  ctaText?: string;
-  ctaLink?: string;
-}
+<section>
+    <div
+        class="relative
+        min-h-screen
+        flex
+        flex-col
+        items-center
+        justify-center
+        text-center
+        px-4
+        overflow-hidden
+        grid-background"
+    >
+        <div class="z-10 flex flex-col items-center max-w-4xl mx-auto">
+            <h1
+                class="text-6xl md:text-8xl font-bold text-[#F9FAFB] leading-tight"
+            >
+                Ideas Visualized
+            </h1>
+            <div class="mt-10">
+                <button
+                    class="bg-[#B22222] text-[#FFFDD0] font-semibold py-3 px-8 rounded-lg shadow-lg hover:bg-[#A52A2A] transform hover:-translate-y-1 transition-all duration-300 text-lg"
+                >
+                    Start Brainstorming
+                </button>
+            </div>
+        </div>
+        <!-- Soft blended overlay at the bottom of the hero to smoothly transition into the Services section -->
+        <div
+            class="absolute left-0 right-0 bottom-0 pointer-events-none overflow-hidden z-20"
+            style="height:260px;"
+        >
+            <svg
+                viewBox="0 0 1440 320"
+                preserveAspectRatio="none"
+                class="w-full h-full"
+                xmlns="http://www.w3.org/2000/svg"
+                aria-hidden="true"
+            >
+                <defs>
+                    <linearGradient
+                        id="g-hero-to-services"
+                        x1="0"
+                        x2="0"
+                        y1="0"
+                        y2="1"
+                    >
+                        <stop
+                            offset="110%"
+                            stop-color="#FEEACA"
+                            stop-opacity="1"></stop>
+                        <stop
+                            offset="55%"
+                            stop-color="#FEEACA"
+                            stop-opacity="0.6"></stop>
+                        <stop
+                            offset="100%"
+                            stop-color="#FEEACA"
+                            stop-opacity="0"></stop>
+                    </linearGradient>
+                    <filter id="blur-filter">
+                        <feGaussianBlur stdDeviation="28"></feGaussianBlur>
+                    </filter>
+                </defs>
 
-const { 
-  title = "Create. Inspire. Innovate.", 
-  subtitle = "Welcome to my creative portfolio. Explore my work and let's bring your vision to life.",
-  ctaText = "View My Work",
-  ctaLink = "#portfolio"
-} = Astro.props;
----
-
-<section id="hero" class="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100">
-  <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiMwMDAiIGZpbGwtb3BhY2l0eT0iMC4wMiI+PHBhdGggZD0iTTM2IDE2YzAgMS4xLS45IDItMiAycy0yLS45LTItMiAuOS0yIDItMiAyIC45IDIgMm0tMTggMGMwIDEuMS0uOSAyLTIgMnMtMi0uOS0yLTIgLjktMiAyLTIgMiAuOSAyIDJtMCAxOGMwIDEuMS0uOSAyLTIgMnMtMi0uOS0yLTIgLjktMiAyLTIgMiAuOSAyIDJtMTggMGMwIDEuMS0uOSAyLTIgMnMtMi0uOS0yLTIgLjktMiAyLTIgMiAuOSAyIDIiLz48L2c+PC9nPjwvc3ZnPg==')] opacity-40"></div>
-  
-  <div class="container mx-auto px-6 py-24 relative z-10">
-    <div class="max-w-4xl mx-auto text-center">
-      <h1 class="text-5xl md:text-7xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-600">
-        {title}
-      </h1>
-      <p class="text-xl md:text-2xl text-gray-600 mb-10 leading-relaxed">
-        {subtitle}
-      </p>
-      <a 
-        href={ctaLink} 
-        class="inline-block bg-slate-900 text-white px-8 py-4 rounded-lg font-medium hover:bg-slate-800 transition-colors duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-transform"
-      >
-        {ctaText}
-      </a>
+                <!-- simple bottom gradient overlay for smooth transition -->
+                <rect
+                    x="0"
+                    y="200"
+                    width="1440"
+                    height="320"
+                    fill="url(#g-hero-to-services)"
+                    filter="url(#blur-filter)"
+                    style="mix-blend-mode:normal;"></rect>
+            </svg>
+        </div>
     </div>
-  </div>
-  
-  <div class="absolute bottom-10 left-1/2 transform -translate-x-1/2 animate-bounce">
-    <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
-    </svg>
-  </div>
 </section>
+
+<style>
+    body {
+        background-image: linear-gradient(to bottom right, #ffdac1, #e57373);
+        background-size: 100% 100%;
+    }
+    .grid-background {
+        background-image: linear-gradient(
+                to right,
+                rgba(178, 34, 34, 0.2) 1px,
+                transparent 1px
+            ),
+            linear-gradient(
+                to bottom,
+                rgba(178, 34, 34, 0.2) 1px,
+                transparent 1px
+            );
+        background-size: 20px 20px;
+    }
+    .animate-bounce-slow {
+        animation: bounce-slow 2s infinite;
+    }
+    @keyframes bounce-slow {
+        0%,
+        100% {
+            transform: translateY(-15%);
+            animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+        }
+        50% {
+            transform: translateY(0);
+            animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+        }
+    }
+</style>
