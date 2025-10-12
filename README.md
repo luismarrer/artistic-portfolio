@@ -2,7 +2,14 @@
 
 A beautiful, minimal, and fully responsive portfolio template built with Astro and Tailwind CSS. Perfect for artists, designers, photographers, and creative professionals to showcase their work.
 
-![Desktop View](https://github.com/user-attachments/assets/96228270-1c2a-4fb2-991f-6c96e61c160d)
+## TODO
+
+- [ ] Diseñar el navbar
+- [ ] Page portfolio
+- [ ] Hacer todo en inglés
+- [ ] Descargar tipografía
+- [ ] Diseñar carrousel
+- [ ] Instalar de GSAP
 
 ## ✨ Features
 
