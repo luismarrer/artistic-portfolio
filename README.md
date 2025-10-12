@@ -4,12 +4,9 @@ A beautiful, minimal, and fully responsive portfolio template built with Astro a
 
 ## TODO
 
-- [X] Diseñar el navbar
-- [X] Page portfolio
-- [X] Hacer todo en inglés
+- [ ] Arreglar linea del footer
 - [ ] Descargar tipografía
 - [ ] Diseñar carrousel
-- [X] Instalar de GSAP
 
 Utilizar solo Astro, Tailwind CSS y GSAP
 
