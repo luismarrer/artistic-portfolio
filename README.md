@@ -4,12 +4,14 @@ A beautiful, minimal, and fully responsive portfolio template built with Astro a
 
 ## TODO
 
-- [ ] Diseñar el navbar
-- [ ] Page portfolio
-- [ ] Hacer todo en inglés
+- [X] Diseñar el navbar
+- [X] Page portfolio
+- [X] Hacer todo en inglés
 - [ ] Descargar tipografía
 - [ ] Diseñar carrousel
-- [ ] Instalar de GSAP
+- [X] Instalar de GSAP
+
+Utilizar solo Astro, Tailwind CSS y GSAP
 
 ## ✨ Features
 
@@ -84,22 +86,6 @@ The main landing section with a headline, subtitle, and call-to-action button.
   subtitle="Your custom subtitle"
   ctaText="Get Started"
   ctaLink="#portfolio"
-/>
-```
-
-### Services
-
-Showcase your services with icons and descriptions.
-
-```astro
-<Services 
-  services={[
-    {
-      title: "Service Name",
-      description: "Service description",
-      icon: "M7 21a4 4 0..." // SVG path data
-    }
-  ]}
 />
 ```
 
@@ -214,5 +200,6 @@ This project is open source and available under the [MIT License](LICENSE).
 
 - Built with [Astro](https://astro.build/)
 - Styled with [Tailwind CSS](https://tailwindcss.com/)
+- Animations with [GSAP](https://gsap.com/)
 - Icons from [Heroicons](https://heroicons.com/)\
 **Made with ❤️ for the creative community**
