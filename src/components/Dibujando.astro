@@ -1,0 +1,32 @@
+<section>
+    <svg viewBox="0 0 400 200" xmlns="http://www.w3.org/2000/svg" class="firma">
+        <path
+            d="M20 100 Q 120 20 220 100 T 380 100"
+            fill="none"
+            stroke="black"
+            stroke-width="2"></path>
+    </svg>
+
+    <script>
+        import { gsap } from "gsap"
+        import { DrawSVGPlugin } from "gsap/DrawSVGPlugin"
+
+        gsap.registerPlugin(DrawSVGPlugin)
+        const path = document.querySelector("path")
+        const length = path?.getTotalLength()
+
+        // Inicializar el path "oculto"
+        if (path && length) {
+            path.style.strokeDasharray = length.toString()
+            path.style.strokeDashoffset = length.toString()
+        }
+
+        // Animar la firma
+        gsap.to(path, {
+            strokeDashoffset: 0,
+            duration: 3,
+            ease: "power1.inOut",
+            delay: 0.5,
+        })
+    </script>
+</section>
