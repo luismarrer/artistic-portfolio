@@ -4,9 +4,11 @@ A beautiful, minimal, and fully responsive portfolio template built with Astro a
 
 ## TODO
 
-- [ ] Arreglar linea del footer
 - [ ] Descargar tipografía
-- [ ] Diseñar carrousel
+- [ ] Tranformar tipografía a woff2
+- [ ] Hacer páginas de proyectos individuales
+- [ ] Arreglar animaciónes
+- [ ] Pensar en otro nombre
 
 Utilizar solo Astro, Tailwind CSS y GSAP
 
