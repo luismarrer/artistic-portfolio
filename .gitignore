@@ -3,3 +3,6 @@ dist/
 .DS_Store
 .env
 .astro/
+# npm lockfile (not needed with pnpm)
+package-lock.json
+
