@@ -3,7 +3,7 @@
 
 @font-face {
     font-family: "Mansalva";
-    src: url("./fonts/Mansalva/Mansalva-Regular.woff2") format("woff2");
+    src: url("/fonts/Mansalva/Mansalva-Regular.woff2") format("woff2");
     font-weight: normal;
     font-style: normal;
     font-display: swap;
@@ -11,7 +11,7 @@
 
 @font-face {
     font-family: "Josefin Sans";
-    src: url("./fonts/Josefin_Sans/JosefinSans-Regular.woff2") format("woff2");
+    src: url("/fonts/Josefin_Sans/JosefinSans-Regular.woff2") format("woff2");
     font-weight: normal;
     font-style: normal;
     font-display: swap;
@@ -19,7 +19,7 @@
 
 @font-face {
     font-family: "Josefin Sans";
-    src: url("./fonts/Josefin_Sans/JosefinSans-Italic.woff2") format("woff2");
+    src: url("/fonts/Josefin_Sans/JosefinSans-Italic.woff2") format("woff2");
     font-weight: normal;
     font-style: italic;
     font-display: swap;
@@ -27,7 +27,7 @@
 
 @font-face {
     font-family: "Josefin Sans";
-    src: url("./fonts/Josefin_Sans/JosefinSans-Bold.woff2") format("woff2");
+    src: url("/fonts/Josefin_Sans/JosefinSans-Bold.woff2") format("woff2");
     font-weight: bold;
     font-style: normal;
     font-display: swap;
@@ -35,7 +35,7 @@
 
 @font-face {
     font-family: "Josefin Sans";
-    src: url("./fonts/Josefin_Sans/JosefinSans-BoldItalic.woff2") format("woff2");
+    src: url("/fonts/Josefin_Sans/JosefinSans-BoldItalic.woff2") format("woff2");
     font-weight: bold;
     font-style: italic;
     font-display: swap;
@@ -43,7 +43,7 @@
 
 @font-face {
     font-family: "Josefin Sans";
-    src: url("./fonts/Josefin_Sans/JosefinSans-SemiBold.woff2") format("woff2");
+    src: url("/fonts/Josefin_Sans/JosefinSans-SemiBold.woff2") format("woff2");
     font-weight: semibold;
     font-style: normal;
     font-display: swap;
@@ -51,7 +51,7 @@
 
 @font-face {
     font-family: "Josefin Sans";
-    src: url("./fonts/Josefin_Sans/JosefinSans-SemiBoldItalic.woff2") format("woff2");
+    src: url("/fonts/Josefin_Sans/JosefinSans-SemiBoldItalic.woff2") format("woff2");
     font-weight: semibold;
     font-style: italic;
     font-display: swap;
