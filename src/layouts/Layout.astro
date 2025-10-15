@@ -17,8 +17,38 @@ const {
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="description" content={description} />
+    <title>{title}</title>
     <meta name="viewport" content="width=device-width" />
+    <meta name="description" content={description} />
+    <!-- Fonts -->
+    <link
+      rel="preload"
+      href="/fonts/Mansalva/Mansalva-Regular.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin="anonymous"
+    />
+    <link
+      rel="preload"
+      href="/fonts/Josefin_Sans/JosefinSans-Regular.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin="anonymous"
+    />
+    <link
+      rel="preload"
+      href="/fonts/Josefin_Sans/JosefinSans-Bold.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin="anonymous"
+    />
+    <link
+      rel="preload"
+      href="/fonts/Josefin_Sans/JosefinSans-SemiBold.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin="anonymous"
+    />
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -26,7 +56,6 @@ const {
     <meta name="apple-mobile-web-app-title" content="Musea Art" />
     <link rel="manifest" href="/site.webmanifest" />
     <meta name="generator" content={Astro.generator} />
-    <title>{title}</title>
   </head>
   <body class="bg-white text-gray-900 font-sans antialiased">
     <Header />

@@ -11,8 +11,8 @@ Musea Art is a fully responsive portfolio template built with Astro and Tailwind
 - [X] Agregar tipografía a proyecto
 - [X] Pensar en otro nombre: Musea Art
 - [X] Pensar el h1
-- [ ] Mirar el keep scrolling
-- [ ] Cambiar favicon
+- [X] Mirar el keep scrolling
+- [X] Cambiar favicon
 - [ ] Hacer páginas de proyectos individuales
 - [ ] Pensar en el contenido de los proyectos
 - [ ] Conseguir las ilustraciones de cada proyecto
