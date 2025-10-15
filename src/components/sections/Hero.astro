@@ -1,3 +1,7 @@
+---
+import KeepScrolling from "@/assets/keep-scrolling.svg"
+---
+
 <section
     class="relative
             min-h-screen
@@ -11,10 +15,11 @@
             grid-background"
 >
     <div class="z-10 flex flex-col items-center max-w-4xl mx-auto">
-        <h1 class="text-6xl md:text-8xl font-bold text-[#F9FAFB] leading-tight">
-            Ideas Visualized
+        <h1 class="text-6xl md:text-7xl font-bold text-[#F9FAFB] leading-tight">
+            Turn Your Ideas Into Art
         </h1>
-        <button
+        <a
+            href="#projects"
             class="mt-10
                 bg-[#B22222]
                 text-[#FFFDD0]
@@ -30,63 +35,36 @@
                 duration-300
                 text-lg"
         >
-            Start Brainstorming
-        </button>
+            See my recent works
+        </a>
     </div>
-    <div class="scroll-indicator">↓</div>
-</section>
+    <KeepScrolling
+        class="absolute bottom-3 right-0 left-0 mx-auto text-[#F9FAFB] drop-shadow-2xl animate-pulse"
+    />
 
-<style>
-    body {
-        background-image: linear-gradient(to bottom right, #ffdac1, #e57373);
-        background-size: 100% 100%;
-        background: linear-gradient(to bottom, #f3ac9e 0%, #ffeaca 100%);
-        box-shadow: 0 40px 60px -20px rgba(243, 172, 158, 0.5) inset;
-    }
-    .grid-background {
-        background-image: linear-gradient(
-                to right,
-                rgba(178, 34, 34, 0.2) 1px,
-                transparent 1px
-            ),
-            linear-gradient(
-                to bottom,
-                rgba(178, 34, 34, 0.2) 1px,
-                transparent 1px
+    <style>
+        body {
+            background-image: linear-gradient(
+                to bottom right,
+                #ffdac1,
+                #e57373
             );
-        background-size: 35px 35px;
-    }
-    .animate-bounce-slow {
-        animation: bounce-slow 2s infinite;
-    }
-    @keyframes bounce-slow {
-        0%,
-        100% {
-            transform: translateY(-15%);
-            animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+            background-size: 100% 100%;
+            background: linear-gradient(to bottom, #f3ac9e 0%, #ffeaca 100%);
+            box-shadow: 0 40px 60px -20px rgba(243, 172, 158, 0.5) inset;
         }
-        50% {
-            transform: translateY(0);
-            animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+        .grid-background {
+            background-image: linear-gradient(
+                    to right,
+                    rgba(178, 34, 34, 0.2) 1px,
+                    transparent 1px
+                ),
+                linear-gradient(
+                    to bottom,
+                    rgba(178, 34, 34, 0.2) 1px,
+                    transparent 1px
+                );
+            background-size: 35px 35px;
         }
-    }
-    .scroll-indicator {
-        position: absolute;
-        bottom: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        font-size: 24px;
-        color: #fff;
-        font-weight: bold;
-        animation: scroll-indicator 2s infinite;
-    }
-    @keyframes scroll-indicator {
-        0%,
-        100% {
-            opacity: 1;
-        }
-        50% {
-            opacity: 0;
-        }
-    }
-</style>
+    </style>
+</section>
