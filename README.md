@@ -1,14 +1,22 @@
-# Artistic Portfolio Template
+# Artistic Portfolio Example
 
-A beautiful, minimal, and fully responsive portfolio template built with Astro and Tailwind CSS. Perfect for artists, designers, photographers, and creative professionals to showcase their work.
+Musea Art is a fully responsive portfolio template built with Astro and Tailwind CSS. Perfect for artists, designers, photographers, and creative professionals to showcase their work.
 
 ## TODO
 
-- [ ] Descargar tipografía
-- [ ] Tranformar tipografía a woff2
+- [X] Se eligieron las tipografías: Josefin Sans y Mansalva
+- [X] Descargar tipografía
+- [X] Tranformar tipografía a woff2
+- [X] Agregar tipografía a Tailwind
+- [X] Agregar tipografía a proyecto
+- [X] Pensar en otro nombre: Musea Art
+- [X] Pensar el h1
+- [ ] Mirar el keep scrolling
+- [ ] Cambiar favicon
 - [ ] Hacer páginas de proyectos individuales
+- [ ] Pensar en el contenido de los proyectos
+- [ ] Conseguir las ilustraciones de cada proyecto
 - [ ] Arreglar animaciónes
-- [ ] Pensar en otro nombre
 
 Utilizar solo Astro, Tailwind CSS y GSAP
 
