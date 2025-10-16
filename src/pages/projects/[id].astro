@@ -1,0 +1,25 @@
+---
+import type { GetStaticPaths } from "astro"
+import Layout from "@/layouts/Layout.astro"
+import projectsData from "@/data/projects.json"
+
+const { id } = Astro.params
+
+let project
+if (id) {
+    // Find project info with the id from the url
+    project = projectsData.find((project) => project.id === Number(id))
+}
+
+// Generate static paths for each project
+export async function getStaticPaths() {
+    return projectsData.map((project) => ({
+        params: { id: project.id },
+    }))
+}
+---
+
+<Layout>
+    <h1>{project?.title}</h1>
+    <p>{project?.description}</p>
+</Layout>
