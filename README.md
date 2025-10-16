@@ -33,7 +33,7 @@ Utilizar solo Astro, Tailwind CSS y GSAP
 
 ### Prerequisites
 
-- Node.js 18+ and npm
+- Node.js 18+ and pnpm
 
 ### Installation
 
@@ -47,13 +47,13 @@ Utilizar solo Astro, Tailwind CSS y GSAP
 2. **Install dependencies:**
 
     ```bash
-    npm install
+    pnpm install
     ```
 
 3. **Start the development server:**
 
     ```bash
-    npm run dev
+    pnpm dev
     ```
 
 4. **Open your browser** and visit `http://localhost:4321`
@@ -76,7 +76,6 @@ artistic-portfolio/
 │   └── pages/
 │       └── index.astro
 ├── astro.config.mjs
-├── tailwind.config.mjs
 ├── tsconfig.json
 └── package.json
 ```
@@ -139,23 +138,6 @@ Complete footer with navigation links and social media icons.
 
 ## 🛠️ Customization
 
-### Colors & Styling
-
-Edit `tailwind.config.mjs` to customize colors, fonts, and other design tokens:
-
-```js
-theme: {
-  extend: {
-    colors: {
-      // Add your custom colors
-    },
-    fontFamily: {
-      // Add your custom fonts
-    },
-  },
-}
-```
-
 ### Content
 
 All components accept props for easy customization. Edit `src/pages/index.astro` to modify the content and pass custom props to components.
@@ -169,7 +151,7 @@ All components accept props for easy customization. Edit `src/pages/index.astro`
 ## 📦 Building for Production
 
 ```bash
-npm run build
+pnpm build
 ```
 
 The built site will be in the `dist/` directory, ready to be deployed to any static hosting service.
@@ -180,8 +162,6 @@ This template can be deployed to:
 
 - [Vercel](https://vercel.com/)
 - [Netlify](https://netlify.com/)
-- [GitHub Pages](https://pages.github.com/)
-- [Cloudflare Pages](https://pages.cloudflare.com/)
 - Any static hosting service
 
 ## 📱 Mobile Responsiveness
@@ -192,8 +172,6 @@ The template is fully responsive with:
 - Responsive grid layouts
 - Touch-friendly interactive elements
 - Optimized images for different screen sizes
-
-![Mobile View](https://github.com/user-attachments/assets/83458363-5d24-4ebd-9474-113ddf74462b)
 
 ## 🤝 Contributing
 
