@@ -1,88 +1,97 @@
 ---
 import Section from "@/components/Section.astro"
+
+const aboutData = {
+  section: {
+    title: "About Me",
+    description:
+      "Digital artist and creative designer with a passion for transforming ideas into unique visual experiences",
+    id: "about",
+  },
+  image: {
+    src: "https://lh3.googleusercontent.com/aida-public/AB6AXuBI7q19WxSAaP53ivnyXPffjKUajIGNK6sobybmMBSLRhGYLWc-lZNo5XDjDPmYKDztD0Hyq1-n9OA6iwVmpudeyxJNTnq7RbdhjQ2CCsEET-0YnwHjmFOgApAo3zsULFoPGMhYVmGprWbQchH5aebIh0y1a7Y-HH9qDKFguO94HJHtOYvUQ4eYPmi1YqyMs-wBfU97VLsLlO3TjtoihLCTdFC1HEe-TltHuiG1c7htL4UImypQYZKzbl7Wi7zSJC04UIRuNCU95eF_",
+    alt: "Sketch-style portrait of the artist",
+  },
+  bio: {
+    heading: "Creating Digital Art Since 2020",
+    paragraphs: [
+      "I'm an artist passionate about the fusion between traditional art and new digital technologies. My work focuses on creating visual experiences that tell stories and connect with the viewer's emotions.",
+      "With experience in graphic design, digital illustration, and creative direction, I've collaborated with various clients to bring their visions to life through art.",
+    ],
+  },
+  skills: [
+    "Digital Illustration",
+    "Graphic Design",
+    "SEO",
+    "Animations",
+    "UI/UX Design",
+    "Conceptual Art",
+  ],
+  stats: [
+    { value: "35+", label: "Projects" },
+    { value: "30+", label: "Clients" },
+    { value: "4+", label: "Years" },
+  ],
+}
 ---
 
 <Section
-  title="About Me"
-  description="Digital artist and creative designer with a passion for transforming ideas into unique visual experiences"
-  id="about"
+  title={aboutData.section.title}
+  description={aboutData.section.description}
+  id={aboutData.section.id}
 >
-  <article
-    class="max-w-6xl mx-auto grid md:grid-cols-2 gap-12 items-center px-4"
-  >
-    <!-- Profile image -->
-    <div class="md:w-1/2">
+  <article class="max-w-6xl mx-auto gap-6 grid md:grid-cols-2 items-center">
+    <!-- Image -->
+    <div class="max-w-50 mx-auto md:min-w-96">
       <img
-        class="rounded-xl shadow-lg w-full max-w-md mx-auto"
-        data-alt="Sketch-style portrait of the artist"
-        src="https://lh3.googleusercontent.com/aida-public/AB6AXuBI7q19WxSAaP53ivnyXPffjKUajIGNK6sobybmMBSLRhGYLWc-lZNo5XDjDPmYKDztD0Hyq1-n9OA6iwVmpudeyxJNTnq7RbdhjQ2CCsEET-0YnwHjmFOgApAo3zsULFoPGMhYVmGprWbQchH5aebIh0y1a7Y-HH9qDKFguO94HJHtOYvUQ4eYPmi1YqyMs-wBfU97VLsLlO3TjtoihLCTdFC1HEe-TltHuiG1c7htL4UImypQYZKzbl7Wi7zSJC04UIRuNCU95eF_"
+        class="rounded-xl shadow-lg"
+        data-alt={aboutData.image.alt}
+        src={aboutData.image.src}
         style="border: 10px solid white; transform: rotate(-3deg);"
       />
     </div>
 
-    <!-- Bio content -->
+    <!-- Bio -->
     <div class="space-y-6">
-      <h3 class="text-3xl font-bold text-gray-800">
-        Creating Digital Art Since 2020
+      <h3 class="text-3xl font-bold text-gray-800 text-center md:text-left">
+        {aboutData.bio.heading}
       </h3>
 
-      <p class="text-gray-700 leading-relaxed">
-        I'm an artist passionate about the fusion between traditional art and
-        new digital technologies. My work focuses on creating visual experiences
-        that tell stories and connect with the viewer's emotions.
-      </p>
-
-      <p class="text-gray-700 leading-relaxed">
-        With experience in graphic design, digital illustration, and creative
-        direction, I've collaborated with various clients to bring their visions
-        to life through art.
-      </p>
+      {
+        aboutData.bio.paragraphs.map((paragraph) => (
+          <p class="text-gray-700 leading-relaxed">{paragraph}</p>
+        ))
+      }
 
       <!-- Skills -->
       <div class="pt-4">
-        <h4 class="text-xl font-semibold text-gray-800 mb-4">Main Skills</h4>
+        <h4
+          class="text-xl font-semibold text-gray-800 mb-4 text-center md:text-left"
+        >
+          Main Skills
+        </h4>
         <ul class="grid grid-cols-2 gap-3">
-          <li class="flex items-center gap-2 text-gray-700">
-            <span class="w-2 h-2 bg-[#B22222] rounded-full"></span>
-            Digital Illustration
-          </li>
-          <li class="flex items-center gap-2 text-gray-700">
-            <span class="w-2 h-2 bg-[#B22222] rounded-full"></span>
-            Graphic Design
-          </li>
-          <li class="flex items-center gap-2 text-gray-700">
-            <span class="w-2 h-2 bg-[#B22222] rounded-full"></span>
-            Creative Direction
-          </li>
-          <li class="flex items-center gap-2 text-gray-700">
-            <span class="w-2 h-2 bg-[#B22222] rounded-full"></span>
-            Branding
-          </li>
-          <li class="flex items-center gap-2 text-gray-700">
-            <span class="w-2 h-2 bg-[#B22222] rounded-full"></span>
-            UI/UX Design
-          </li>
-          <li class="flex items-center gap-2 text-gray-700">
-            <span class="w-2 h-2 bg-[#B22222] rounded-full"></span>
-            Conceptual Art
-          </li>
+          {
+            aboutData.skills.map((skill) => (
+              <li class="flex items-center gap-2 text-gray-700">
+                <span class="w-2 h-2 bg-[#B22222] rounded-full" />
+                {skill}
+              </li>
+            ))
+          }
         </ul>
       </div>
 
       <!-- Statistics -->
       <div class="grid grid-cols-3 gap-4 pt-6 border-t border-gray-300">
-        <div class="text-center">
-          <div class="text-3xl font-bold text-[#B22222]">50+</div>
-          <div class="text-sm text-gray-600">Projects</div>
-        </div>
-        <div class="text-center">
-          <div class="text-3xl font-bold text-[#B22222]">30+</div>
-          <div class="text-sm text-gray-600">Clients</div>
-        </div>
-        <div class="text-center">
-          <div class="text-3xl font-bold text-[#B22222]">4+</div>
-          <div class="text-sm text-gray-600">Years</div>
-        </div>
+        {
+          aboutData.stats.map((stat) => (
+            <div class="text-center">
+              <div class="text-3xl font-bold text-[#B22222]">{stat.value}</div>
+              <div class="text-sm text-gray-600">{stat.label}</div>
+            </div>
+          ))
+        }
       </div>
     </div>
   </article>

@@ -117,8 +117,8 @@
                 // Animar todos los paths del SVG simultáneamente
                 gsap.to(path, {
                     strokeDashoffset: 0,
-                    duration: 3,
-                    ease: "power4.out",
+                    duration: 10,
+                    ease: "power4.inOut",
                     onComplete: () => {
                         // Restaurar el fill al finalizar la animación
                         // Todos los paths excepto "Combined-Shape" tendrán fill #000
@@ -130,7 +130,7 @@
                         }
                         gsap.to(path, {
                             fillOpacity: 1,
-                            duration: 1,
+                            duration: 4,
                         })
                     },
                 })
