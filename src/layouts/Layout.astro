@@ -1,6 +1,7 @@
 ---
 import Header from "@/components/Header.astro"
 import "@/global.css"
+import Analytics from "@vercel/analytics/astro"
 
 interface Props {
   title?: string
@@ -62,5 +63,6 @@ const {
     <main class="relative">
       <slot />
     </main>
+    <Analytics />
   </body>
 </html>
