@@ -1,6 +1,9 @@
 ---
 import Section from "@/components/Section.astro"
 import projectsData from "@/data/projects.json"
+import Reportage from "@/components/svgs/Reportage.astro"
+import Connected from "@/components/svgs/Connected.astro"
+import Grown from "@/components/svgs/Grown.astro"
 
 interface PortfolioItem {
   title: string
@@ -8,6 +11,12 @@ interface PortfolioItem {
   image: string
   description: string
   id: number
+}
+
+const componentMap = {
+  Reportage,
+  Connected,
+  Grown,
 }
 
 interface Props {
@@ -22,30 +31,30 @@ const { items = projectsData as PortfolioItem[] } = Astro.props
   description="A collection of my recent creative work and projects"
   id="projects"
 >
-  <div
-    class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mx-auto container"
-  >
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mx-auto container">
     {
-      items.map(({ id, title, category, image, description }) => (
-        <a href={`/projects/${id}`}>
-          <article class="group relative overflow-hidden rounded-xl duration-300">
-            <div class="aspect-[4/3] overflow-hidden">
-              <img
-                src={image}
-                alt={title}
-                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-              />
-            </div>
-            <div class="p-6">
-              <span class="text-sm text-slate-600 font-medium">{category}</span>
-              <h3 class="text-xl font-semibold mt-2 mb-2 text-gray-900">
-                {title}
-              </h3>
-              <p class="text-gray-600">{description}</p>
-            </div>
-          </article>
-        </a>
-      ))
+      items.map(({ id, title, category, image, description }) => {
+        const SvgComponent = componentMap[image as keyof typeof componentMap]
+        return (
+          <a
+            href={`/projects/${id}`}
+            class="hover:scale-105 transition-transform duration-300"
+          >
+            <article class="flex flex-col items-center gap-4 h-full">
+              <div class="w-64 flex-1 flex items-center justify-center">
+                {SvgComponent && <SvgComponent />}
+              </div>
+              <div class="mt-auto">
+                <span class="text-sm text-slate-600 font-medium">
+                  {category}
+                </span>
+                <h3 class="text-xl font-semibold text-gray-900">{title}</h3>
+                <p class="text-gray-600">{description}</p>
+              </div>
+            </article>
+          </a>
+        )
+      })
     }
   </div>
 </Section>
