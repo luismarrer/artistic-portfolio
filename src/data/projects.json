@@ -1,23 +1,23 @@
 [
     {
-      "title": "Abstract Composition",
-      "category": "Digital Art",
-      "image": "https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=800&h=600&fit=crop",
-      "description": "A vibrant exploration of color and form",
+      "title": "Reportage",
+      "category": "Visual Art",
+      "image": "Reportage",
+      "description": "A visual exploration of justice and social equity through documentary photography and storytelling, capturing the voices and experiences of communities in their pursuit of fair treatment and systemic change",
       "id": 1
     },
     {
-      "title": "Minimalist Series",
+      "title": "Research",
       "category": "Design",
-      "image": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=600&fit=crop",
-      "description": "Clean lines and purposeful simplicity",
+      "image": "Connected",
+      "description": "Designing innovative collaborative networks and systems that foster humanitarian values, creating meaningful connections and empowering communities through human-centered design approaches",
       "id": 2
     },
     {
-      "title": "Urban Landscapes",
-      "category": "Photography",
-      "image": "https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?w=800&h=600&fit=crop",
-      "description": "Capturing the essence of city life",
+      "title": "Documentation",
+      "category": "Illustration",
+      "image": "Grown",
+      "description": "Illustrating and documenting the challenges and opportunities within egalitarian growth processes, highlighting the diverse needs of communities working towards inclusive and equitable development",
       "id": 3
     }
-  ]
+]
