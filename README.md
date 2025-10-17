@@ -4,19 +4,17 @@ Musea Art is a fully responsive portfolio template built with Astro and Tailwind
 
 ## TODO
 
-- [X] Se eligieron las tipografías: Josefin Sans y Mansalva
-- [X] Descargar tipografía
-- [X] Tranformar tipografía a woff2
-- [X] Agregar tipografía a Tailwind
-- [X] Agregar tipografía a proyecto
-- [X] Pensar en otro nombre: Musea Art
-- [X] Pensar el h1
-- [X] Mirar el keep scrolling
-- [X] Cambiar favicon
-- [ ] Hacer páginas de proyectos individuales
-- [ ] Pensar en el contenido de los proyectos
-- [ ] Conseguir las ilustraciones de cada proyecto
+- [X] Hacer páginas de proyectos individuales
+- [X] Pensar en el contenido de los proyectos
+- [X] Conseguir las ilustraciones de cada proyecto
+- [X] Hacer diseño de la página de proyectos
+- [ ] Hacer la animación del marcador bajando a la sección de proyectos cuando se hace click en el botón
+- [ ] Hacer la animación de la firma
+- [ ] Hacer que el formulario de contacto funcione
+- [X] Hacer que la página contacto funcione
+- [X] Diseño de la página de portfolio
 - [ ] Arreglar animaciónes
+- [ ] Mejorar footer
 
 Utilizar solo Astro, Tailwind CSS y GSAP
 
