@@ -1,0 +1,54 @@
+---
+interface CollageImage {
+  src: string
+  alt: string
+  caption?: string
+  size?: "small" | "medium" | "large"
+}
+
+interface Props {
+  images: CollageImage[]
+  columns?: number
+}
+
+const { images, columns = 3 } = Astro.props
+
+// Group images by size for better layout
+const getGridClass = (size?: string) => {
+  switch (size) {
+    case "large":
+      return "col-span-2 row-span-2"
+    case "medium":
+      return "col-span-1 row-span-2"
+    case "small":
+    default:
+      return "col-span-1 row-span-1"
+  }
+}
+---
+
+<section class="container mx-auto px-6 py-12 md:py-20">
+  <div
+    class={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-${columns} gap-4 md:gap-6 auto-rows-[200px]`}
+  >
+    {
+      images.map((image) => (
+        <article
+          class={`group relative overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 ${getGridClass(image.size)}`}
+        >
+          <img
+            src={image.src}
+            alt={image.alt}
+            class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+            loading="lazy"
+          />
+          {image.caption && (
+            <figcaption class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <p class="text-sm md:text-base">{image.caption}</p>
+            </figcaption>
+          )}
+        </article>
+      ))
+    }
+  </div>
+</section>
