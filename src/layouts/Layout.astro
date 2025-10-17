@@ -1,16 +1,19 @@
 ---
-import Header from "@/components/Header.astro"
+import Header from "@/components/sections/Header.astro"
 import "@/global.css"
+import { ClientRouter } from "astro:transitions" // Before this ViewTransitions
 import Analytics from "@vercel/analytics/astro"
 
 interface Props {
   title?: string
   description?: string
+  class?: string
 }
 
 const {
   title = "Artistic Portfolio",
   description = "Showcase your creative work with style",
+  class: className,
 } = Astro.props
 ---
 
@@ -57,12 +60,10 @@ const {
     <meta name="apple-mobile-web-app-title" content="Musea Art" />
     <link rel="manifest" href="/site.webmanifest" />
     <meta name="generator" content={Astro.generator} />
+    <ClientRouter />
   </head>
   <body class="bg-white text-gray-900 font-sans antialiased">
     <Header />
-    <main class="relative">
-      <slot />
-    </main>
-    <Analytics />
-  </body>
+    <main class={`relative ${className}`}><slot /></main>
+  </body><Analytics />
 </html>
