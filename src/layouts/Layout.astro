@@ -64,6 +64,9 @@ const {
   </head>
   <body class="bg-white text-gray-900 font-sans antialiased">
     <Header />
-    <main class={`relative ${className}`}><slot /></main>
-  </body><Analytics />
+    <main class={`relative ${className}`}>
+      <slot />
+    </main>
+    <Analytics />
+  </body>
 </html>
