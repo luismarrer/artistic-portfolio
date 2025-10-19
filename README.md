@@ -10,7 +10,7 @@ Musea Art is a fully responsive portfolio template built with Astro and Tailwind
 - [X] Hacer diseño de la página de proyectos
 - [ ] Hacer la animación del marcador bajando a la sección de proyectos cuando se hace click en el botón
 - [ ] Hacer la animación de la firma
-- [ ] Hacer que el formulario de contacto funcione
+- [X] Hacer que el formulario de contacto funcione: Mike lo trabajo
 - [X] Hacer que la página contacto funcione
 - [X] Diseño de la página de portfolio
 - [ ] Arreglar animaciónes
