@@ -3,9 +3,10 @@ const startX = "657"
 const startY = "380"
 const start = `M ${startX} ${startY}`
 let line = `${start} V 386.9862 C 653 433 613 450 621 412 C 654 290 748.75 1580.7238 770.25 1218.9575 S 731.7917 1361.4163 742 1296 S 614.25 1328.0038 440 1265 C 323 1283 370 1327 417 1340`
+const scriptPath = "/js/leader-line.min.js" // el que pusiste en public/js/
 ---
 
-<svg
+<!-- <svg
     id="marker-line"
     width="100%"
     height="2000"
@@ -43,8 +44,7 @@ let line = `${start} V 386.9862 C 653 433 613 450 621 412 C 654 290 748.75 1580.
         fill="#B22222"
         opacity="0">></text
     >
-</svg>
-
+</svg> -->
 <script>
     import { gsap } from "gsap"
     import { ScrollToPlugin } from "gsap/ScrollToPlugin"
@@ -107,13 +107,6 @@ let line = `${start} V 386.9862 C 653 433 613 450 621 412 C 654 290 748.75 1580.
         gsap.to(window, {
             duration: 7,
             scrollTo: "#projects",
-            ease: "power2.inOut",
-        })
-
-        // Draw marker line
-        gsap.to(path, {
-            strokeDashoffset: 0,
-            duration: 7,
             ease: "none",
         })
 
@@ -125,3 +118,61 @@ let line = `${start} V 386.9862 C 653 433 613 450 621 412 C 654 290 748.75 1580.
         })
     })
 </script>
+<!-- Importas el script directamente desde /public -->
+<script src={scriptPath} is:inline></script>
+
+<script is:inline>
+    // Espera a que el DOM esté listo
+
+    window.addEventListener("DOMContentLoaded", () => {
+        const start = document.getElementById("start")
+        const target = document.getElementById("projects")
+
+        // Crea la línea
+        const line = new LeaderLine(start, target, {
+            color: "#ff0000",
+            size: 7,
+            path: "fluid",
+            startPlug: "disc",
+            endPlug: "arrow2",
+            endPlugSize: 1.5,
+            hide: true,
+        })
+
+        const button = document.querySelector("a[href='#projects']")
+
+        button?.addEventListener("click", (e) => {
+            line.show("draw", {
+                duration: 3000,
+                timing: "ease-in",
+            })
+        })
+
+        // Draw marker line
+        gsap.to(line, {
+            strokeDashoffset: 0,
+            duration: 7,
+            ease: "none",
+        })
+
+        // Corrige posición si se redimensiona
+        window.addEventListener("resize", () => line.position())
+    })
+</script>
+
+<style>
+    .leaderline-test {
+        height: 100vh;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+    }
+    button,
+    #target {
+        padding: 1rem 2rem;
+        border: 2px solid #ff0000;
+        border-radius: 8px;
+        background: white;
+        cursor: pointer;
+    }
+</style>
