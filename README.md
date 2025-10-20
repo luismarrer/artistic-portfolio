@@ -18,14 +18,15 @@ Musea Art is a fully responsive portfolio template built with Astro and Tailwind
 
 Utilizar solo Astro, Tailwind CSS y GSAP
 
+## Design
+
+[Design](https://www.figma.com/design/QRa4rBb9uLO4gufnYdf8ip/Musea-Art?node-id=0-1&p=f&t=b9YelKxc1OA5CFsB-0)
+
 ## ✨ Features
 
-- 🎨 **Clean & Minimal Design** - Focus on your work with a distraction-free layout
 - 📱 **Fully Responsive** - Looks great on all devices from mobile to desktop
 - ⚡ **Fast Performance** - Built with Astro for optimal loading speeds
 - 🎯 **SEO Friendly** - Optimized for search engines
-- 🔧 **Easy to Customize** - Well-organized components and clear code structure
-- 🎭 **Ready-to-use Components** - Hero, Services, Portfolio Gallery, Contact Form, and Footer
 
 ## 🚀 Quick Start
 
