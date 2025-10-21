@@ -13,7 +13,7 @@ Musea Art is a fully responsive portfolio template built with Astro and Tailwind
 - [X] Hacer que el formulario de contacto funcione: Mike lo trabajo
 - [X] Hacer que la página contacto funcione
 - [X] Diseño de la página de portfolio
-- [ ] Arreglar animaciónes
+- [ ] Arreglar animaciones
 - [ ] Mejorar footer
 
 Utilizar solo Astro, Tailwind CSS y GSAP
@@ -56,84 +56,6 @@ Utilizar solo Astro, Tailwind CSS y GSAP
 
 4. **Open your browser** and visit `http://localhost:4321`
 
-## 📁 Project Structure
-
-```bash
-artistic-portfolio/
-├── public/
-│   └── favicon.svg
-├── src/
-│   ├── components/
-│   │   ├── Hero.astro
-│   │   ├── Services.astro
-│   │   ├── PortfolioGallery.astro
-│   │   ├── Contact.astro
-│   │   └── Footer.astro
-│   ├── layouts/
-│   │   └── BaseLayout.astro
-│   └── pages/
-│       └── index.astro
-├── astro.config.mjs
-├── tsconfig.json
-└── package.json
-```
-
-## 🎨 Components
-
-### Hero
-
-The main landing section with a headline, subtitle, and call-to-action button.
-
-```astro
-<Hero 
-  title="Your Custom Title"
-  subtitle="Your custom subtitle"
-  ctaText="Get Started"
-  ctaLink="#portfolio"
-/>
-```
-
-### Portfolio Gallery
-
-Display your work in a responsive grid layout.
-
-```astro
-<PortfolioGallery 
-  items={[
-    {
-      title: "Project Title",
-      category: "Category",
-      image: "/path/to/image.jpg",
-      description: "Project description"
-    }
-  ]}
-/>
-```
-
-### Contact Form
-
-A ready-to-use contact form (you'll need to set up the backend endpoint).
-
-```astro
-<Contact 
-  title="Get In Touch"
-  subtitle="Let's work together"
-/>
-```
-
-### Footer
-
-Complete footer with navigation links and social media icons.
-
-```astro
-<Footer 
-  siteName="Your Site Name"
-  socialLinks={[
-    { name: "GitHub", url: "https://github.com", icon: "..." }
-  ]}
-/>
-```
-
 ## 🛠️ Customization
 
 ### Content
@@ -175,14 +97,12 @@ The template is fully responsive with:
 
 Contributions, issues, and feature requests are welcome! Feel free to check the [issues page](https://github.com/luismarrer/artistic-portfolio/issues).
 
-## 📄 License
-
-This project is open source and available under the [MIT License](LICENSE).
-
-## 🙏 Acknowledgments
+## 🚀 Tech Stack
 
 - Built with [Astro](https://astro.build/)
 - Styled with [Tailwind CSS](https://tailwindcss.com/)
-- Animations with [GSAP](https://gsap.com/)
-- Icons from [Heroicons](https://heroicons.com/)\
-**Made with ❤️ for the creative community**
+- GSAP for animations
+  
+## 📄 License
+
+This project is open source and available under the [MIT License](LICENSE).
