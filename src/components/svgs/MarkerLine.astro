@@ -1,0 +1,178 @@
+---
+const startX = "657"
+const startY = "380"
+const start = `M ${startX} ${startY}`
+let line = `${start} V 386.9862 C 653 433 613 450 621 412 C 654 290 748.75 1580.7238 770.25 1218.9575 S 731.7917 1361.4163 742 1296 S 614.25 1328.0038 440 1265 C 323 1283 370 1327 417 1340`
+const scriptPath = "/js/leader-line.min.js" // el que pusiste en public/js/
+---
+
+<!-- <svg
+    id="marker-line"
+    width="100%"
+    height="2000"
+    viewBox="0 0 1200 2000"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    class="absolute top-0 left-0 w-full h-full pointer-events-none"
+>
+    <defs>
+        <filter id="marker-texture">
+            <feTurbulence
+                type="fractalNoise"
+                baseFrequency="0.9"
+                numOctaves="2"
+                result="noise"></feTurbulence>
+            <feDisplacementMap in="SourceGraphic" in2="noise" scale="2"
+            ></feDisplacementMap>
+        </filter>
+    </defs>
+    <path
+        id="path-line"
+        d={line}
+        stroke="#B22222"
+        stroke-width="4"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-dasharray="2500"
+        stroke-dashoffset="2500"
+        filter="url(#marker-texture)"></path>
+    <text
+        id="arrow-end"
+        x="417"
+        y="1340"
+        font-size="32"
+        fill="#B22222"
+        opacity="0">></text
+    >
+</svg> -->
+<script>
+    import { gsap } from "gsap"
+    import { ScrollToPlugin } from "gsap/ScrollToPlugin"
+    gsap.registerPlugin(ScrollToPlugin)
+
+    const button = document.querySelector(
+        "a[href='#projects']",
+    ) as HTMLAnchorElement
+    const path = document.getElementById("path-line")
+    const arrow = document.getElementById("arrow-end")
+
+    // window.addEventListener("DOMContentLoaded", () => {
+    //     const updatePath = () => {
+    //         // Quiero dibujar una línea desde `button` hasta el elemento con id `projects`
+    //         // El punto de inicio de la línea será la parte inferior del botón
+
+    //         const rect = button.getBoundingClientRect() // Obtenemos el rectángulo del botón
+    //         console.log(rect)
+
+    //         let trayectoria = ""
+    //         const startX = rect.bottom
+    //         const startY = rect.bottom
+
+    //         // const startX = rect.bottom
+    //         // const startY = rect.bottom
+
+    //         // const target = document.getElementById("projects")
+    //         // const targetRect = target?.getBoundingClientRect()
+    //         // const endX = (targetRect?.left || 0) + (targetRect?.width || 0) / 2
+    //         // const endY = (targetRect?.top || 0) + window.scrollY + 100
+
+    //         // const midX = (startX + endX) / 2
+    //         // const midY = (startY + endY) / 2
+
+    //         // const line = `M${startX},${startY} Q${midX},${midY - 200} ${endX},${endY}`
+    //         // path?.setAttribute("d", line)
+
+    //         // arrow?.setAttribute("x", (endX - 10).toString())
+    //         // arrow?.setAttribute("y", (endY + 10).toString())
+    //     }
+
+    //     updatePath()
+
+    //     // button?.addEventListener("click", (e) => {
+    //     //     e.preventDefault()
+
+    //     //     gsap.to(arrow, {
+    //     //         opacity: 1,
+    //     //         scale: 1.3,
+    //     //         delay: 7,
+    //     //         ease: "back.out(1.7)",
+    //     //     })
+    //     // })
+    // })
+
+    button?.addEventListener("click", (e) => {
+        e.preventDefault()
+
+        // Scroll animation to projects
+        gsap.to(window, {
+            duration: 7,
+            scrollTo: "#projects",
+            ease: "none",
+        })
+
+        gsap.to(arrow, {
+            opacity: 1,
+            scale: 1.3,
+            delay: 7,
+            ease: "back.out(1.7)",
+        })
+    })
+</script>
+<!-- Importas el script directamente desde /public -->
+<script src={scriptPath} is:inline></script>
+
+<script is:inline>
+    // Espera a que el DOM esté listo
+
+    window.addEventListener("DOMContentLoaded", () => {
+        const start = document.getElementById("start")
+        const target = document.getElementById("projects")
+
+        // Crea la línea
+        const line = new LeaderLine(start, target, {
+            color: "#ff0000",
+            size: 7,
+            path: "fluid",
+            startPlug: "disc",
+            endPlug: "arrow2",
+            endPlugSize: 1.5,
+            hide: true,
+        })
+
+        const button = document.querySelector("a[href='#projects']")
+
+        button?.addEventListener("click", (e) => {
+            line.show("draw", {
+                duration: 3000,
+                timing: "ease-in",
+            })
+        })
+
+        // Draw marker line
+        gsap.to(line, {
+            strokeDashoffset: 0,
+            duration: 7,
+            ease: "none",
+        })
+
+        // Corrige posición si se redimensiona
+        window.addEventListener("resize", () => line.position())
+    })
+</script>
+
+<style>
+    .leaderline-test {
+        height: 100vh;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+    }
+    button,
+    #target {
+        padding: 1rem 2rem;
+        border: 2px solid #ff0000;
+        border-radius: 8px;
+        background: white;
+        cursor: pointer;
+    }
+</style>

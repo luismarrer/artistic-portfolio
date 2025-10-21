@@ -1,0 +1,102 @@
+---
+import Section from "@/components/Section.astro"
+
+const aboutData = {
+  section: {
+    title: "About Me",
+    description:
+      "Digital artist and creative designer with a passion for transforming ideas into unique visual experiences",
+    id: "about",
+  },
+  image: {
+    src: "/images/profile.png",
+    alt: "Sketch-style portrait of the artist",
+  },
+  bio: {
+    heading: "Creating Digital Art Since 2020",
+    paragraphs: [
+      "I'm an artist passionate about new digital technologies. My work focuses on creating visual experiences that tell stories and connect with the viewer's emotions.",
+      "With experience in graphic design, digital illustration, and creative direction, I've collaborated with various clients to bring their visions to life through art.",
+    ],
+  },
+  skills: [
+    "Digital Illustration",
+    "Graphic Design",
+    "SEO",
+    "Animations",
+    "UI/UX Design",
+    "Conceptual Art",
+  ],
+  stats: [
+    { value: "35+", label: "Projects" },
+    { value: "30+", label: "Clients" },
+    { value: "4+", label: "Years" },
+  ],
+}
+---
+
+<Section
+  title={aboutData.section.title}
+  description={aboutData.section.description}
+  id={aboutData.section.id}
+>
+  <article
+    class="max-w-6xl mx-auto gap-6 md:gap-36 grid md:grid-cols-2 items-center"
+  >
+    <!-- Image -->
+    <div
+      class="max-w-50 mx-auto md:min-w-96 hover:rotate-3 transition-transform duration-300"
+    >
+      <img
+        class="rounded-xl shadow-lg"
+        data-alt={aboutData.image.alt}
+        src={aboutData.image.src}
+        style="border: 10px solid white; transform: rotate(-3deg);"
+      />
+    </div>
+
+    <!-- Bio -->
+    <div class="space-y-6">
+      <h3 class="text-3xl font-bold text-gray-800 text-center md:text-left">
+        {aboutData.bio.heading}
+      </h3>
+
+      {
+        aboutData.bio.paragraphs.map((paragraph) => (
+          <p class="text-gray-700 leading-relaxed">{paragraph}</p>
+        ))
+      }
+
+      <!-- Skills -->
+      <div class="pt-4">
+        <h4
+          class="text-xl font-semibold text-gray-800 mb-4 text-center md:text-left"
+        >
+          Main Skills
+        </h4>
+        <ul class="grid grid-cols-2 gap-3">
+          {
+            aboutData.skills.map((skill) => (
+              <li class="flex items-center gap-2 text-gray-700">
+                <span class="w-2 h-2 bg-[#B22222] rounded-full" />
+                {skill}
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+
+      <!-- Statistics -->
+      <div class="grid grid-cols-3 gap-4 pt-6 border-t border-gray-300">
+        {
+          aboutData.stats.map((stat) => (
+            <div class="text-center">
+              <div class="text-3xl font-bold text-[#B22222]">{stat.value}</div>
+              <div class="text-sm text-gray-600">{stat.label}</div>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </article>
+</Section>

@@ -1,0 +1,60 @@
+---
+import Layout from "@/layouts/Layout.astro"
+import projectsData from "@/data/projects.json"
+import Reportage from "@/components/svgs/Reportage.astro"
+import Connected from "@/components/svgs/Connected.astro"
+import Grown from "@/components/svgs/Grown.astro"
+import Footer from "@/components/sections/Footer.astro"
+import Collage from "@/components/Collage.astro"
+
+const { id } = Astro.params
+
+let project
+if (id) {
+    // Find project info with the id from the url
+    project = projectsData.find((project) => project.id === Number(id))
+}
+
+// Generate static paths for each project
+export async function getStaticPaths() {
+    return projectsData.map((project) => ({
+        params: { id: project.id },
+    }))
+}
+
+const { title, description } = project || {
+    title: "Project",
+    description:
+        "Sorry, the project you are looking has not been found. Please try again later.",
+}
+
+const componentMap = {
+    Reportage,
+    Connected,
+    Grown,
+}
+
+const SvgComponent = componentMap[project?.image as keyof typeof componentMap]
+---
+
+<Layout title={title} description={description}>
+    <section
+        class="flex flex-row items-center justify-center gap-10 md:mt-40 mt-5 sm:mt-20 container mx-auto px-6"
+    >
+        <div class="w-96 sm:w-64">
+            {SvgComponent && <SvgComponent />}
+        </div>
+        <div class="flex flex-col items-center gap-5 h-full">
+            <h1 class="text-2xl md:text-4xl font-bold text-center mt-20">
+                {title}
+            </h1>
+            <p class="text-gray-700 leading-relaxed max-w-prose md:text-2xl">
+                {description}
+            </p>
+        </div>
+    </section>
+    <section>
+        <Collage />
+    </section>
+    <Footer />
+</Layout>

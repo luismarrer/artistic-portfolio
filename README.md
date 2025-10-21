@@ -1,8 +1,22 @@
-# Artistic Portfolio Template
+# Artistic Portfolio Example
 
-A beautiful, minimal, and fully responsive portfolio template built with Astro and Tailwind CSS. Perfect for artists, designers, photographers, and creative professionals to showcase their work.
+Musea Art is a fully responsive portfolio template built with Astro and Tailwind CSS. Perfect for artists, designers, photographers, and creative professionals to showcase their work.
 
-![Desktop View](https://github.com/user-attachments/assets/96228270-1c2a-4fb2-991f-6c96e61c160d)
+## TODO
+
+- [X] Hacer páginas de proyectos individuales
+- [X] Pensar en el contenido de los proyectos
+- [X] Conseguir las ilustraciones de cada proyecto
+- [X] Hacer diseño de la página de proyectos
+- [ ] Hacer la animación del marcador bajando a la sección de proyectos cuando se hace click en el botón
+- [ ] Hacer la animación de la firma
+- [X] Hacer que el formulario de contacto funcione: Mike lo trabajo
+- [X] Hacer que la página contacto funcione
+- [X] Diseño de la página de portfolio
+- [ ] Arreglar animaciónes
+- [ ] Mejorar footer
+
+Utilizar solo Astro, Tailwind CSS y GSAP
 
 ## ✨ Features
 
@@ -17,34 +31,34 @@ A beautiful, minimal, and fully responsive portfolio template built with Astro a
 
 ### Prerequisites
 
-- Node.js 18+ and npm
+- Node.js 18+ and pnpm
 
 ### Installation
 
 1. **Use this template** by clicking the "Use this template" button above, or clone the repository:
 
-```bash
-git clone https://github.com/luismarrer/artistic-portfolio.git
-cd artistic-portfolio
-```
+    ```bash
+    git clone https://github.com/luismarrer/artistic-portfolio.git
+    cd artistic-portfolio
+    ```
 
 2. **Install dependencies:**
 
-```bash
-npm install
-```
+    ```bash
+    pnpm install
+    ```
 
 3. **Start the development server:**
 
-```bash
-npm run dev
-```
+    ```bash
+    pnpm dev
+    ```
 
 4. **Open your browser** and visit `http://localhost:4321`
 
 ## 📁 Project Structure
 
-```
+```bash
 artistic-portfolio/
 ├── public/
 │   └── favicon.svg
@@ -60,7 +74,6 @@ artistic-portfolio/
 │   └── pages/
 │       └── index.astro
 ├── astro.config.mjs
-├── tailwind.config.mjs
 ├── tsconfig.json
 └── package.json
 ```
@@ -68,6 +81,7 @@ artistic-portfolio/
 ## 🎨 Components
 
 ### Hero
+
 The main landing section with a headline, subtitle, and call-to-action button.
 
 ```astro
@@ -79,22 +93,8 @@ The main landing section with a headline, subtitle, and call-to-action button.
 />
 ```
 
-### Services
-Showcase your services with icons and descriptions.
-
-```astro
-<Services 
-  services={[
-    {
-      title: "Service Name",
-      description: "Service description",
-      icon: "M7 21a4 4 0..." // SVG path data
-    }
-  ]}
-/>
-```
-
 ### Portfolio Gallery
+
 Display your work in a responsive grid layout.
 
 ```astro
@@ -111,6 +111,7 @@ Display your work in a responsive grid layout.
 ```
 
 ### Contact Form
+
 A ready-to-use contact form (you'll need to set up the backend endpoint).
 
 ```astro
@@ -121,6 +122,7 @@ A ready-to-use contact form (you'll need to set up the backend endpoint).
 ```
 
 ### Footer
+
 Complete footer with navigation links and social media icons.
 
 ```astro
@@ -134,26 +136,12 @@ Complete footer with navigation links and social media icons.
 
 ## 🛠️ Customization
 
-### Colors & Styling
-Edit `tailwind.config.mjs` to customize colors, fonts, and other design tokens:
-
-```js
-theme: {
-  extend: {
-    colors: {
-      // Add your custom colors
-    },
-    fontFamily: {
-      // Add your custom fonts
-    },
-  },
-}
-```
-
 ### Content
+
 All components accept props for easy customization. Edit `src/pages/index.astro` to modify the content and pass custom props to components.
 
 ### Images
+
 - Replace placeholder images in `PortfolioGallery.astro` with your own
 - Add your favicon to `public/favicon.svg`
 - Place other static assets in the `public/` directory
@@ -161,7 +149,7 @@ All components accept props for easy customization. Edit `src/pages/index.astro`
 ## 📦 Building for Production
 
 ```bash
-npm run build
+pnpm build
 ```
 
 The built site will be in the `dist/` directory, ready to be deployed to any static hosting service.
@@ -169,21 +157,19 @@ The built site will be in the `dist/` directory, ready to be deployed to any sta
 ## 🚢 Deployment
 
 This template can be deployed to:
+
 - [Vercel](https://vercel.com/)
 - [Netlify](https://netlify.com/)
-- [GitHub Pages](https://pages.github.com/)
-- [Cloudflare Pages](https://pages.cloudflare.com/)
 - Any static hosting service
 
 ## 📱 Mobile Responsiveness
 
 The template is fully responsive with:
+
 - Mobile-first design approach
 - Responsive grid layouts
 - Touch-friendly interactive elements
 - Optimized images for different screen sizes
-
-![Mobile View](https://github.com/user-attachments/assets/83458363-5d24-4ebd-9474-113ddf74462b)
 
 ## 🤝 Contributing
 
@@ -197,8 +183,6 @@ This project is open source and available under the [MIT License](LICENSE).
 
 - Built with [Astro](https://astro.build/)
 - Styled with [Tailwind CSS](https://tailwindcss.com/)
-- Icons from [Heroicons](https://heroicons.com/)
-
----
-
+- Animations with [GSAP](https://gsap.com/)
+- Icons from [Heroicons](https://heroicons.com/)\
 **Made with ❤️ for the creative community**

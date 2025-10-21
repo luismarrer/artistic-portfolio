@@ -1,0 +1,23 @@
+[
+    {
+      "title": "Reportage",
+      "category": "Visual Art",
+      "image": "Reportage",
+      "description": "A visual exploration of justice and social equity through documentary photography and storytelling, capturing the voices and experiences of communities in their pursuit of fair treatment and systemic change",
+      "id": 1
+    },
+    {
+      "title": "Research",
+      "category": "Design",
+      "image": "Connected",
+      "description": "Designing innovative collaborative networks and systems that foster humanitarian values, creating meaningful connections and empowering communities through human-centered design approaches",
+      "id": 2
+    },
+    {
+      "title": "Documentation",
+      "category": "Illustration",
+      "image": "Grown",
+      "description": "Illustrating and documenting the challenges and opportunities within egalitarian growth processes, highlighting the diverse needs of communities working towards inclusive and equitable development",
+      "id": 3
+    }
+]

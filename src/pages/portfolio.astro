@@ -1,0 +1,21 @@
+---
+import Layout from "@/layouts/Layout.astro"
+import Drawing from "@/components/svgs/Drawing.astro"
+import Collage from "@/components/Collage.astro"
+import PortfolioComponent from "@/components/sections/PortfolioComponent.astro"
+import Footer from "@/components/sections/Footer.astro"
+---
+
+<Layout title="Portfolio" description="Explore my creative work and projects">
+    <section class="min-h-screen container mx-auto">
+        <h1 class="text-4xl font-bold text-center mt-20">Portfolio Page</h1>
+        <Drawing />
+        <p class="max-w-prose"></p>
+    </section>
+    <PortfolioComponent />
+    <section>
+        <h2 class="text-2xl font-bold text-center mt-20">See all my work</h2>
+        <Collage />
+    </section>
+    <Footer />
+</Layout>

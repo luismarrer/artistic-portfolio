@@ -1,19 +1,19 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro';
-import Hero from '../components/Hero.astro';
-import Services from '../components/Services.astro';
-import PortfolioGallery from '../components/PortfolioGallery.astro';
-import Contact from '../components/Contact.astro';
-import Footer from '../components/Footer.astro';
+import Hero from "@/components/sections/Hero.astro"
+import About from "@/components/sections/About.astro"
+import PortfolioComponent from "@/components/sections/PortfolioComponent.astro"
+import Footer from "@/components/sections/Footer.astro"
+import Layout from "@/layouts/Layout.astro"
+import MarkerLine from "@/components/svgs/MarkerLine.astro"
 ---
 
-<BaseLayout 
-  title="Artistic Portfolio - Showcase Your Creative Work"
-  description="A beautiful and minimal portfolio template for artists, designers, and creatives to showcase their work"
+<Layout
+  title="Musea Art"
+  description="Digital artist and creative designer dedicated to transforming ideas into captivating visual experiences. Unique art, thoughtful design, and creativity crafted with respect for your vision."
 >
+  <MarkerLine />
   <Hero />
-  <Services />
-  <PortfolioGallery />
-  <Contact />
+  <About />
+  <PortfolioComponent />
   <Footer />
-</BaseLayout>
+</Layout>

@@ -1,0 +1,167 @@
+---
+interface CollageImage {
+  src: string
+  alt: string
+  caption?: string
+  size?: "small" | "medium" | "large"
+  authorName?: string
+  authorLink?: string
+  sourceLink?: string
+}
+
+interface Props {
+  images?: CollageImage[]
+  columns?: number
+}
+
+const { images: propImages, columns = 3 } = Astro.props
+
+// Default images if none provided
+const defaultImages: CollageImage[] = [
+  {
+    src: "/images/project-page/halloween-9862664_1280.png",
+    alt: "Halloween artistic composition",
+    size: "medium",
+    caption: "Halloween",
+    authorName: "Raquel Candia",
+    authorLink: "https://pixabay.com/es/users/ideativas-tlm-19346105/?utm_source=link-attribution&utm_medium=referral&utm_campaign=image&utm_content=9862664",
+    sourceLink: "https://pixabay.com/es//?utm_source=link-attribution&utm_medium=referral&utm_campaign=image&utm_content=9862664",
+  },
+  {
+    src: "/images/project-page/visual-poetry-9872761_1280.jpg",
+    alt: "Visual poetry artwork",
+    size: "large",
+    caption: "Visual Poetry",
+    authorName: "Italo Guimas",
+    authorLink: "https://pixabay.com/es/users/italoguimas-52590100/?utm_source=link-attribution&utm_medium=referral&utm_campaign=image&utm_content=9872761",
+    sourceLink: "https://pixabay.com/es//?utm_source=link-attribution&utm_medium=referral&utm_campaign=image&utm_content=9872761",
+  },
+  {
+    src: "/images/project-page/nature-9881953_1280.jpg",
+    alt: "Nature landscape photography",
+    size: "small",
+    caption: "Nature",
+    authorName: "Karl Egger",
+    authorLink: "https://pixabay.com/es/users/shogun-1310047/?utm_source=link-attribution&utm_medium=referral&utm_campaign=image&utm_content=9881953",
+    sourceLink: "https://pixabay.com/es//?utm_source=link-attribution&utm_medium=referral&utm_campaign=image&utm_content=9881953",
+  },
+  {
+    src: "/images/project-page/squirrel-9834881_1280.jpg",
+    alt: "Squirrel wildlife photography",
+    size: "small",
+    caption: "Wildlife",
+    authorName: "Sasha Matic",
+    authorLink: "https://pixabay.com/es/users/sashamatic-22026961/?utm_source=link-attribution&utm_medium=referral&utm_campaign=image&utm_content=9834881",
+    sourceLink: "https://pixabay.com/es//?utm_source=link-attribution&utm_medium=referral&utm_campaign=image&utm_content=9834881",
+  },
+  {
+    src: "/images/project-page/moon-9824889_1280.png",
+    alt: "Moon night photography",
+    size: "medium",
+    caption: "Moon",
+    authorName: "Slimane-Kadi",
+    authorLink: "https://pixabay.com/es/users/slimane-kadi-48012629/?utm_source=link-attribution&utm_medium=referral&utm_campaign=image&utm_content=9824889",
+    sourceLink: "https://pixabay.com/es//?utm_source=link-attribution&utm_medium=referral&utm_campaign=image&utm_content=9824889",
+  },
+  {
+    src: "/images/project-page/fox-9106452_1280.jpg",
+    alt: "Fox wildlife photography",
+    size: "medium",
+    caption: "Fox",
+    authorName: "Mymyberries",
+    authorLink: "https://pixabay.com/es/users/mymyberries-13928113/?utm_source=link-attribution&utm_medium=referral&utm_campaign=image&utm_content=9106452",
+    sourceLink: "https://pixabay.com/es//?utm_source=link-attribution&utm_medium=referral&utm_campaign=image&utm_content=9106452",
+  },
+  {
+    src: "/images/project-page/photo-1507238691740-187a5b1d37b8.jpeg",
+    alt: "Artistic photography",
+    size: "small",
+  },
+  {
+    src: "/images/project-page/photo-1541961017774-22349e4a1262.jpeg",
+    alt: "Creative composition",
+    size: "large",
+  },
+  {
+    src: "/images/project-page/photo-1561070791-2526d30994b5.jpeg",
+    alt: "Visual storytelling",
+    size: "medium",
+  },
+  {
+    src: "/images/project-page/istockphoto-473012660-1024x1024squirrel.jpg",
+    alt: "Squirrel portrait",
+    size: "small",
+  },
+]
+
+const images = propImages || defaultImages
+
+// Group images by size for better layout
+const getGridClass = (size?: string) => {
+  switch (size) {
+    case "large":
+      return "col-span-2 row-span-2"
+    case "medium":
+      return "col-span-1 row-span-2"
+    case "small":
+    default:
+      return "col-span-1 row-span-1"
+  }
+}
+---
+
+<section class="container mx-auto px-6 py-12 md:py-20">
+  <div
+    class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 auto-rows-[200px]"
+  >
+    {
+      images.map((image) => (
+        <article
+          class={`group relative overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 ${getGridClass(image.size)}`}
+        >
+          <img
+            src={image.src}
+            alt={image.alt}
+            class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+            loading="lazy"
+          />
+          {(image.caption || image.authorName) && (
+            <figcaption class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              {image.caption && <p class="text-sm md:text-base font-semibold">{image.caption}</p>}
+              {image.authorName && (
+                <p class="text-xs md:text-sm mt-1">
+                  Por{" "}
+                  {image.authorLink ? (
+                    <a
+                      href={image.authorLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="underline hover:text-gray-200"
+                    >
+                      {image.authorName}
+                    </a>
+                  ) : (
+                    image.authorName
+                  )}
+                  {image.sourceLink && (
+                    <>
+                      {" "}en{" "}
+                      <a
+                        href={image.sourceLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="underline hover:text-gray-200"
+                      >
+                        Pixabay
+                      </a>
+                    </>
+                  )}
+                </p>
+              )}
+            </figcaption>
+          )}
+        </article>
+      ))
+    }
+  </div>
+</section>

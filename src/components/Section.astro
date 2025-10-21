@@ -1,0 +1,11 @@
+---
+const { title, description } = Astro.props
+---
+
+<section class="bg-[#FEEACA] px-6 pt-16 pb-24 mx-auto" id={Astro.props.id}>
+    <div class="text-center mb-8">
+        <h2 class="text-4xl font-bold mb-4">{title}</h2>
+        <p class="text-lg text-gray-600 max-w-2xl mx-auto">{description}</p>
+    </div>
+    <slot />
+</section>
