@@ -7,14 +7,13 @@ import Footer from "@/components/sections/Footer.astro"
 ---
 
 <Layout title="Portfolio" description="Explore my creative work and projects">
-    <section class="min-h-screen container mx-auto">
-        <h1 class="text-4xl font-bold text-center mt-20">Portfolio Page</h1>
+    <section class="page-intro mx-auto max-w-5xl px-[var(--page-gutter)] pb-12 sm:pb-16">
+        <h1 class="text-3xl sm:text-4xl font-bold text-center">Portfolio Page</h1>
         <Drawing />
-        <p class="max-w-prose"></p>
     </section>
     <PortfolioComponent />
     <section>
-        <h2 class="text-2xl font-bold text-center mt-20">See all my work</h2>
+        <h2 class="text-2xl sm:text-3xl font-bold text-center mt-12 sm:mt-20 px-[var(--page-gutter)]">See all my work</h2>
         <Collage />
     </section>
     <Footer />

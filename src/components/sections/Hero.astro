@@ -3,19 +3,25 @@ import KeepScrolling from "@/assets/keep-scrolling.svg"
 ---
 
 <section
+    data-hero
     class="relative
-            min-h-screen
+            min-h-svh
             flex
             flex-col
             items-center
             justify-center
             text-center
-            px-4
+            px-[var(--page-gutter)]
+            pt-[var(--header-space)]
+            pb-28
             overflow-hidden
             grid-background"
 >
-    <div class="z-10 flex flex-col items-center max-w-4xl mx-auto">
-        <h1 class="text-6xl md:text-7xl font-bold text-[#F9FAFB] leading-tight">
+    <div class="z-10 flex w-full flex-col items-center max-w-4xl mx-auto">
+        <h1
+            data-hero-heading
+            class="hero-heading w-full text-[clamp(2.75rem,7.5vw,4.5rem)] font-bold text-[#F9FAFB] leading-tight"
+        >
             Turn Your Ideas Into Art
         </h1>
         <a
@@ -39,22 +45,13 @@ import KeepScrolling from "@/assets/keep-scrolling.svg"
             See my recent works
         </a>
     </div>
-    <KeepScrolling
-        class="absolute bottom-3 right-0 left-0 mx-auto text-[#F9FAFB] drop-shadow-2xl animate-pulse"
-    />
+    <div data-hero-cue class="absolute bottom-6 right-0 left-0 mx-auto">
+        <KeepScrolling class="mx-auto text-[#F9FAFB] drop-shadow-2xl animate-pulse" />
+    </div>
 
     <style>
-        body {
-            background-image: linear-gradient(
-                to bottom right,
-                #ffdac1,
-                #e57373
-            );
-            background-size: 100% 100%;
-            background: linear-gradient(to bottom, #f3ac9e 0%, #ffeaca 100%);
-            box-shadow: 0 40px 60px -20px rgba(243, 172, 158, 0.5) inset;
-        }
         .grid-background {
+            box-shadow: 0 40px 60px -20px rgba(243, 172, 158, 0.5) inset;
             background-image: linear-gradient(
                     to right,
                     rgba(178, 34, 34, 0.2) 1px,
@@ -64,8 +61,83 @@ import KeepScrolling from "@/assets/keep-scrolling.svg"
                     to bottom,
                     rgba(178, 34, 34, 0.2) 1px,
                     transparent 1px
-                );
-            background-size: 35px 35px;
+                ),
+                linear-gradient(to bottom, #f3ac9e 0%, #ffeaca 100%);
+            background-size: 35px 35px, 35px 35px, 100% 100%;
+        }
+
+        /* SplitText word masks need this so yPercent does not shift kerning. */
+        .hero-heading {
+            font-kerning: none;
+            text-rendering: optimizeSpeed;
         }
     </style>
 </section>
+
+<script>
+    import { gsap } from "gsap"
+    import { SplitText } from "gsap/SplitText"
+
+    gsap.registerPlugin(SplitText)
+
+    let media: ReturnType<typeof gsap.matchMedia> | undefined
+
+    function playHeroIntro() {
+        media?.revert()
+
+        const hero = document.querySelector<HTMLElement>("[data-hero]")
+        if (!hero) return
+
+        media = gsap.matchMedia()
+        media.add(
+            "(prefers-reduced-motion: no-preference)",
+            () => {
+                const heading = hero.querySelector<HTMLElement>("[data-hero-heading]")
+                const cta = hero.querySelector<HTMLElement>("#start")
+                const cue = hero.querySelector<HTMLElement>("[data-hero-cue]")
+                if (!heading || !cta) return
+
+                gsap.set(cta, { transition: "none" })
+
+                SplitText.create(heading, {
+                    type: "lines,words",
+                    autoSplit: true,
+                    mask: "lines",
+                    aria: "auto",
+                    onSplit(self) {
+                        const tl = gsap.timeline({
+                            defaults: { ease: "power3.out", duration: 0.55 },
+                        })
+
+                        tl.from(self.words, {
+                            yPercent: 120,
+                            autoAlpha: 0,
+                            stagger: 0.06,
+                            duration: 0.7,
+                        }).fromTo(
+                            cta,
+                            { y: 16, autoAlpha: 0 },
+                            { y: 0, autoAlpha: 1, clearProps: "transform", overwrite: "auto", onComplete: () => { cta.style.removeProperty("transition") } },
+                            "-=0.2",
+                        )
+
+                        if (cue) {
+                            tl.fromTo(
+                                cue,
+                                { autoAlpha: 0 },
+                                { autoAlpha: 1, duration: 0.4, overwrite: "auto" },
+                                "<0.12",
+                            )
+                        }
+
+                        return tl
+                    },
+                })
+            },
+            hero,
+        )
+    }
+
+    document.addEventListener("astro:page-load", playHeroIntro)
+    document.addEventListener("astro:before-swap", () => media?.revert())
+</script>

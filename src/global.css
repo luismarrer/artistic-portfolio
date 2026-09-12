@@ -44,7 +44,7 @@
 @font-face {
     font-family: "Josefin Sans";
     src: url("/fonts/Josefin_Sans/JosefinSans-SemiBold.woff2") format("woff2");
-    font-weight: semibold;
+    font-weight: 600;
     font-style: normal;
     font-display: swap;
 }
@@ -52,13 +52,54 @@
 @font-face {
     font-family: "Josefin Sans";
     src: url("/fonts/Josefin_Sans/JosefinSans-SemiBoldItalic.woff2") format("woff2");
-    font-weight: semibold;
+    font-weight: 600;
     font-style: italic;
     font-display: swap;
 }
 
 @theme {
     --font-sans: "Josefin Sans", system-ui, sans-serif;
+}
+
+:root {
+  --page-gutter: clamp(1.25rem, 4vw, 3rem);
+  --header-space: 9rem;
+}
+
+@media (min-width: 40rem) {
+  :root {
+    --header-space: 8rem;
+  }
+}
+
+html {
+  scroll-padding-top: 1.5rem;
+}
+
+body {
+  min-width: 0;
+}
+
+.page-intro {
+  padding-top: calc(var(--header-space) + clamp(1rem, 3vw, 3rem));
+}
+
+h1, h2, h3, p {
+  overflow-wrap: break-word;
+}
+
+a:focus-visible, button:focus-visible {
+  outline: 3px solid #B22222;
+  outline-offset: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 h1,

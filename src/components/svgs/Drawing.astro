@@ -6,7 +6,7 @@
         height="768px"
         viewBox="0 0 1024 768"
         version="1.1"
-        class="firma"
+        class="firma block w-full h-auto max-w-4xl mx-auto"
     >
         <!-- Generator: Sketch 57.1 (83088) - https://sketch.com -->
         <title>Character/petting</title>
@@ -82,58 +82,40 @@
 <script>
     import { gsap } from "gsap"
 
-    gsap.registerPlugin()
+    let animation: ReturnType<typeof gsap.context> | undefined
 
-    // Seleccionar todos los SVGs con clase "firma"
-    const svgs = document.querySelectorAll<SVGSVGElement>(".firma")
+    function animateDrawing() {
+        animation?.revert()
+        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return
 
-    // Para cada SVG, animar sus paths
-    svgs.forEach((svg, svgIndex) => {
-        const paths = svg.querySelectorAll<SVGPathElement>("path")
+        animation = gsap.context(() => {
+            document.querySelectorAll<SVGPathElement>(".firma path").forEach((path) => {
+                const length = path.getTotalLength()
+                const fill = path.getAttribute("fill")
 
-        // Calcular duración total basada en el número de paths del SVG anterior
-        if (svgIndex > 0) {
-            const previousSvg = svgs[svgIndex - 1]
-            const previousPaths =
-                previousSvg.querySelectorAll<SVGPathElement>("path")
-        }
-
-        paths.forEach((path, pathIndex) => {
-            const length = path.getTotalLength()
-            console.log(length)
-
-            // Si el path tiene fill pero no stroke, usar el fill como stroke
-            const fillColor = path.getAttribute("fill")
-            if (fillColor && fillColor !== "none") {
-                path.style.stroke = fillColor
-                path.style.strokeWidth = "2"
-                path.style.fill = "none" // Quitar el fill temporalmente
-            }
-
-            // Configurar el path para la animación
-            path.style.strokeDasharray = `${length}`
-            path.style.strokeDashoffset = `${length}`
-
-            // Animar todos los paths del SVG simultáneamente
-            gsap.to(path, {
-                strokeDashoffset: 0,
-                duration: 5,
-                ease: "power4.inOut",
-                onComplete: () => {
-                    // Restaurar el fill al finalizar la animación
-                    // Todos los paths excepto "Combined-Shape" tendrán fill #000
-                    if (path.id !== "Combined-Shape") {
-                        path.style.fill = "#000"
-                    } else if (fillColor && fillColor !== "none") {
-                        // Restaurar el fill original solo para Combined-Shape
-                        path.style.fill = fillColor
-                    }
-                    gsap.to(path, {
-                        fillOpacity: 1,
-                        duration: 4,
-                    })
-                },
+                gsap.set(path, {
+                    strokeDasharray: length,
+                    strokeDashoffset: length,
+                    ...(fill && fill !== "none" ? {
+                        stroke: fill,
+                        strokeWidth: 2,
+                        fill: "none",
+                    } : {}),
+                })
+                gsap.to(path, {
+                    strokeDashoffset: 0,
+                    duration: 1.5,
+                    ease: "power4.inOut",
+                    onComplete: () => {
+                        gsap.set(path, {
+                            fill: path.id === "Combined-Shape" ? (fill || "none") : "#000",
+                        })
+                    },
+                })
             })
         })
-    })
+    }
+
+    document.addEventListener("astro:page-load", animateDrawing)
+    document.addEventListener("astro:before-swap", () => animation?.revert())
 </script>
