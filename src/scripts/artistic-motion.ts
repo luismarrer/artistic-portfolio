@@ -85,10 +85,12 @@ function collectTrailAnchors(width: number, height: number) {
     addEl("#about h2", 0.12, 0.65)
     addEl("#about img", -0.02, 0.55)
     addEl("#about [data-stats]", 0.9, 0.35)
-    addEl("#projects h2", 0.88, 0.4)
-    addEl("#projects article", 0.18, 0.25)
-    addEl("#projects article:nth-child(2)", 0.5, 0.55)
-    addEl("#projects article:nth-child(3)", 0.82, 0.2)
+        addEl("#projects h2", 0.9, 0.15)
+        addEl("#projects article", -0.12, 0.08)
+        addEl("#projects article", -0.1, 0.92)
+        addEl("#projects article:nth-child(2)", 0.5, 1.08)
+        addEl("#projects article:nth-child(3)", 1.1, 0.15)
+        addEl("#projects article:nth-child(3)", 1.08, 0.85)
     addEl("#contact h2", 0.5, 0.2)
     addEl("footer .js-signature", 0.7, 0.2)
     addEl("footer", 0.45, 0.55)
@@ -128,9 +130,14 @@ function initSignatures() {
         const paths = Array.from(
             svg.querySelectorAll<SVGPathElement>("[data-draw]"),
         )
+        const writePath = svg.querySelector<SVGPathElement>(
+            ".signature-write-path",
+        )
+        const clipRect = svg.querySelector<SVGRectElement>(".signature-clip")
         const pen = svg.querySelector<SVGGElement>(".signature-pen")
         const blot = svg.querySelector<SVGElement>(".signature-blot")
-        if (paths.length === 0) return
+        const word = svg.querySelector<SVGTextElement>(".signature-word")
+        if (paths.length === 0 && !clipRect) return
 
         paths.forEach((path) => {
             prepDraw(path)
@@ -140,6 +147,7 @@ function initSignatures() {
         if (blot) {
             gsap.set(blot, { scale: 0, transformOrigin: "50% 50%" })
         }
+        if (word) gsap.set(word, { autoAlpha: 1 })
 
         const timeline = gsap.timeline({
             paused: true,
@@ -154,12 +162,39 @@ function initSignatures() {
             )
         }
 
+        if (clipRect && writePath) {
+            const writeDuration = 1.85
+            if (pen) {
+                timeline.set(pen, { autoAlpha: 1 }, 0.08)
+                timeline.to(
+                    pen,
+                    {
+                        motionPath: {
+                            path: writePath,
+                            align: writePath,
+                            alignOrigin: [0.5, 0.12],
+                            autoRotate: 90,
+                        },
+                        duration: writeDuration,
+                        ease: "power1.inOut",
+                    },
+                    0.08,
+                )
+            }
+            timeline.to(
+                clipRect,
+                { attr: { width: 560 }, duration: writeDuration, ease: "power1.inOut" },
+                0.08,
+            )
+        }
+
         paths.forEach((path, index) => {
             const length = path.getTotalLength()
-            const duration = clamp(length / 220, 0.55, 2.4)
+            const duration = clamp(length / 240, 0.45, 1.4)
+            const at = clipRect ? ">" : index === 0 ? 0.05 : ">"
 
             if (pen) {
-                timeline.set(pen, { autoAlpha: 1 }, index === 0 ? 0.05 : ">")
+                timeline.set(pen, { autoAlpha: 1 }, at)
                 timeline.to(
                     pen,
                     {
@@ -167,19 +202,19 @@ function initSignatures() {
                             path,
                             align: path,
                             alignOrigin: [0.5, 0.12],
-                            autoRotate: 180,
+                            autoRotate: 90,
                         },
                         duration,
                         ease: "power1.inOut",
                     },
-                    index === 0 ? 0.05 : "<",
+                    "<",
                 )
             }
 
             timeline.to(
                 path,
                 { strokeDashoffset: 0, duration },
-                pen ? "<" : index === 0 ? 0 : ">",
+                pen ? "<" : at,
             )
         })
 
@@ -253,7 +288,7 @@ function initInkTrail() {
     path.setAttribute("stroke-width", `${stroke}`)
     if (pathShadow) pathShadow.setAttribute("stroke-width", `${stroke + 2.4}`)
 
-    gsap.set(pen, { autoAlpha: 1 })
+    gsap.set(pen, { autoAlpha: 1, scale: 1.65, transformOrigin: "50% 18%" })
 
     const timeline = gsap.timeline({
         defaults: { ease: "none" },
@@ -277,8 +312,8 @@ function initInkTrail() {
             motionPath: {
                 path,
                 align: path,
-                alignOrigin: [0.5, 0.2],
-                autoRotate: 180,
+                alignOrigin: [0.5, 0.18],
+                autoRotate: 90,
             },
         },
         0,
@@ -517,19 +552,26 @@ function initSketch() {
 
 function showStaticFallback() {
     document
-        .querySelectorAll<SVGPathElement>(".js-signature [data-draw], #ink-path, #ink-path-shadow")
+        .querySelectorAll<SVGPathElement>(
+            ".js-signature [data-draw], #ink-path, #ink-path-shadow",
+        )
         .forEach((path) => {
             path.style.strokeDashoffset = "0"
             path.style.strokeDasharray = "none"
         })
-    document.querySelectorAll<HTMLElement>("[data-reveal]").forEach((el) => {
-        el.style.opacity = "1"
-        el.style.transform = "none"
-    })
-    document.querySelectorAll<HTMLElement>(".js-hero-title span, #start, .js-scroll-hint").forEach((el) => {
-        el.style.opacity = "1"
-        el.style.transform = "none"
-    })
+    document
+        .querySelectorAll<SVGRectElement>(".signature-clip")
+        .forEach((rect) => {
+            rect.setAttribute("width", "560")
+        })
+    document
+        .querySelectorAll<HTMLElement>(
+            "[data-reveal], .js-hero-title span, #start, .js-scroll-hint, .js-signature .signature-word, .js-signature .signature-blot",
+        )
+        .forEach((el) => {
+            el.style.opacity = "1"
+            el.style.transform = "none"
+        })
     const trailPen = document.querySelector<SVGGElement>("#ink-pen")
     if (trailPen) trailPen.style.opacity = "0"
 }

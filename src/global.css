@@ -113,7 +113,8 @@ body {
 .has-motion .js-scroll-hint,
 .has-motion .js-signature [data-draw],
 .has-motion .js-signature .signature-blot,
-.has-motion .js-signature .signature-pen {
+.has-motion .js-signature .signature-pen,
+.has-motion .js-signature .signature-word {
   opacity: 0;
 }
 
@@ -128,7 +129,8 @@ body {
   .has-motion .js-scroll-hint,
   .has-motion .js-signature [data-draw],
   .has-motion .js-signature .signature-blot,
-  .has-motion .js-signature .signature-pen {
+  .has-motion .js-signature .signature-pen,
+  .has-motion .js-signature .signature-word {
     opacity: 1;
   }
 }
