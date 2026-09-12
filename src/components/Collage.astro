@@ -118,6 +118,7 @@ const getGridClass = (size?: string) => {
       images.map((image) => (
         <figure
           class={`group min-w-0 relative overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 ${getGridClass(image.size)}`}
+          data-reveal="card"
         >
           <img
             src={image.src}

@@ -1,5 +1,6 @@
 ---
 import Header from "@/components/sections/Header.astro"
+import InkTrail from "@/components/svgs/InkTrail.astro"
 import "@/global.css"
 import { ClientRouter } from "astro:transitions" // Before this ViewTransitions
 import Analytics from "@vercel/analytics/astro"
@@ -63,10 +64,15 @@ const {
     <ClientRouter />
   </head>
   <body class="bg-white text-gray-900 font-sans antialiased">
+    <InkTrail />
     <Header />
     <main class:list={["relative", className]}>
       <slot />
     </main>
     <Analytics />
+    <script>
+      import { bootArtisticMotion } from "@/scripts/artistic-motion"
+      bootArtisticMotion()
+    </script>
   </body>
 </html>

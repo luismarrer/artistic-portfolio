@@ -14,10 +14,13 @@ const {
   <div class="mx-auto px-[var(--page-gutter)]">
     <div class="max-w-4xl mx-auto">
       <div class="text-center mb-8 sm:mb-12">
-        <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 text-gray-900">
+        <h1
+          class="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 text-gray-900"
+          data-reveal="title"
+        >
           {title}
         </h1>
-        <p class="text-lg text-gray-600">
+        <p class="text-lg text-gray-600" data-reveal="copy">
           {subtitle}
         </p>
       </div>
@@ -27,6 +30,7 @@ const {
         class="space-y-6"
         action="https://formspree.io/f/mpwynwav"
         method="POST"
+        data-reveal="copy"
       >
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>

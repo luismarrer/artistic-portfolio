@@ -4,19 +4,37 @@ Musea Art is a fully responsive portfolio template built with Astro and Tailwind
 
 ## TODO
 
-- [ ] Hacer la animación del marcador bajando a la sección de proyectos cuando se hace click en el botón
-- [ ] Hacer la animación de la firma
+- [x] Hacer la animación del marcador bajando a la sección de proyectos cuando se hace click en el botón
+- [x] Hacer la animación de la firma
 - [X] Hacer que el formulario de contacto funcione: Mike lo trabajo
 - [X] Hacer que la página contacto funcione
 - [X] Diseño de la página de portfolio
-- [ ] Arreglar animaciones
-- [ ] Mejorar footer
+- [x] Arreglar animaciones
+- [x] Mejorar footer
 
 Utilizar solo Astro, Tailwind CSS y GSAP
 
 ## Design
 
 [Design](https://www.figma.com/design/QRa4rBb9uLO4gufnYdf8ip/Musea-Art?node-id=0-1&t=yBuV6SR51YNoOUya-1)
+
+### Layout tokens
+
+- `--page-gutter`: `clamp(1.25rem, 4vw, 3rem)` — horizontal page padding
+- `--header-space`: `9rem` (desktop `8rem`) — offset under the absolute header
+- Breakpoints follow Tailwind defaults; mobile nav wraps, galleries stay single-column until `sm`/`lg`
+- Type: Mansalva for headings, Josefin Sans for body (SemiBold faces use `font-weight: 600`)
+
+### Motion
+
+- GSAP signature draw (hero + footer), scroll-scrubbed ink trail, section reveals
+- CTA `#start` smooth-scrolls to `#projects` and drives the trail
+- Honors `prefers-reduced-motion`; trail/signature reinits after Astro view transitions
+- Stack remains Astro + Tailwind + GSAP only (LeaderLine removed)
+
+### Still open
+
+- Set a canonical `site` URL in `astro.config.mjs` when the production domain is known (sitemap SEO)
 
 ## ✨ Features
 

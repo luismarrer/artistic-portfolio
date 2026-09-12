@@ -1,5 +1,8 @@
 ---
 import KeepScrolling from "@/assets/keep-scrolling.svg"
+import Signature from "@/components/svgs/Signature.astro"
+
+const heroTitle = "Turn Your Ideas Into Art"
 ---
 
 <section
@@ -19,15 +22,20 @@ import KeepScrolling from "@/assets/keep-scrolling.svg"
 >
     <div class="z-10 flex w-full flex-col items-center max-w-4xl mx-auto">
         <h1
-            data-hero-heading
-            class="hero-heading w-full text-[clamp(2.75rem,7.5vw,4.5rem)] font-bold text-[#F9FAFB] leading-tight"
+            class="js-hero-title hero-heading w-full text-[clamp(2.75rem,7.5vw,4.5rem)] font-bold text-[#F9FAFB] leading-tight drop-shadow-sm"
         >
-            Turn Your Ideas Into Art
+            {
+                heroTitle.split(" ").map((word) => (
+                    <span class="inline-block mr-[0.28em] last:mr-0">{word}</span>
+                ))
+            }
         </h1>
+        <Signature variant="hero" class="mt-5 w-72 sm:w-96 md:w-[28rem]" />
         <a
             id="start"
             href="#projects"
-            class="mt-10
+            data-magnetic
+            class="mt-8
                 bg-[#B22222]
                 text-[#FFFDD0]
                 font-semibold
@@ -36,17 +44,14 @@ import KeepScrolling from "@/assets/keep-scrolling.svg"
                 rounded-lg
                 shadow-lg
                 hover:bg-[#A52A2A]
-                transform
-                hover:-translate-y-1
-                transition-all
-                duration-300
-                text-lg"
+                text-lg
+                will-change-transform"
         >
             See my recent works
         </a>
     </div>
-    <div data-hero-cue class="absolute bottom-6 right-0 left-0 mx-auto">
-        <KeepScrolling class="mx-auto text-[#F9FAFB] drop-shadow-2xl animate-pulse" />
+    <div class="absolute bottom-6 right-0 left-0 mx-auto">
+        <KeepScrolling class="js-scroll-hint mx-auto text-[#F9FAFB] drop-shadow-2xl" />
     </div>
 
     <style>
@@ -66,78 +71,9 @@ import KeepScrolling from "@/assets/keep-scrolling.svg"
             background-size: 35px 35px, 35px 35px, 100% 100%;
         }
 
-        /* SplitText word masks need this so yPercent does not shift kerning. */
         .hero-heading {
             font-kerning: none;
             text-rendering: optimizeSpeed;
         }
     </style>
 </section>
-
-<script>
-    import { gsap } from "gsap"
-    import { SplitText } from "gsap/SplitText"
-
-    gsap.registerPlugin(SplitText)
-
-    let media: ReturnType<typeof gsap.matchMedia> | undefined
-
-    function playHeroIntro() {
-        media?.revert()
-
-        const hero = document.querySelector<HTMLElement>("[data-hero]")
-        if (!hero) return
-
-        media = gsap.matchMedia()
-        media.add(
-            "(prefers-reduced-motion: no-preference)",
-            () => {
-                const heading = hero.querySelector<HTMLElement>("[data-hero-heading]")
-                const cta = hero.querySelector<HTMLElement>("#start")
-                const cue = hero.querySelector<HTMLElement>("[data-hero-cue]")
-                if (!heading || !cta) return
-
-                gsap.set(cta, { transition: "none" })
-
-                SplitText.create(heading, {
-                    type: "lines,words",
-                    autoSplit: true,
-                    mask: "lines",
-                    aria: "auto",
-                    onSplit(self) {
-                        const tl = gsap.timeline({
-                            defaults: { ease: "power3.out", duration: 0.55 },
-                        })
-
-                        tl.from(self.words, {
-                            yPercent: 120,
-                            autoAlpha: 0,
-                            stagger: 0.06,
-                            duration: 0.7,
-                        }).fromTo(
-                            cta,
-                            { y: 16, autoAlpha: 0 },
-                            { y: 0, autoAlpha: 1, clearProps: "transform", overwrite: "auto", onComplete: () => { cta.style.removeProperty("transition") } },
-                            "-=0.2",
-                        )
-
-                        if (cue) {
-                            tl.fromTo(
-                                cue,
-                                { autoAlpha: 0 },
-                                { autoAlpha: 1, duration: 0.4, overwrite: "auto" },
-                                "<0.12",
-                            )
-                        }
-
-                        return tl
-                    },
-                })
-            },
-            hero,
-        )
-    }
-
-    document.addEventListener("astro:page-load", playHeroIntro)
-    document.addEventListener("astro:before-swap", () => media?.revert())
-</script>
