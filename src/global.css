@@ -68,24 +68,23 @@ h2,
   font-family: "Mansalva", sans-serif, system-ui, "Josefin Sans";
 }
 
-html,
-body {
-  overflow-x: hidden;
+html {
+  max-width: 100%;
 }
 
 body {
   position: relative;
+  max-width: 100%;
 }
 
 .ink-trail {
   position: absolute;
-  top: 0;
-  left: 0;
+  inset: 0;
   width: 100%;
   pointer-events: none;
   z-index: 25;
   mix-blend-mode: multiply;
-  overflow: visible;
+  overflow: hidden;
 }
 
 .ink-trail svg {

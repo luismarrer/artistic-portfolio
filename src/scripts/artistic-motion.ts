@@ -71,40 +71,49 @@ function collectTrailAnchors(width: number, height: number) {
         push(pt.x, pt.y)
     }
 
-    const signature = document.querySelector<SVGSVGElement>(
-        ".js-signature[data-variant='hero']",
-    )
-    if (signature) {
-        const pt = pointOnPage(signature, 0.92, 0.72)
-        push(pt.x, pt.y)
+    const hasHero = !!document.querySelector(".js-signature[data-variant='hero']")
+    const hasProjects = !!document.querySelector("#projects")
+    const hasContact = !!document.querySelector("#contact")
+
+    if (hasHero) {
+        addEl(".js-signature[data-variant='hero']", 0.92, 0.72)
+        addEl("#start", 0.55, 1.15)
     } else {
-        push(width * 0.18, 90)
+        push(pad, 80)
     }
 
-    addEl("#start", 0.55, 1.15)
-    addEl("#about h2", 0.12, 0.65)
-    addEl("#about img", -0.02, 0.55)
-    addEl("#about [data-stats]", 0.9, 0.35)
-        addEl("#projects h2", 0.9, 0.15)
-        addEl("#projects article", -0.12, 0.08)
-        addEl("#projects article", -0.1, 0.92)
-        addEl("#projects article:nth-child(2)", 0.5, 1.08)
-        addEl("#projects article:nth-child(3)", 1.1, 0.15)
-        addEl("#projects article:nth-child(3)", 1.08, 0.85)
-    addEl("#contact h2", 0.5, 0.2)
-    addEl("footer .js-signature", 0.7, 0.2)
-    addEl("footer", 0.45, 0.55)
+    if (hasProjects) {
+        addEl("#about h2", 0.12, 0.65)
+        addEl("#about img", -0.08, 0.2)
+        addEl("#about img", -0.1, 0.9)
+        addEl("#about [data-stats]", 0.92, 0.4)
+        addEl("#projects h2", 0.88, 0.1)
+        addEl("#projects article", -0.16, 0.05)
+        addEl("#projects article", -0.14, 1.02)
+        addEl("#projects article:nth-child(2)", 0.5, 1.12)
+        addEl("#projects article:nth-child(3)", 1.12, 0.1)
+        addEl("#projects article:nth-child(3)", 1.1, 0.95)
+    } else if (hasContact) {
+        addEl("#contact h2", 0.04, 0.9)
+        addEl("#contact-form", 0.0, 0.25)
+        addEl("#contact-form", 0.0, 0.55)
+        addEl("#contact-form", 0.04, 0.92)
+    }
+
+    addEl("footer .js-signature", 0.55, 0.15)
+    addEl("footer", 0.3, 0.7)
 
     if (points.length < 3) {
-        push(width * 0.2, height * 0.35)
-        push(width * 0.8, height * 0.65)
+        push(pad, height * 0.25)
+        push(pad + 12, height * 0.7)
     }
 
     const last = points[points.length - 1]
     if (last && last.y < height - 80) {
-        push(width * 0.62, height - 48)
+        push(hasContact ? pad + 24 : width * 0.55, height - 40)
     }
 
+    const wanderAmount = hasProjects ? Math.min(110, width * 0.1) : 36
     const enriched: { x: number; y: number }[] = []
     for (let i = 0; i < points.length; i++) {
         enriched.push(points[i])
@@ -113,7 +122,7 @@ function collectTrailAnchors(width: number, height: number) {
         const wander = i % 2 === 0 ? 1 : -1
         enriched.push({
             x: clamp(
-                (points[i].x + next.x) / 2 + wander * Math.min(120, width * 0.12),
+                (points[i].x + next.x) / 2 + wander * wanderAmount,
                 pad,
                 width - pad,
             ),
@@ -223,12 +232,20 @@ function initSignatures() {
         }
 
         const variant = svg.dataset.variant
+        const play = () => {
+            if (timeline.progress() === 0 && !timeline.isActive()) {
+                timeline.play(0)
+            }
+        }
         ScrollTrigger.create({
             trigger: svg,
-            start: variant === "hero" ? "top 95%" : "top 85%",
+            start: variant === "hero" ? "top 95%" : "top 99%",
             once: true,
-            onEnter: () => timeline.play(0),
+            onEnter: play,
         })
+        if (svg.getBoundingClientRect().top < window.innerHeight * 0.99) {
+            play()
+        }
     })
 }
 
@@ -248,13 +265,22 @@ function initInkTrail() {
     const splatters = root?.querySelector<SVGGElement>("#ink-splatters")
     if (!root || !svg || !path || !pen || !splatters) return
 
-    const width = document.documentElement.clientWidth
-    const height = Math.max(
-        document.documentElement.scrollHeight,
-        document.body.scrollHeight,
-    )
+    gsap.set(root, { autoAlpha: 1 })
 
-    root.style.height = `${height}px`
+    const width = Math.max(document.documentElement.clientWidth, root.clientWidth)
+    const height = Math.max(
+        document.body.offsetHeight,
+        root.clientHeight,
+        document.documentElement.clientHeight,
+    )
+    const maxScroll =
+        document.documentElement.scrollHeight - window.innerHeight
+
+    if (maxScroll < 64) {
+        gsap.set(root, { autoAlpha: 0 })
+        return
+    }
+
     svg.setAttribute("width", `${width}`)
     svg.setAttribute("height", `${height}`)
     svg.setAttribute("viewBox", `0 0 ${width} ${height}`)
@@ -443,13 +469,17 @@ function initCtaAndHover(signal: AbortSignal) {
         cta.addEventListener(
             "click",
             (event) => {
-                const target = document.querySelector("#projects")
+                const target = document.querySelector<HTMLElement>("#projects")
                 if (!target) return
                 event.preventDefault()
+                event.stopPropagation()
+                const y =
+                    target.getBoundingClientRect().top + window.scrollY - 16
                 gsap.to(window, {
-                    duration: 1.85,
-                    scrollTo: { y: "#projects", offsetY: 12 },
+                    duration: 1.55,
+                    scrollTo: { y, autoKill: true },
                     ease: "power2.inOut",
+                    overwrite: "auto",
                 })
             },
             { signal },
