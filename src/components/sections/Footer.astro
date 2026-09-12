@@ -1,4 +1,6 @@
 ---
+import Signature from "@/components/svgs/Signature.astro"
+
 interface SocialLink {
   name: string
   url: string
@@ -70,6 +72,7 @@ const paragraph =
   <section
     class="border-t container mx-auto border-gray-800 pt-8 text-center text-gray-600"
   >
+    <Signature variant="footer" class="mx-auto mb-4 w-44 md:w-56" />
     <p>&copy; {currentYear} {siteName}. All rights reserved.</p>
   </section>
 </footer>

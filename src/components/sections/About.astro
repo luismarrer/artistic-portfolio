@@ -46,6 +46,7 @@ const aboutData = {
     <!-- Image -->
     <div
       class="max-w-50 mx-auto md:min-w-96 hover:rotate-3 transition-transform duration-300"
+      data-reveal="left"
     >
       <img
         class="rounded-xl shadow-lg"
@@ -56,7 +57,7 @@ const aboutData = {
     </div>
 
     <!-- Bio -->
-    <div class="space-y-6">
+    <div class="space-y-6" data-reveal="right">
       <h3 class="text-3xl font-bold text-gray-800 text-center md:text-left">
         {aboutData.bio.heading}
       </h3>
@@ -87,14 +88,24 @@ const aboutData = {
       </div>
 
       <!-- Statistics -->
-      <div class="grid grid-cols-3 gap-4 pt-6 border-t border-gray-300">
+      <div class="grid grid-cols-3 gap-4 pt-6 border-t border-gray-300" data-stats>
         {
-          aboutData.stats.map((stat) => (
+          aboutData.stats.map((stat) => {
+            const numericValue = Number.parseInt(stat.value, 10)
+            const suffix = stat.value.replace(/^\d+/, "")
+            return (
             <div class="text-center">
-              <div class="text-3xl font-bold text-[#B22222]">{stat.value}</div>
+              <div
+                class="text-3xl font-bold text-[#B22222]"
+                data-count={numericValue}
+                data-count-suffix={suffix}
+              >
+                {stat.value}
+              </div>
               <div class="text-sm text-gray-600">{stat.label}</div>
             </div>
-          ))
+            )
+          })
         }
       </div>
     </div>

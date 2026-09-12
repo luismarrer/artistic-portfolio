@@ -1,0 +1,118 @@
+---
+interface Props {
+    variant?: "hero" | "footer"
+    class?: string
+}
+
+const { variant = "hero", class: className = "" } = Astro.props
+const stroke = variant === "hero" ? "3.15" : "2.4"
+const ink = variant === "hero" ? "#6B1520" : "#B22222"
+---
+
+<figure class:list={["signature-block", className]} data-signature={variant}>
+    <svg
+        class="js-signature"
+        data-variant={variant}
+        viewBox="0 0 740 200"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        role="img"
+        aria-label="Musea signature"
+    >
+        <title>Musea</title>
+        <defs>
+            <filter
+                id={`sig-ink-${variant}`}
+                x="-15%"
+                y="-15%"
+                width="130%"
+                height="130%"
+            >
+                <feTurbulence
+                    type="fractalNoise"
+                    baseFrequency="0.9"
+                    numOctaves="2"
+                    result="noise"></feTurbulence>
+                <feDisplacementMap
+                    in="SourceGraphic"
+                    in2="noise"
+                    scale="1.15"
+                    xChannelSelector="R"
+                    yChannelSelector="G"></feDisplacementMap>
+            </filter>
+        </defs>
+
+        <ellipse
+            class="signature-blot"
+            cx="38"
+            cy="126"
+            rx="7"
+            ry="5"
+            fill={ink}
+            opacity="0.55"></ellipse>
+
+        <!-- M -->
+        <path
+            data-draw
+            d="M28 142 C34 86 36 34 58 28 C76 22 74 88 70 146 C86 84 112 22 146 34 C164 42 154 92 150 148"
+            stroke={ink}
+            stroke-width={stroke}
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            filter={`url(#sig-ink-${variant})`}></path>
+        <!-- u -->
+        <path
+            data-draw
+            d="M158 146 C166 104 176 78 204 76 C234 74 246 108 238 148"
+            stroke={ink}
+            stroke-width={stroke}
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            filter={`url(#sig-ink-${variant})`}></path>
+        <!-- s -->
+        <path
+            data-draw
+            d="M258 94 C264 68 292 60 314 76 C328 88 316 104 298 114 C276 126 272 144 300 152 C324 160 346 146 352 130"
+            stroke={ink}
+            stroke-width={stroke}
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            filter={`url(#sig-ink-${variant})`}></path>
+        <!-- e -->
+        <path
+            data-draw
+            d="M372 112 C368 86 392 66 422 72 C448 78 454 102 436 116 C418 130 396 126 388 112 C408 110 434 132 458 126"
+            stroke={ink}
+            stroke-width={stroke}
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            filter={`url(#sig-ink-${variant})`}></path>
+        <!-- a, with an exit flourish -->
+        <path
+            data-draw
+            d="M474 116 C470 82 500 62 530 72 C558 82 562 114 542 134 C522 154 488 148 482 122 C506 140 548 154 592 128 C636 102 678 74 722 52"
+            stroke={ink}
+            stroke-width={stroke}
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            filter={`url(#sig-ink-${variant})`}></path>
+
+        <!-- Underline flourish, like signing a painting -->
+        <path
+            data-draw
+            d="M46 170 C150 196 390 198 575 158 C610 150 628 168 602 176 C560 188 430 182 318 174"
+            stroke={ink}
+            stroke-width={String(Number(stroke) * 0.72)}
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            filter={`url(#sig-ink-${variant})`}></path>
+
+        <g class="signature-pen" aria-hidden="true">
+            <rect x="-3.2" y="-22" width="6.4" height="18" rx="1.2" fill={ink}
+            ></rect>
+            <rect x="-3.2" y="-26" width="6.4" height="5" rx="1" fill="#3f0c12"
+            ></rect>
+            <path d="M0 4 L-3.4 -4 H3.4 Z" fill="#1f080a"></path>
+        </g>
+    </svg>
+</figure>

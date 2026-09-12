@@ -1,0 +1,36 @@
+---
+---
+
+<div id="ink-trail" class="ink-trail" aria-hidden="true">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none">
+        <defs>
+            <linearGradient id="ink-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#8B1A1A"></stop>
+                <stop offset="55%" stop-color="#B22222"></stop>
+                <stop offset="100%" stop-color="#6A4C93"></stop>
+            </linearGradient>
+        </defs>
+        <path
+            id="ink-path-shadow"
+            stroke="#6B1520"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            opacity="0.16"></path>
+        <path
+            id="ink-path"
+            stroke="url(#ink-gradient)"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            opacity="0.72"></path>
+        <g id="ink-splatters"></g>
+        <g id="ink-pen">
+            <rect x="-3.4" y="-24" width="6.8" height="20" rx="1.3" fill="#B22222"
+            ></rect>
+            <rect x="-3.4" y="-29" width="6.8" height="6" rx="1" fill="#3f0c12"
+            ></rect>
+            <rect x="-2.2" y="-18" width="4.4" height="8" fill="#FFFDD0" opacity="0.35"
+            ></rect>
+            <path d="M0 5 L-3.6 -4.5 H3.6 Z" fill="#1f080a"></path>
+        </g>
+    </svg>
+</div>
