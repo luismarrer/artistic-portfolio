@@ -1,124 +1,61 @@
-# Artistic Portfolio Example
+# Artistic Portfolio · Musea Art
 
-Musea Art is a fully responsive portfolio template built with Astro and Tailwind CSS. Perfect for artists, designers, photographers, and creative professionals to showcase their work.
+Plantilla de portfolio artístico con Astro, Tailwind CSS y GSAP. Incluye inicio, portfolio, fichas de proyecto y contacto, con ilustraciones SVG, fuentes locales y diseño adaptable a móvil, tablet y escritorio.
 
-## TODO
+[Ver demo](https://artistic-portfolio-nine.vercel.app) · [Personalización](CUSTOMIZATION.md) · [Roadmap](ROADMAP.md) · [Diseño](docs/DESIGN.md)
 
-- [x] Hacer la animación del marcador bajando a la sección de proyectos cuando se hace click en el botón
-- [x] Hacer la animación de la firma
-- [X] Hacer que el formulario de contacto funcione: Mike lo trabajo
-- [X] Hacer que la página contacto funcione
-- [X] Diseño de la página de portfolio
-- [x] Arreglar animaciones
-- [x] Mejorar footer
+## Desarrollo
 
-Utilizar solo Astro, Tailwind CSS y GSAP
+Requiere **Node.js 22.12.0 o superior** y pnpm. El proyecto utiliza Astro 7.3.2, Tailwind CSS 4.3.3 y GSAP 3.15.0; las versiones exactas están en [package.json](package.json) y [pnpm-lock.yaml](pnpm-lock.yaml).
 
-## Design
+Usa **Use this template** en GitHub o clona el repositorio:
 
-[Design](https://www.figma.com/design/QRa4rBb9uLO4gufnYdf8ip/Musea-Art?node-id=0-1&t=yBuV6SR51YNoOUya-1)
-
-### Layout tokens
-
-- `--page-gutter`: `clamp(1.25rem, 4vw, 3rem)` — horizontal page padding
-- `--header-space`: `9rem` (desktop `8rem`) — offset under the absolute header
-- Breakpoints follow Tailwind defaults; mobile nav wraps, galleries stay single-column until `sm`/`lg`
-- Type: Mansalva for headings, Josefin Sans for body (SemiBold faces use `font-weight: 600`)
-
-### Motion
-
-- GSAP signature draw (hero + footer), scroll-scrubbed ink trail, section reveals
-- CTA `#start` smooth-scrolls to `#projects` and drives the trail
-- Honors `prefers-reduced-motion`; trail/signature reinits after Astro view transitions
-- Stack remains Astro + Tailwind + GSAP only (LeaderLine removed)
-
-### Still open
-
-- Set a canonical `site` URL in `astro.config.mjs` when the production domain is known (sitemap SEO)
-
-## ✨ Features
-
-- 🎨 **Clean & Minimal Design** - Focus on your work with a distraction-free layout
-- 📱 **Fully Responsive** - Looks great on all devices from mobile to desktop
-- ⚡ **Fast Performance** - Built with Astro for optimal loading speeds
-- 🎯 **SEO Friendly** - Optimized for search engines
-
-## 🚀 Quick Start
-
-### Prerequisites
-
-- Node.js 18+ and pnpm
-
-### Installation
-
-1. **Use this template** by clicking the "Use this template" button above, or clone the repository:
-
-    ```bash
-    git clone https://github.com/luismarrer/artistic-portfolio.git
-    cd artistic-portfolio
-    ```
-
-2. **Install dependencies:**
-
-    ```bash
-    pnpm install
-    ```
-
-3. **Start the development server:**
-
-    ```bash
-    pnpm dev
-    ```
-
-4. **Open your browser** and visit `http://localhost:4321`
-
-## 🛠️ Customization
-
-### Content
-
-All components accept props for easy customization. Edit `src/pages/index.astro` to modify the content and pass custom props to components.
-
-### Images
-
-- Replace placeholder images in `PortfolioGallery.astro` with your own
-- Add your favicon to `public/favicon.svg`
-- Place other static assets in the `public/` directory
-
-## 📦 Building for Production
-
-```bash
-pnpm build
+```sh
+git clone https://github.com/luismarrer/artistic-portfolio.git
+cd artistic-portfolio
+pnpm install --frozen-lockfile
+pnpm dev
 ```
 
-The built site will be in the `dist/` directory, ready to be deployed to any static hosting service.
+Abre la dirección que indique la terminal; normalmente es `http://localhost:4321`.
 
-## 🚢 Deployment
+| Comando | Función |
+| --- | --- |
+| `pnpm dev` | Servidor de desarrollo |
+| `pnpm build` | Comprobación de Astro/TypeScript y compilación de producción |
+| `pnpm preview` | Vista previa local de la compilación |
+| `pnpm astro check` | Comprobación de Astro/TypeScript sin compilar |
 
-This template can be deployed to:
+## Antes de usar la plantilla
 
-- [Vercel](https://vercel.com/)
-- [Netlify](https://netlify.com/)
-- Any static hosting service
+Sustituye identidad, biografía, redes, imágenes y proyectos siguiendo [CUSTOMIZATION.md](CUSTOMIZATION.md). El contenido y las métricas de Musea Art son ejemplos. Las fichas comparten actualmente la galería de demostración de `Collage.astro`.
 
-## 📱 Mobile Responsiveness
+**Configura tu propio endpoint de Formspree antes de aceptar mensajes.** El formulario incluye un destino de la demo; no se configura automáticamente al clonar. Revisa también los derechos y créditos de las imágenes que publiques.
 
-The template is fully responsive with:
+## Publicación en Vercel
 
-- Mobile-first design approach
-- Responsive grid layouts
-- Touch-friendly interactive elements
-- Optimized images for different screen sizes
+1. Sube tu copia a GitHub e importa el repositorio en Vercel.
+2. Selecciona el preset **Astro**, una versión de Node compatible y el comando de compilación `pnpm build`. Mantén la salida que determine el preset: el proyecto ya utiliza `@astrojs/vercel`.
+3. Añade tu URL pública como `site` en [astro.config.mjs](astro.config.mjs) para generar el sitemap. Conserva el resto de la configuración.
+4. Despliega y comprueba las rutas `/`, `/portfolio`, `/contact` y `/projects/1`, además de un envío a tu propio formulario.
 
-## 🤝 Contributing
+Para otro proveedor, adapta primero el adaptador y la configuración de Astro. No basta con asumir que la salida de esta configuración de Vercel es una carpeta estática intercambiable.
 
-Contributions, issues, and feature requests are welcome! Feel free to check the [issues page](https://github.com/luismarrer/artistic-portfolio/issues).
+## Estructura
 
-## 🚀 Tech Stack
+- `src/pages/`: rutas y metadatos de cada página.
+- `src/components/sections/`: cabecera, Hero, biografía, listado de proyectos y pie.
+- `src/components/Collage.astro`: galería y fotografías de ejemplo.
+- `src/components/ContactForm.astro`: formulario conectado a Formspree.
+- `src/data/projects.json`: contenido que genera las fichas `/projects/[id]`.
+- `src/scripts/artistic-motion.ts`: animaciones GSAP y su ciclo de vida entre páginas.
+- `src/components/svgs/Signature.astro` e `InkTrail.astro`: firma y trazo de tinta.
+- `src/global.css` y `public/`: estilos compartidos, fuentes, imágenes e iconos.
 
-- Built with [Astro](https://astro.build/)
-- Styled with [Tailwind CSS](https://tailwindcss.com/)
-- GSAP for animations
-  
-## 📄 License
+## Evolución y contribuciones
 
-This project is open source and available under the [MIT License](LICENSE).
+El [roadmap](ROADMAP.md) ordena las siguientes iteraciones y el [documento de diseño](docs/DESIGN.md) define la dirección del producto. El [diseño original en Figma](https://www.figma.com/design/QRa4rBb9uLO4gufnYdf8ip/Musea-Art?node-id=0-1) sirve como referencia visual.
+
+Para contribuir, describe el problema en una [issue](https://github.com/luismarrer/artistic-portfolio/issues) y valida los cambios con `pnpm build`. Si afectan al diseño, revisa móvil y escritorio, navegación con teclado y movimiento reducido.
+
+Código bajo [licencia MIT](LICENSE). Las imágenes y otros recursos de terceros conservan sus propias condiciones de uso.
