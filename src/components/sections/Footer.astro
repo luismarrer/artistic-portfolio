@@ -1,4 +1,6 @@
 ---
+import Signature from "@/components/svgs/Signature.astro"
+
 interface SocialLink {
   name: string
   url: string
@@ -38,7 +40,7 @@ const paragraph =
 
 <footer class="bg-white text-black py-12">
   <div
-    class="container mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-8 mb-8"
+    class="mx-auto grid max-w-7xl grid-cols-1 gap-8 px-[var(--page-gutter)] md:grid-cols-2 mb-8"
   >
     <section>
       <h3 class="text-2xl font-bold mb-4">{siteName}</h3>
@@ -54,7 +56,7 @@ const paragraph =
                 href={link.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                class="text-gray-600 hover:text-black transition-colors"
+                class="flex min-h-11 min-w-11 items-center justify-center text-gray-600 hover:text-black transition-colors"
                 aria-label={link.name}
               >
                 <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
@@ -68,8 +70,9 @@ const paragraph =
     </section>
   </div>
   <section
-    class="border-t container mx-auto border-gray-800 pt-8 text-center text-gray-600"
+    class="border-t mx-auto max-w-7xl border-gray-800 px-[var(--page-gutter)] pt-8 text-center text-gray-600"
   >
+    <Signature variant="footer" class="mx-auto mb-4 w-44 md:w-56" />
     <p>&copy; {currentYear} {siteName}. All rights reserved.</p>
   </section>
 </footer>

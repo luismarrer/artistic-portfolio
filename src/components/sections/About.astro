@@ -28,9 +28,9 @@ const aboutData = {
     "Conceptual Art",
   ],
   stats: [
-    { value: "35+", label: "Projects" },
-    { value: "30+", label: "Clients" },
-    { value: "4+", label: "Years" },
+    { value: 35, suffix: "+", label: "Projects" },
+    { value: 30, suffix: "+", label: "Clients" },
+    { value: 4, suffix: "+", label: "Years" },
   ],
 }
 ---
@@ -41,23 +41,24 @@ const aboutData = {
   id={aboutData.section.id}
 >
   <article
-    class="max-w-6xl mx-auto gap-6 md:gap-36 grid md:grid-cols-2 items-center"
+    class="max-w-6xl mx-auto gap-10 md:gap-8 lg:gap-20 grid md:grid-cols-2 items-center"
   >
     <!-- Image -->
     <div
-      class="max-w-50 mx-auto md:min-w-96 hover:rotate-3 transition-transform duration-300"
+      class="w-full max-w-56 sm:max-w-72 lg:max-w-96 mx-auto p-2 hover:rotate-3 transition-transform duration-300"
+      data-reveal="left"
     >
       <img
         class="rounded-xl shadow-lg"
-        data-alt={aboutData.image.alt}
+        alt={aboutData.image.alt}
         src={aboutData.image.src}
         style="border: 10px solid white; transform: rotate(-3deg);"
       />
     </div>
 
     <!-- Bio -->
-    <div class="space-y-6">
-      <h3 class="text-3xl font-bold text-gray-800 text-center md:text-left">
+    <div class="min-w-0 space-y-6" data-reveal="right">
+      <h3 class="text-2xl sm:text-3xl font-bold text-gray-800 text-center md:text-left">
         {aboutData.bio.heading}
       </h3>
 
@@ -78,7 +79,7 @@ const aboutData = {
           {
             aboutData.skills.map((skill) => (
               <li class="flex items-center gap-2 text-gray-700">
-                <span class="w-2 h-2 bg-[#B22222] rounded-full" />
+                <span class="w-2 h-2 shrink-0 bg-[#B22222] rounded-full" />
                 {skill}
               </li>
             ))
@@ -87,11 +88,17 @@ const aboutData = {
       </div>
 
       <!-- Statistics -->
-      <div class="grid grid-cols-3 gap-4 pt-6 border-t border-gray-300">
+      <div class="grid grid-cols-3 gap-4 pt-6 border-t border-gray-300" data-stats>
         {
           aboutData.stats.map((stat) => (
             <div class="text-center">
-              <div class="text-3xl font-bold text-[#B22222]">{stat.value}</div>
+              <div
+                class="text-3xl font-bold text-[#B22222]"
+                data-count={stat.value}
+                data-count-suffix={stat.suffix}
+              >
+                {stat.value}{stat.suffix}
+              </div>
               <div class="text-sm text-gray-600">{stat.label}</div>
             </div>
           ))

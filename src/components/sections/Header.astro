@@ -3,26 +3,26 @@
 ---
 
 <header
-    class="absolute top-0 w-full z-50 flex items-center justify-between mx-auto py-10 px-4 sm:px-10"
+    class="absolute inset-x-0 top-0 z-50 mx-auto flex max-w-[1440px] flex-col items-center justify-between gap-2 px-[var(--page-gutter)] py-4 sm:flex-row sm:gap-6 sm:py-6"
 >
-    <a href="/" class="flex items-center gap-2">
-        <img src="/logo.png" alt="logo" width="45" />
-        <h2 class="sm:text-2xl font-bold text-gray-800">Musea Art</h2>
+    <a href="/" class="flex min-h-11 shrink-0 items-center gap-2" aria-label="Musea Art home">
+        <img src="/logo.png" alt="" width="45" height="45" />
+        <h2 class="text-2xl font-bold text-gray-800">Musea Art</h2>
     </a>
-    <nav>
-        <ul class="flex space-x-2 sm:space-x-4 md:space-x-6">
+    <nav aria-label="Main navigation">
+        <ul class="flex flex-wrap justify-center gap-x-2 sm:gap-x-4 md:gap-x-6">
             <li>
-                <a href="/#about" class="text-gray-800 hover:text-gray-800">
+                <a href="/#about" class="flex min-h-11 items-center px-2 text-gray-800 hover:text-[#B22222]">
                     About
                 </a>
             </li>
             <li>
-                <a href="/portfolio" class="text-gray-800 hover:text-gray-800">
+                <a href="/portfolio" class="flex min-h-11 items-center px-2 text-gray-800 hover:text-[#B22222]">
                     Portfolio
                 </a>
             </li>
             <li>
-                <a href="/contact" class="text-gray-800 hover:text-gray-800">
+                <a href="/contact" class="flex min-h-11 items-center px-2 text-gray-800 hover:text-[#B22222]">
                     Contact
                 </a>
             </li>

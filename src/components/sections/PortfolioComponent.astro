@@ -31,25 +31,26 @@ const { items = projectsData as PortfolioItem[] } = Astro.props
   description="A collection of my recent creative work and projects"
   id="projects"
 >
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mx-auto container">
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-10 lg:gap-8 mx-auto max-w-6xl">
     {
       items.map(({ id, title, category, image, description }) => {
         const SvgComponent = componentMap[image as keyof typeof componentMap]
         return (
           <a
             href={`/projects/${id}`}
-            class="hover:scale-105 transition-transform duration-300"
+            class="project-card min-w-0 rounded-lg transition-transform duration-300"
+            data-reveal="card"
           >
-            <article class="flex flex-col items-center gap-4 h-full">
-              <div class="w-64 flex-1 flex items-center justify-center">
+            <article class="project-card-layout h-full">
+              <div class="project-artwork">
                 {SvgComponent && <SvgComponent />}
               </div>
-              <div class="mt-auto">
+              <div class="min-w-0">
                 <span class="text-sm text-slate-600 font-medium">
                   {category}
                 </span>
                 <h3 class="text-xl font-semibold text-gray-900">{title}</h3>
-                <p class="text-gray-600">{description}</p>
+                <p class="text-gray-600 leading-relaxed mt-2">{description}</p>
               </div>
             </article>
           </a>
@@ -58,3 +59,38 @@ const { items = projectsData as PortfolioItem[] } = Astro.props
     }
   </div>
 </Section>
+
+<style>
+  .project-card-layout {
+    display: grid;
+    gap: 1.5rem;
+    align-content: start;
+  }
+
+  .project-artwork {
+    width: 100%;
+    height: clamp(14rem, 50vw, 18rem);
+    display: flex;
+    justify-content: center;
+  }
+
+  .project-artwork :global(svg) {
+    width: 100%;
+    max-width: 16rem;
+    height: 100%;
+  }
+
+  @media (min-width: 40rem) and (max-width: 63.999rem) {
+    .project-card-layout {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+      align-items: center;
+      gap: 2rem;
+    }
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .project-card:hover {
+      transform: translateY(-0.25rem);
+    }
+  }
+</style>

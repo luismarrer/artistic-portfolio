@@ -14,7 +14,7 @@ interface Props {
   columns?: number
 }
 
-const { images: propImages, columns = 3 } = Astro.props
+const { images: propImages } = Astro.props
 
 // Default images if none provided
 const defaultImages: CollageImage[] = [
@@ -100,9 +100,9 @@ const images = propImages || defaultImages
 const getGridClass = (size?: string) => {
   switch (size) {
     case "large":
-      return "col-span-2 row-span-2"
+      return "sm:col-span-2 sm:row-span-2"
     case "medium":
-      return "col-span-1 row-span-2"
+      return "col-span-1 sm:row-span-2"
     case "small":
     default:
       return "col-span-1 row-span-1"
@@ -110,14 +110,15 @@ const getGridClass = (size?: string) => {
 }
 ---
 
-<section class="container mx-auto px-6 py-12 md:py-20">
+<section class="max-w-7xl mx-auto px-[var(--page-gutter)] py-12 md:py-20" aria-label="Artwork gallery">
   <div
-    class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 auto-rows-[200px]"
+    class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 auto-rows-[clamp(16rem,80vw,26rem)] sm:auto-rows-[180px] lg:auto-rows-[200px]"
   >
     {
       images.map((image) => (
-        <article
-          class={`group relative overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 ${getGridClass(image.size)}`}
+        <figure
+          class={`group min-w-0 relative overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 ${getGridClass(image.size)}`}
+          data-reveal="card"
         >
           <img
             src={image.src}
@@ -126,7 +127,7 @@ const getGridClass = (size?: string) => {
             loading="lazy"
           />
           {(image.caption || image.authorName) && (
-            <figcaption class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <figcaption class="artwork-caption absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent p-4 pt-10 text-white transition-opacity duration-300">
               {image.caption && <p class="text-sm md:text-base font-semibold">{image.caption}</p>}
               {image.authorName && (
                 <p class="text-xs md:text-sm mt-1">
@@ -136,7 +137,7 @@ const getGridClass = (size?: string) => {
                       href={image.authorLink}
                       target="_blank"
                       rel="noopener noreferrer"
-                      class="underline hover:text-gray-200"
+                      class="inline-block py-2 underline hover:text-gray-200"
                     >
                       {image.authorName}
                     </a>
@@ -150,7 +151,7 @@ const getGridClass = (size?: string) => {
                         href={image.sourceLink}
                         target="_blank"
                         rel="noopener noreferrer"
-                        class="underline hover:text-gray-200"
+                        class="inline-block py-2 underline hover:text-gray-200"
                       >
                         Pixabay
                       </a>
@@ -160,8 +161,21 @@ const getGridClass = (size?: string) => {
               )}
             </figcaption>
           )}
-        </article>
+        </figure>
       ))
     }
   </div>
 </section>
+
+<style>
+  @media (hover: hover) and (pointer: fine) {
+    .artwork-caption {
+      opacity: 0;
+    }
+
+    figure:hover .artwork-caption,
+    figure:focus-within .artwork-caption {
+      opacity: 1;
+    }
+  }
+</style>

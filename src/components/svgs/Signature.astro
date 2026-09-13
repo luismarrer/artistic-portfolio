@@ -1,0 +1,95 @@
+---
+interface Props {
+    variant?: "hero" | "footer"
+    class?: string
+}
+
+const { variant = "hero", class: className = "" } = Astro.props
+const stroke = variant === "hero" ? "3.2" : "2.5"
+const ink = variant === "hero" ? "#6B1520" : "#B22222"
+const clipId = `sig-clip-${variant}`
+const filterId = `sig-ink-${variant}`
+---
+
+<figure class:list={["signature-block", className]} data-signature={variant}>
+    <svg
+        class="js-signature"
+        data-variant={variant}
+        viewBox="0 0 560 190"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        role="img"
+        aria-label="Musea signature"
+    >
+        <title>Musea</title>
+        <defs>
+            <clipPath id={clipId}>
+                <rect class="signature-clip" x="0" y="0" width="0" height="190"
+                ></rect>
+            </clipPath>
+            <filter
+                id={filterId}
+                x="-12%"
+                y="-20%"
+                width="124%"
+                height="140%"
+            >
+                <feTurbulence
+                    type="fractalNoise"
+                    baseFrequency="0.85"
+                    numOctaves="2"
+                    result="noise"></feTurbulence>
+                <feDisplacementMap
+                    in="SourceGraphic"
+                    in2="noise"
+                    scale="1.05"
+                    xChannelSelector="R"
+                    yChannelSelector="G"></feDisplacementMap>
+            </filter>
+        </defs>
+
+        <ellipse
+            class="signature-blot"
+            cx="46"
+            cy="124"
+            rx="6"
+            ry="4.5"
+            fill={ink}
+            opacity="0.5"></ellipse>
+
+        <text
+            class="signature-word"
+            x="18"
+            y="118"
+            fill={ink}
+            font-family="Mansalva, cursive"
+            font-size="108"
+            clip-path={`url(#${clipId})`}>Musea</text
+        >
+
+        <!-- Invisible writing path the pen follows through the letters -->
+        <path
+            class="signature-write-path"
+            d="M22 112 C 48 58, 72 150, 108 108 C 138 72, 156 148, 198 112 C 228 78, 248 150, 292 118 C 322 86, 348 146, 392 112 C 430 82, 470 128, 518 86"
+            fill="none"
+            stroke="none"></path>
+
+        <!-- Underline flourish -->
+        <path
+            data-draw
+            d="M32 148 C 120 176, 310 180, 500 142 C 528 136, 542 152, 518 158 C 470 168, 280 164, 140 154"
+            stroke={ink}
+            stroke-width={stroke}
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            filter={`url(#${filterId})`}></path>
+
+        <g class="signature-pen" aria-hidden="true">
+            <rect x="-3.2" y="-22" width="6.4" height="18" rx="1.2" fill={ink}
+            ></rect>
+            <rect x="-3.2" y="-26" width="6.4" height="5" rx="1" fill="#3f0c12"
+            ></rect>
+            <path d="M0 4 L-3.4 -4 H3.4 Z" fill="#1f080a"></path>
+        </g>
+    </svg>
+</figure>
