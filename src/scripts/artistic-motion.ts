@@ -255,10 +255,14 @@ function initInkTrail() {
 
     gsap.set(root, { autoAlpha: 1 })
 
-    const width = Math.max(document.documentElement.clientWidth, root.clientWidth)
+    // Drop any previous explicit height before measuring so a stale value
+    // cannot keep the document artificially tall after a resize.
+    root.style.height = ""
+
+    const width = document.documentElement.clientWidth
     const height = Math.max(
+        document.documentElement.scrollHeight,
         document.body.offsetHeight,
-        root.clientHeight,
         document.documentElement.clientHeight,
     )
     const maxScroll =
@@ -269,6 +273,9 @@ function initInkTrail() {
         return
     }
 
+    // Size the overlay explicitly so the viewBox maps 1:1 to page pixels even
+    // if the containing block ever falls back to the viewport.
+    root.style.height = `${height}px`
     svg.setAttribute("width", `${width}`)
     svg.setAttribute("height", `${height}`)
     svg.setAttribute("viewBox", `0 0 ${width} ${height}`)
