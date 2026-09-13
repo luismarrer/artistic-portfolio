@@ -77,6 +77,8 @@ html {
 }
 
 body {
+  /* Containing block for the page-long #ink-trail overlay */
+  position: relative;
   min-width: 0;
 }
 
