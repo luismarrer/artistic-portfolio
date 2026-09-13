@@ -144,7 +144,6 @@ function initSignatures() {
         )
         const clipRect = svg.querySelector<SVGRectElement>(".signature-clip")
         const pen = svg.querySelector<SVGGElement>(".signature-pen")
-        const blot = svg.querySelector<SVGElement>(".signature-blot")
         const word = svg.querySelector<SVGTextElement>(".signature-word")
         if (paths.length === 0 && !clipRect) return
 
@@ -153,23 +152,12 @@ function initSignatures() {
             gsap.set(path, { autoAlpha: 1 })
         })
         if (pen) gsap.set(pen, { autoAlpha: 0 })
-        if (blot) {
-            gsap.set(blot, { scale: 0, transformOrigin: "50% 50%" })
-        }
         if (word) gsap.set(word, { autoAlpha: 1 })
 
         const timeline = gsap.timeline({
             paused: true,
             defaults: { ease: "power1.inOut" },
         })
-
-        if (blot) {
-            timeline.to(
-                blot,
-                { scale: 1, autoAlpha: 1, duration: 0.35, ease: "back.out(2)" },
-                0,
-            )
-        }
 
         if (clipRect && writePath) {
             const writeDuration = 1.85
@@ -596,7 +584,7 @@ function showStaticFallback() {
         })
     document
         .querySelectorAll<HTMLElement>(
-            "[data-reveal], .js-hero-title span, #start, .js-scroll-hint, .js-signature .signature-word, .js-signature .signature-blot",
+            "[data-reveal], .js-hero-title span, #start, .js-scroll-hint, .js-signature .signature-word",
         )
         .forEach((el) => {
             el.style.opacity = "1"
