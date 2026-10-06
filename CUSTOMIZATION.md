@@ -37,7 +37,7 @@ Los textos iniciales viven en `site.hero`. La introducción tiene altura determi
 
 El inicio muestra una sola colección antes de la biografía: la primera con `featured: true`, o la primera del archivo si ninguna está destacada. `/portfolio` muestra el catálogo completo. Los títulos, descripciones y etiquetas de estos dos recorridos se editan en `site.portfolio`; cambia el orden de los registros para elegir la primera selección.
 
-Las tarjetas muestran la primera imagen de su propia galería, con sus proporciones originales y créditos siempre visibles fuera del enlace a la ficha. La portada seleccionada, los enlaces y el botón inicial no esperan una aparición de GSAP para ser utilizables. Mantén cada sección y el pie como hijos directos de `main`, y `data-trail-content` en la rejilla: el trazo mide la siguiente sección real para recorrer sus márgenes. La cuadrícula, la firma y las entradas decorativas restantes conservan el sistema de movimiento existente; comprueba navegación interna, teclado y movimiento reducido después de cambiar el layout.
+Las tarjetas muestran la primera imagen de su propia galería como una impresión montada, con portada estable 4:3 (recorte centrado o el que fije `focalPoint`; la ficha conserva las proporciones originales) y créditos siempre visibles fuera del enlace a la ficha. La portada seleccionada, los enlaces y el botón inicial no esperan una aparición de GSAP para ser utilizables. Mantén cada sección y el pie como hijos directos de `main`, y `data-trail-content` en la rejilla: el trazo mide la siguiente sección real para recorrer sus márgenes. La cuadrícula, la firma y las entradas decorativas restantes conservan el sistema de movimiento existente; comprueba navegación interna, teclado y movimiento reducido después de cambiar el layout.
 
 `site.about` contiene una biografía explícitamente demostrativa. Reemplázala por una historia verificable, no por supuestos clientes o resultados. `stats` es opcional y está vacío por defecto; añade únicamente cifras comprobables. Cada estadística tiene `value`, `suffix` y `label`.
 
@@ -82,6 +82,7 @@ La galería de cada proyecto es obligatoria y no puede estar vacía. Cada imagen
   height: 800,
   caption: 'Estudio inicial a partir de observación directa.',
   size: 'large', // small, medium o large
+  focalPoint: '50% 20%', // opcional: "x% y%" (0-100) que se conserva al recortar la portada a 4:3
   authorName: 'Nombre del creador',
   authorLink: 'https://tu-sitio.com',
   sourceName: 'Portfolio del creador',
@@ -89,7 +90,9 @@ La galería de cada proyecto es obligatoria y no puede estar vacía. Cada imagen
 }
 ```
 
-La validación comprueba archivos dentro de `public/`, dimensiones intrínsecas de PNG/JPEG/WebP o `viewBox` SVG, textos alternativos descriptivos, captions y créditos. Rechaza archivos ausentes, rutas que salen de `public/`, tamaños incorrectos y enlaces que no usan HTTPS. Un validador no puede comprobar por sí mismo que el texto alternativo sea adecuado ni que tengas derechos de publicación.
+La validación comprueba archivos dentro de `public/`, dimensiones intrínsecas de PNG/JPEG/WebP o `viewBox` SVG, textos alternativos descriptivos, captions y créditos. Rechaza archivos ausentes, rutas que salen de `public/`, tamaños incorrectos, un `focalPoint` que no sean dos porcentajes entre 0 y 100 y enlaces que no usan HTTPS. Un validador no puede comprobar por sí mismo que el texto alternativo sea adecuado ni que tengas derechos de publicación.
+
+`focalPoint` es opcional y solo afecta a las portadas recortadas: las tarjetas del catálogo y la portada seleccionada del inicio, que se muestran en 4:3 y lo usan como `object-position` (por defecto, el centro). Escribe dos porcentajes, `'x% y%'`, cada uno entre 0 y 100; no se aceptan palabras clave, otras unidades ni valores adicionales, y un formato incorrecto detiene la compilación. Las galerías de las fichas nunca se recortan, así que lo ignoran. Por ejemplo, en una ilustración vertical cuyo personaje empieza casi en el borde superior, `'50% 0%'` evita que el recorte 4:3 le corte la cabeza, como ocurre con la tercera colección de la demo.
 
 Los ejemplos son colecciones curadas de obras de distintos creadores, no encargos de Musea Art. Las atribuciones heredadas apuntan a perfiles y enlaces genéricos de Pixabay; **no demuestran la licencia de cada archivo**. Verifica los permisos antes de reutilizarlos. No atribuyas a la plantilla el proceso de creación de esas imágenes.
 
@@ -141,7 +144,7 @@ Cada enlace necesita `name`, `url` e `icon`. `icon` es el atributo `d` de un `<p
 
 Las fuentes son locales. `src/global.css` declara Mansalva para los títulos `h1`/`h2` y Josefin Sans para el texto general mediante `@font-face` y `@theme`. Los archivos están en `public/fonts/` y sus precargas en `src/layouts/Layout.astro`. Si cambias una fuente, actualiza las declaraciones, pesos, familias y precargas correspondientes.
 
-Tailwind CSS 4 se integra mediante `@tailwindcss/vite` en `astro.config.mjs`; no hay un `tailwind.config.mjs`. El Hero y el listado comparten los tokens de `src/global.css`: `--color-paper`, `--color-peach`, `--color-ink`, `--color-muted`, `--color-accent` y `--color-on-accent`. El resto de los componentes conserva sus colores existentes; cambiar esos tokens no recolorea automáticamente todas las ilustraciones.
+Tailwind CSS 4 se integra mediante `@tailwindcss/vite` en `astro.config.mjs`; no hay un `tailwind.config.mjs`. Todas las rutas comparten los tokens de `src/global.css` y se apoyan en el mismo papel (`--color-paper` en `body`): las secciones y el pie no pintan fondo propio, y solo el hero conserva su degradado melocotón. Colores: `--color-paper`, `--color-peach`, `--color-ink`, `--color-muted`, `--color-accent`, `--color-accent-hover`, `--color-on-accent`, `--color-surface` (montura de las impresiones y campos) y `--color-rule` (borde de campos, con al menos 3:1 de contraste). La cuadrícula del hero usa `--color-grid-line` y `--grid-size`; `--color-grid-line` es el acento al 20 % escrito como literal, así que actualízalo si cambias `--color-accent`. Las obras se montan con `--print-mount`, `--radius-print` y `--shadow-print`; el texto sigue `--text-body`, `--leading-body`, `--text-small`, `--text-label` y `--measure`. Esos tokens alimentan las clases `.print`, `.copy`, `.copy-small`, `.caption`, `.label` y `.field`, definidas en la capa de componentes de `global.css` para que una utilidad de Tailwind pueda sobrescribirlas. Cambiar los tokens no recolorea automáticamente las ilustraciones SVG.
 
 Los márgenes laterales y la reserva para la cabecera se comparten mediante `--page-gutter` y `--header-space` en `src/global.css`. Las cuadrículas y los tamaños cambian con las clases `sm:`, `md:` y `lg:`. Verifica títulos largos, enlaces, recortes y formulario en móvil estrecho y escritorio después de personalizar. Mantén el foco visible y las reglas de `prefers-reduced-motion`.
 

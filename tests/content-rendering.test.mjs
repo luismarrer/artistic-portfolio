@@ -290,3 +290,390 @@ test('the compact hero retains readable anchor controls and its dark-ink visual 
   assert.match(css, /\.hero-heading[^}]*color:var\(--color-ink\)/)
   assert.ok(!css.includes('.has-motion #start'), 'the CTA must stay visible before motion initialization')
 })
+
+// ── Paper and print system ──────────────────────────────────────────────────
+// Rendered and built-CSS assertions stay in this module: it owns the one `pnpm build` of the current
+// source, and a second building test file would race on `dist`.
+const read = (url) => readFileSync(url, 'utf8')
+const sourceRoot = new URL('../src/', import.meta.url)
+const caseRoutes = projects.map(({ id }) => `/projects/${id}`)
+
+function astroSources(directory = sourceRoot) {
+  return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+    const child = new URL(entry.isDirectory() ? `${entry.name}/` : entry.name, directory)
+    if (entry.isDirectory()) return astroSources(child)
+    return entry.name.endsWith('.astro')
+      ? [{ path: child.pathname.slice(sourceRoot.pathname.length), text: read(child) }]
+      : []
+  })
+}
+
+// Everything a visitor's browser applies to a route: linked CSS plus Astro's scoped <style> blocks.
+const sheets = new Map()
+function stylesheetFor(route) {
+  if (!sheets.has(route)) {
+    const html = documentFor(route)
+    const linked = [...html.matchAll(/<link\b[^>]*href="([^"]+\.css)"[^>]*>/g)]
+      .map(([, href]) => read(new URL(`../dist${href}`, import.meta.url)))
+    const inline = [...html.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style>/g)].map(([, content]) => content)
+    sheets.set(route, [...linked, ...inline].join('\n')
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/@(?:layer|import|charset)\b[^{};]*;/g, ''))
+  }
+  return sheets.get(route)
+}
+
+// Minified-CSS reader: the merged declarations of every rule that lists `selector`, ignoring Astro's scope attribute.
+const simplify = (selector) => selector.replace(/\[data-astro-cid-[\w-]+\]/g, '')
+  .replace(/::(after|before)\b/g, ':$1') // the minifier prints the single-colon form
+  .replace(/\s*([>+~])\s*/g, '$1').replace(/\s+/g, ' ').trim()
+function declarations(css, selector) {
+  const merged = {}
+  const wanted = simplify(selector)
+  for (const [, selectors, body] of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+    if (!selectors.split(',').some((candidate) => simplify(candidate) === wanted)) continue
+    for (const declaration of body.split(';')) {
+      const colon = declaration.indexOf(':')
+      if (colon > 0) merged[declaration.slice(0, colon).trim()] = declaration.slice(colon + 1).trim()
+    }
+  }
+  return merged
+}
+
+const classesOf = (tag = '') => (tag.match(/\bclass="([^"]*)"/)?.[1] ?? '').split(/\s+/).filter(Boolean)
+// The HTML is compressed, so the opening tag of an element sits directly before its first text.
+// Only the body counts: case pages repeat their description in <meta> tags.
+function tagBefore(html, text) {
+  const body = html.slice(html.indexOf('<body'))
+  const index = body.indexOf(escape(text))
+  assert.ok(index > 0, `the page must render: ${text}`)
+  return body.slice(body.lastIndexOf('<', index), index)
+}
+const squash = (value = '') => value.replace(/\s+/g, '').replace(/(^|[^\d])0\./g, '$1.')
+const hex = (value = '') => ({ brown: '#a52a2a', white: '#ffffff' }[value.toLowerCase()] ?? value.toLowerCase())
+  .replace(/^#([0-9a-f])([0-9a-f])([0-9a-f])$/, '#$1$1$2$2$3$3')
+const luminance = (color) => {
+  const [r, g, b] = color.slice(1).match(/../g).map((part) => {
+    const channel = parseInt(part, 16) / 255
+    return channel <= 0.03928 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4
+  })
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b
+}
+const contrast = (a, b) => {
+  const [light, dark] = [luminance(a), luminance(b)].sort((x, y) => y - x)
+  return (light + 0.05) / (dark + 0.05)
+}
+function topLevelItems(value = '') {
+  const items = []
+  let depth = 0
+  let current = ''
+  for (const character of value) {
+    if (character === '(') depth++
+    if (character === ')') depth--
+    if (character === ',' && depth === 0) { items.push(current.trim()); current = '' } else current += character
+  }
+  return [...items, current.trim()].filter(Boolean)
+}
+
+// The :root tokens a visitor receives, with a reader for colour tokens that must resolve to a plain hex value.
+function rootTokens() {
+  const tokens = declarations(stylesheetFor('/'), ':root')
+  const color = (name) => {
+    assert.ok(tokens[name], `${name} must be a :root token`)
+    const value = hex(tokens[name])
+    assert.match(value, /^#[0-9a-f]{6}$/, `${name} must resolve to a plain colour, not ${tokens[name]}`)
+    return value
+  }
+  return { tokens, color }
+}
+
+test('design tokens: paper, print and type scales are declared once in :root and shared', () => {
+  const { tokens, color } = rootTokens()
+  for (const name of ['--color-paper', '--color-peach', '--color-ink', '--color-muted', '--color-accent',
+    '--color-accent-hover', '--color-on-accent', '--color-surface', '--color-rule']) color(name)
+  // The grid line is the accent red at 20%, and must reach the browser as that translucent colour:
+  // a minifier once rewrote a derived colour-mix() into a solid fallback.
+  const gridLine = hex(tokens['--color-grid-line']).match(/^#([0-9a-f]{6})([0-9a-f]{2})$/)
+  assert.ok(gridLine, `--color-grid-line must be a translucent colour, not ${tokens['--color-grid-line']}`)
+  assert.ok(Math.abs(parseInt(gridLine[2], 16) / 255 - 0.2) < 0.01, 'the grid line is faint (20% alpha)')
+  assert.equal(`#${gridLine[1]}`, color('--color-accent'), 'the grid line is the accent red')
+  assert.equal(squash(tokens['--grid-size']), '35px', 'hero and grid tail must share one tile size')
+  assert.ok(topLevelItems(tokens['--shadow-print']).length >= 2, 'a tight contact shadow plus a soft lift')
+  assert.equal(squash(tokens['--radius-print']), '2px')
+  assert.equal(squash(tokens['--print-mount']), 'clamp(6px,.9vw,12px)')
+  assert.equal(squash(tokens['--text-body']), '1.125rem')
+  assert.equal(squash(tokens['--leading-body']), '1.6')
+  assert.equal(squash(tokens['--text-small']), '1rem')
+  assert.equal(squash(tokens['--text-label']), '.9375rem')
+  assert.equal(squash(tokens['--measure']), '64ch')
+})
+
+test('palette pairs used for text and field borders keep WCAG AA contrast on paper and surface', () => {
+  const { color } = rootTokens()
+  const pairs = [
+    ['--color-ink', '--color-paper', 7],
+    ['--color-muted', '--color-paper', 4.5],
+    ['--color-muted', '--color-surface', 4.5],
+    ['--color-accent', '--color-paper', 4.5],
+    ['--color-on-accent', '--color-accent', 4.5],
+    ['--color-on-accent', '--color-accent-hover', 4.5],
+    ['--color-rule', '--color-paper', 3],
+    ['--color-rule', '--color-surface', 3],
+  ]
+  for (const [foreground, background, minimum] of pairs) {
+    const ratio = contrast(color(foreground), color(background))
+    assert.ok(ratio >= minimum, `${foreground} on ${background} is ${ratio.toFixed(2)}:1, needs ${minimum}:1`)
+  }
+})
+
+test('every route sits on the same paper: no hard-coded page fills or Tailwind gray palette', () => {
+  for (const { path, text } of astroSources()) {
+    assert.ok(!/\bbg-(?:white|black|gray-\d+|slate-\d+)\b|\bbg-\[#(?:fe|ff)eaca\]/i.test(text),
+      `${path} paints its own fill instead of inheriting paper`)
+    assert.ok(!/\b(?:text|border|decoration|ring|divide)-(?:gray|slate|zinc|neutral|stone)-\d+\b|\btext-(?:white|black)\b/.test(text),
+      `${path} uses the Tailwind gray palette instead of the ink and muted tokens`)
+    assert.ok(!/background(?:-color)?:\s*(?:white|#fff(?:fff)?)\b/i.test(text), `${path} styles a white fill`)
+    if (!path.startsWith('components/svgs/')) {
+      assert.ok(!/#(?:b22222|a52a2a|6b1520|201b20|feeaca|ffeaca)\b/i.test(text),
+        `${path} hard-codes a palette value that has a token`)
+    }
+  }
+  for (const route of routes) {
+    const html = documentFor(route)
+    for (const [, value] of html.matchAll(/\bclass="([^"]*)"/g)) {
+      assert.ok(!/\bbg-(?:white|\[#(?:fe|ff)eaca\])/i.test(value), `${route} renders a hard-coded fill: ${value}`)
+    }
+    assert.ok(!/<body\b[^>]*class="[^"]*\b(?:bg-white|text-gray-900)\b/.test(html), `${route} body must use the paper token`)
+  }
+  const body = declarations(stylesheetFor('/'), 'body')
+  assert.equal(body['background-color'] ?? body.background, 'var(--color-paper)')
+  assert.equal(body.color, 'var(--color-ink)')
+})
+
+test('the hero grid continues behind the first work as an inert layer that fades out', () => {
+  const html = documentFor('/')
+  const css = stylesheetFor('/')
+  const hero = html.match(/<section\b[^>]*data-hero[^>]*>/)?.[0]
+  assert.ok(hero)
+  assert.ok(!classesOf(hero).includes('overflow-hidden'), 'the grid tail extends below the hero, so it cannot clip vertically')
+  assert.ok(classesOf(hero).includes('overflow-x-clip'), 'horizontal overflow stays contained')
+  const wash = declarations(css, '.grid-background')
+  assert.match(wash['background-image'], /var\(--color-paper\)(?: 100%)?\)$/, 'the wash must end exactly in paper at the hero bottom')
+  assert.ok(!/inset/.test(wash['box-shadow'] ?? ''), 'no inset shadow may draw an edge at the hero bottom')
+  assert.match(wash['background-position'], /^0 100%,\s*0 100%/, 'rows are anchored to the bottom so the tail continues in phase')
+  const tail = declarations(css, '.grid-background::after')
+  assert.equal(tail.content, '""', 'a pseudo-element without generated content never renders')
+  assert.equal(tail.position, 'absolute', 'out of flow: the hero layout box that the ink trail measures cannot change')
+  assert.equal(tail['pointer-events'], 'none')
+  assert.equal(tail.top, '100%', 'the tail starts exactly where the hero ends')
+  assert.match(tail.height, /^clamp\(8rem,\s*20vw,\s*16rem\)$/)
+  assert.ok((tail.left === '0' && tail.right === '0') || tail['inset-inline'] === '0',
+    'the tail is pinned to both hero edges and never wider')
+  assert.match(tail['mask-image'] ?? tail['-webkit-mask-image'] ?? '', /linear-gradient\(/, 'a vertical mask fades the grid out')
+  const heroSource = read(new URL('../src/components/sections/Hero.astro', import.meta.url))
+  assert.ok(/(?<!-webkit-)mask-image/.test(heroSource) && heroSource.includes('-webkit-mask-image'),
+    'declare both mask-image and -webkit-mask-image in source')
+  const projectsTag = html.match(/<section\b[^>]*id="projects"[^>]*>/)?.[0]
+  assert.ok(projectsTag && !/\bbg-/.test(projectsTag), '#projects must not paint a fill')
+  const section = declarations(css, '.portfolio-section')
+  assert.ok(!Object.keys(section).some((property) => property.startsWith('background')),
+    '#projects must stay transparent so the grid shows through')
+  const selection = declarations(css, '.portfolio-selection')
+  assert.equal(selection.position, 'relative')
+  assert.ok(Number(selection['z-index']) >= 1, 'the featured print and its text paint above the grid tail')
+  assert.ok(Number(selection['z-index']) < Number(declarations(css, '.ink-trail')['z-index']), 'the ink trail stays above')
+  assert.ok(hero.includes('data-hero') && !hero.includes('min-h-svh'))
+})
+
+test('artwork is mounted as a print on the home, catalogue and case pages', () => {
+  const css = stylesheetFor('/')
+  const print = declarations(css, '.print')
+  assert.equal(print.padding, 'var(--print-mount)')
+  assert.equal(print['border-radius'], 'var(--radius-print)')
+  assert.equal(print['box-shadow'], 'var(--shadow-print)')
+  assert.equal(print['background-color'] ?? print.background, 'var(--color-surface)')
+  assert.equal(declarations(css, '.print>img').display, 'block')
+  for (const route of ['/', '/portfolio', ...caseRoutes]) {
+    const html = documentFor(route)
+    const artwork = [...html.matchAll(/(<div\b[^>]*>)?(<img\b[^>]*\bsrc="\/images\/[^"]*"[^>]*>)/g)]
+    assert.ok(artwork.length > 0, `${route} renders artwork`)
+    for (const [, wrapper, image] of artwork) {
+      assert.ok(classesOf(image).includes('print') || classesOf(wrapper).includes('print'),
+        `${route} artwork must sit in a mounted print: ${image}`)
+      assert.ok(!classesOf(image).some((name) => name.startsWith('rounded')), `${route} artwork has web-card corners`)
+    }
+  }
+  const home = documentFor('/')
+  const portrait = home.match(new RegExp(`<img\\b[^>]*src="${site.about.image.src}"[^>]*>`))?.[0]
+  assert.ok(portrait)
+  assert.ok(classesOf(portrait).includes('print'), 'the portrait is a mounted print too')
+  assert.ok(classesOf(portrait).includes('-rotate-3'), 'the portrait keeps its slight static tilt')
+  assert.ok(!/style="[^"]*border/.test(portrait), 'the mount comes from the print, not an inline border')
+  for (const route of ['/', '/portfolio']) {
+    for (const [, wrapper] of documentFor(route).matchAll(/(<div\b[^>]*>)<img\b[^>]*\bsrc="\/images\/project-page\//g)) {
+      assert.ok(classesOf(wrapper).includes('project-artwork'), 'catalogue covers keep the .project-artwork hook')
+    }
+  }
+})
+
+test('catalogue and featured covers are a stable 4:3, while gallery artwork keeps its natural ratio', () => {
+  for (const route of ['/', '/portfolio']) {
+    const cover = declarations(stylesheetFor(route), '.project-artwork img')
+    assert.match(cover['aspect-ratio'] ?? '', /^4\s*\/\s*3$/, `${route} covers need a 4:3 ratio`)
+    assert.equal(cover['object-fit'], 'cover')
+    assert.match(cover['object-position'] ?? '', /^var\(--focal,\s*(?:center|50%(?: 50%)?)\)$/,
+      `${route} crops around the cover focal point, centered by default`)
+    assert.equal(cover.display, 'block')
+  }
+  for (const route of caseRoutes) {
+    for (const [tag] of documentFor(route).matchAll(/<img\b[^>]*\bsrc="\/images\/project-page\/[^"]*"[^>]*>/g)) {
+      const classes = classesOf(tag)
+      assert.ok(classes.includes('h-auto') && classes.includes('w-full'), `${route} gallery image needs its natural height: ${tag}`)
+      assert.ok(!classes.some((name) => /^(?:object-|aspect-)/.test(name)), `${route} must not crop gallery artwork: ${tag}`)
+    }
+  }
+})
+
+test('a cover focal point reaches CSS as --focal on cropped covers only', () => {
+  const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const featured = projects.find(({ featured }) => featured) ?? projects[0]
+  assert.ok(projects.some(({ gallery }) => gallery[0].focalPoint), 'the demo data must exercise a focal point')
+  for (const [route, shown] of [['/portfolio', projects], ['/', [featured]]]) {
+    const html = documentFor(route)
+    for (const { gallery: [cover] } of shown) {
+      const tag = html.match(new RegExp(`<img\\b[^>]*\\bsrc="${escapeRegExp(cover.src)}"[^>]*>`))?.[0]
+      assert.ok(tag, `${route} renders the cover ${cover.src}`)
+      const style = tag.match(/\bstyle="([^"]*)"/)?.[1]
+      if (cover.focalPoint) {
+        assert.equal(squash(style), squash(`--focal: ${cover.focalPoint}`), `${route} cover must carry its focal point`)
+      } else {
+        assert.equal(style, undefined, `${route} cover without a focal point must stay untouched: ${tag}`)
+      }
+    }
+  }
+  // Case galleries are never cropped, so even a cover with a focal point renders its gallery image untouched.
+  for (const route of caseRoutes) {
+    for (const [tag] of documentFor(route).matchAll(/<img\b[^>]*\bsrc="\/images\/project-page\/[^"]*"[^>]*>/g)) {
+      assert.ok(!tag.includes('--focal') && !/\bstyle=/.test(tag), `${route} gallery image must not carry a focal point: ${tag}`)
+    }
+  }
+})
+
+test('type scale: body copy, small copy, captions and sentence-case labels use the documented tokens', () => {
+  const css = stylesheetFor('/')
+  const copy = declarations(css, '.copy')
+  assert.equal(copy['font-size'], 'var(--text-body)')
+  assert.equal(copy['line-height'], 'var(--leading-body)')
+  assert.equal(copy['max-width'], 'var(--measure)')
+  const small = declarations(css, '.copy-small')
+  assert.equal(small['font-size'], 'var(--text-small)')
+  assert.equal(small['line-height'], 'var(--leading-body)')
+  assert.equal(small['max-width'], 'var(--measure)')
+  const caption = declarations(css, '.caption')
+  assert.equal(caption['font-size'], 'var(--text-label)')
+  assert.equal(caption.color, 'var(--color-muted)')
+  const label = declarations(css, '.label')
+  assert.equal(label['font-size'], 'var(--text-label)')
+  assert.equal(label['font-weight'], '600')
+  assert.equal(label.color, 'var(--color-muted)')
+  assert.ok(['normal', '0', '0px', undefined].includes(label['letter-spacing']), 'labels use normal tracking')
+  assert.ok([undefined, 'none'].includes(label['text-transform']), 'labels are sentence case')
+
+  const home = documentFor('/')
+  for (const paragraph of [...site.about.paragraphs, site.about.description, site.portfolio.selectedDescription]) {
+    assert.ok(classesOf(tagBefore(home, paragraph)).includes('copy'), `body copy needs .copy: ${paragraph}`)
+  }
+  const featured = projects.find(({ featured }) => featured) ?? projects[0]
+  assert.ok(classesOf(tagBefore(home, featured.description)).includes('copy'), 'the featured summary is body copy')
+  assert.ok(classesOf(tagBefore(home, site.footer.description)).includes('copy-small'))
+  assert.ok(classesOf(tagBefore(home, featured.category)).includes('label'))
+  const portfolio = documentFor('/portfolio')
+  assert.ok(classesOf(tagBefore(portfolio, site.portfolio.catalogueDescription)).includes('copy'))
+  for (const project of projects) {
+    assert.ok(classesOf(tagBefore(portfolio, project.description)).includes('copy-small'), 'card summaries use the small scale')
+    assert.ok(classesOf(tagBefore(portfolio, project.category)).includes('label'))
+  }
+  const creditSize = declarations(stylesheetFor('/portfolio'), '.cover-credit')['font-size']
+  assert.ok([undefined, 'var(--text-label)'].includes(creditSize), 'a scoped rule must not shrink credits below the label size')
+  assert.ok(classesOf(portfolio.match(/<p\b[^>]*class="[^"]*\bcover-credit\b[^"]*"[^>]*>/)?.[0]).includes('caption'))
+  assert.ok(classesOf(tagBefore(documentFor('/contact'), site.contact.subtitle)).includes('copy'))
+  for (const route of caseRoutes) {
+    const html = documentFor(route)
+    const project = projects.find(({ id }) => route === `/projects/${id}`)
+    assert.ok(classesOf(tagBefore(html, project.category)).includes('label'), 'the case eyebrow is a sentence-case label')
+    assert.ok(classesOf(tagBefore(html, project.description)).includes('copy'))
+    assert.ok(classesOf(tagBefore(html, project.disclosure)).includes('copy-small'))
+    for (const note of Object.values(project.editorial)) assert.ok(classesOf(tagBefore(html, note)).includes('copy'))
+    assert.ok(classesOf(html.match(/<p\b[^>]*class="([^"]*)"[^>]*>By <a\b/)?.[0]).includes('caption'), 'credits keep a readable size')
+  }
+  for (const { path, text } of astroSources()) {
+    assert.ok(!/\buppercase\b|\btracking-(?:wide|wider|widest)\b|\btext-xs\b/.test(text), `${path} must not use all-caps labels or tiny type`)
+  }
+  assert.ok(home.includes('text-[clamp(2.75rem,7.5vw,4.5rem)]'), 'the hero h1 keeps the documented fluid size')
+})
+
+test('Mansalva headings never rely on synthetic bold', () => {
+  const heading = declarations(stylesheetFor('/'), 'h1')
+  assert.match(heading['font-family'], /Mansalva/)
+  assert.equal(heading['font-weight'], '400', 'only the Regular face ships')
+  for (const route of routes) {
+    for (const [tag] of documentFor(route).matchAll(/<h[12]\b[^>]*>/g)) {
+      assert.ok(!classesOf(tag).some((name) => /^font-(?:medium|semibold|bold|extrabold|black)$/.test(name)),
+        `${route} heading asks for a weight Mansalva does not have: ${tag}`)
+    }
+  }
+})
+
+test('the footer sits on paper, closed by a drawn decorative rule instead of a grey border', () => {
+  for (const route of routes) {
+    const html = documentFor(route)
+    const footer = html.match(/<footer\b[^>]*>([\s\S]*?)<\/footer>/)
+    assert.ok(footer, `${route} needs a footer`)
+    const opening = footer[0].match(/^<footer\b[^>]*>/)[0]
+    assert.ok(!/\bbg-/.test(opening), `${route} footer must not paint a fill`)
+    assert.ok(!/\bborder-(?:t\b|gray)|<hr\b/.test(footer[0]), `${route} footer still draws a grey border`)
+    const rule = footer[1].match(/<svg\b[^>]*>/)?.[0]
+    assert.ok(rule && footer[1].indexOf(rule) < footer[1].indexOf('<section'), `${route} footer opens with a drawn rule`)
+    assert.ok(rule.includes('aria-hidden="true"') && rule.includes('focusable="false"') && rule.includes('preserveAspectRatio="none"'))
+    assert.ok(classesOf(rule).includes('w-full') && classesOf(rule).some((name) => /^h-(?:2|2\.5|3)$/.test(name)),
+      'the rule spans the content width and is about 8-12px tall')
+    assert.ok(footer[1].includes('signature-block'), 'the footer keeps its signature')
+    assert.ok(footer[1].includes(escape(site.footer.description)))
+    assert.ok(html.includes('</footer></main>'), 'the footer stays the last direct child of main')
+  }
+})
+
+test('contact fields sit on the surface with rule borders and a visible accent focus ring', () => {
+  const html = documentFor('/contact')
+  for (const name of ['name', 'email', 'subject', 'message']) {
+    const field = html.match(new RegExp(`<(?:input|textarea)\\b[^>]*\\bid="${name}"[^>]*>`))?.[0]
+    assert.ok(field, `#${name} must render`)
+    assert.ok(classesOf(field).includes('field'), `#${name} uses the shared field style`)
+    assert.ok(!/\boutline-none\b|\bfocus:ring|\bborder-gray|\brounded-lg\b/.test(field), `#${name} suppresses its own focus ring`)
+  }
+  const css = stylesheetFor('/contact')
+  const field = declarations(css, '.field')
+  assert.equal(field['background-color'] ?? field.background, 'var(--color-surface)')
+  assert.match(field.border ?? '', /^1px solid var\(--color-rule\)$/)
+  assert.match(field['border-radius'] ?? '', /^(?:\.25rem|0\.25rem|4px|var\(--radius-print\))$/, 'a small radius')
+  for (const target of ['a', 'button', 'input', 'select', 'textarea']) {
+    const focus = declarations(css, `${target}:focus-visible`)
+    assert.equal(focus.outline, '3px solid var(--color-accent)', `${target}:focus-visible must show an accent outline`)
+  }
+})
+
+test('artwork and cards use no hover motion', () => {
+  for (const route of ['/', '/portfolio', ...caseRoutes]) {
+    const html = documentFor(route)
+    assert.ok(!/\b(?:group-)?hover:-?(?:rotate|scale)/.test(html), `${route} rotates or scales an element on hover`)
+    for (const [, wrapper = '', image] of html.matchAll(/(<div\b[^>]*>)?(<img\b[^>]*\bsrc="\/images\/[^"]*"[^>]*>)/g)) {
+      assert.ok(!/\bhover:|\btransition-transform\b/.test(wrapper + image), `${route} artwork reacts to hover: ${wrapper}${image}`)
+    }
+    const css = stylesheetFor(route)
+    for (const [, selectors, body] of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+      if (/:hover/.test(selectors) && /project-|\.print|artwork/.test(selectors)) {
+        assert.ok(!/transform|scale|rotate|translate/.test(body), `${route} hover rule moves artwork: ${selectors}`)
+      }
+    }
+  }
+})

@@ -14,44 +14,41 @@ const aboutData = site.about
     class="max-w-6xl mx-auto gap-10 md:gap-8 lg:gap-20 grid md:grid-cols-2 items-center"
   >
     <!-- Image -->
-    <div
-      class="w-full max-w-56 sm:max-w-72 lg:max-w-96 mx-auto p-2 hover:rotate-3 transition-transform duration-300"
-      data-reveal="left"
-    >
+    {/* The static tilt sits on the image: the wrapper's transform belongs to the reveal animation. */}
+    <div class="w-full max-w-56 sm:max-w-72 lg:max-w-96 mx-auto p-2" data-reveal="left">
       <img
-        class="rounded-xl shadow-lg"
+        class="print -rotate-3"
         alt={aboutData.image.alt}
         src={aboutData.image.src}
         width={aboutData.image.width}
         height={aboutData.image.height}
-        style="border: 10px solid white; transform: rotate(-3deg);"
       />
     </div>
 
     <!-- Bio -->
     <div class="min-w-0 space-y-6" data-reveal="right">
-      <h3 class="text-2xl sm:text-3xl font-bold text-gray-800 text-center md:text-left">
+      <h3 class="text-2xl sm:text-3xl font-bold text-center md:text-left">
         {aboutData.heading}
       </h3>
 
       {
         aboutData.paragraphs.map((paragraph) => (
-          <p class="text-gray-700 leading-relaxed">{paragraph}</p>
+          <p class="copy">{paragraph}</p>
         ))
       }
 
       <!-- Skills -->
       <div class="pt-4">
         <h4
-          class="text-xl font-semibold text-gray-800 mb-4 text-center md:text-left"
+          class="text-xl font-semibold mb-4 text-center md:text-left"
         >
           {aboutData.skillsTitle}
         </h4>
         <ul class="grid grid-cols-2 gap-3">
           {
             aboutData.skills.map((skill) => (
-              <li class="flex items-center gap-2 text-gray-700">
-                <span class="w-2 h-2 shrink-0 bg-[#B22222] rounded-full" />
+              <li class="flex items-center gap-2">
+                <span class="w-2 h-2 shrink-0 bg-(--color-accent) rounded-full" />
                 {skill}
               </li>
             ))
@@ -61,18 +58,18 @@ const aboutData = site.about
 
       <!-- Statistics -->
       {(aboutData.stats?.length ?? 0) > 0 && (
-        <div class="grid grid-cols-3 gap-4 pt-6 border-t border-gray-300" data-stats>
+        <div class="grid grid-cols-3 gap-4 pt-6 border-t border-(--color-ink)/20" data-stats>
           {
             aboutData.stats?.map((stat) => (
               <div class="text-center">
                 <div
-                  class="text-3xl font-bold text-[#B22222]"
+                  class="text-3xl font-bold text-(--color-accent)"
                   data-count={stat.value}
                   data-count-suffix={stat.suffix}
                 >
                   {stat.value}{stat.suffix}
                 </div>
-                <div class="text-sm text-gray-600">{stat.label}</div>
+                <div class="caption">{stat.label}</div>
               </div>
             ))
           }

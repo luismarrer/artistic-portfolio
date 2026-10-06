@@ -156,6 +156,34 @@ test('rejects absent, meaningless, invalid or dimension-mismatched media metadat
   }
 })
 
+test('accepts an optional focal point for cropped covers; absent stays valid', () => {
+  assert.equal(validateProjects([project], options)[0].gallery[0].focalPoint, undefined)
+  for (const focalPoint of ['50% 20%', '0% 0%', '100% 100%', '12.5% 87.25%', '50% 0%', '10.0% 90.50%']) {
+    const [validated] = validateProjects(changeProject((p) => { p.gallery[0].focalPoint = focalPoint }), options)
+    assert.equal(validated.gallery[0].focalPoint, focalPoint)
+  }
+})
+
+test('rejects focal points that are keywords, other units, out of range or carry extra tokens', () => {
+  for (const focalPoint of ['center', 'top left', '50%', '120% 10%', '10% 100.5%', '-5% 10%', '+5% 10%',
+    '10px 10px', '50% 20px', '50 20', '50% 20% 5%', '50%  20%', ' 50% 20%', '50% 20% ', '50%\t20%', '50%,20%',
+    '.5% 20%', '5.% 20%', '1e1% 10%', '', ' ', 50, null, true, {}, ['50% 20%']]) {
+    assert.throws(() => validateProjects(changeProject((p) => { p.gallery[0].focalPoint = focalPoint }), options),
+      /focalPoint/, `must reject ${JSON.stringify(focalPoint)}`)
+  }
+})
+
+test('the third cover keeps the ghost head inside its 4:3 crop', () => {
+  const cover = projects.find(({ id }) => id === 3).gallery[0]
+  assert.ok(cover.focalPoint, 'this near-square illustration needs a focal point to survive a 4:3 crop')
+  // object-position y places the crop window: its top sits at y% of the rows a 4:3 crop discards.
+  const hiddenRows = cover.height - cover.width * 3 / 4
+  const windowTop = Number(cover.focalPoint.split(' ')[1].slice(0, -1)) / 100 * hiddenRows
+  // First inked row of halloween-9862664_1280.png, measured from its alpha channel: the head nearly touches the top edge.
+  const headTop = 20
+  assert.ok(windowTop <= headTop, `the crop starts at row ${windowTop.toFixed(0)} but the head begins at row ${headTop}`)
+})
+
 test('rejects missing local files, directory assets, traversal and remote image URLs', () => {
   for (const src of ['/images/missing.png', '/images', '/../outside.png', '/images/%2e%2e/sample.png',
     '/images/sample.png?cache=1', '//remote.example/image.png', 'https://example.org/image.png']) {

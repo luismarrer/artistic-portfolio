@@ -83,6 +83,8 @@ export const projects = validateProjects([
         src: '/images/project-page/halloween-9862664_1280.png',
         alt: 'A smiling white ghost character surrounded by blue flames',
         width: 1168, height: 1280, size: 'medium',
+        // The head starts at row 20 of 1280, so a 4:3 crop (which hides 404 rows) must start at the very top.
+        focalPoint: '50% 0%',
         caption: 'A seasonal character built from a simple silhouette and cool blue accents.',
         authorName: 'Raquel Candia',
         authorLink: 'https://pixabay.com/es/users/ideativas-tlm-19346105/',

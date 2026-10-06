@@ -13,22 +13,22 @@ const {
 const isDemo = site.contact.mode === "demo"
 ---
 
-<section id="contact" class="page-intro pb-12 sm:pb-20 bg-[#FEEACA] min-h-svh">
+<section id="contact" class="page-intro pb-12 sm:pb-20 min-h-svh">
   <div class="mx-auto px-[var(--page-gutter)]">
     <div class="max-w-4xl mx-auto">
       <div class="text-center mb-8 sm:mb-12">
         <h1
-          class="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 text-gray-900"
+          class="text-3xl sm:text-4xl md:text-5xl mb-4"
           data-reveal="title"
         >
           {title}
         </h1>
-        <p class="text-lg text-gray-600" data-reveal="copy">
+        <p class="copy mx-auto text-(--color-muted)" data-reveal="copy">
           {subtitle}
         </p>
       </div>
 
-      {isDemo && <p id="contact-demo" class="mb-6 text-center text-gray-700">{site.contact.demoMessage}</p>}
+      {isDemo && <p id="contact-demo" class="copy mx-auto mb-6 text-center">{site.contact.demoMessage}</p>}
       <form
         id="contact-form"
         class="space-y-6"
@@ -44,7 +44,7 @@ const isDemo = site.contact.mode === "demo"
             <div>
               <label
                 for="name"
-                class="block text-sm font-medium text-gray-700 mb-2"
+                class="label block mb-2"
               >
                 Name
               </label>
@@ -54,7 +54,7 @@ const isDemo = site.contact.mode === "demo"
                 name="name"
                 autocomplete="name"
                 required
-                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-transparent outline-none transition-all"
+                class="field"
                 placeholder="Your name"
               />
             </div>
@@ -62,7 +62,7 @@ const isDemo = site.contact.mode === "demo"
             <div>
               <label
                 for="email"
-                class="block text-sm font-medium text-gray-700 mb-2"
+                class="label block mb-2"
               >
                 Email
               </label>
@@ -72,7 +72,7 @@ const isDemo = site.contact.mode === "demo"
                 name="email"
                 autocomplete="email"
                 required
-                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-transparent outline-none transition-all"
+                class="field"
                 placeholder="your@email.com"
               />
             </div>
@@ -81,7 +81,7 @@ const isDemo = site.contact.mode === "demo"
           <div>
             <label
               for="subject"
-              class="block text-sm font-medium text-gray-700 mb-2"
+              class="label block mb-2"
             >
               Subject
             </label>
@@ -90,7 +90,7 @@ const isDemo = site.contact.mode === "demo"
               id="subject"
               name="subject"
               required
-              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-transparent outline-none transition-all"
+              class="field"
               placeholder="How can I help you?"
             />
           </div>
@@ -98,7 +98,7 @@ const isDemo = site.contact.mode === "demo"
           <div>
             <label
               for="message"
-              class="block text-sm font-medium text-gray-700 mb-2"
+              class="label block mb-2"
             >
               Message
             </label>
@@ -107,14 +107,14 @@ const isDemo = site.contact.mode === "demo"
               name="message"
               rows="6"
               required
-              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-transparent outline-none transition-all resize-none"
+              class="field resize-none"
               placeholder="Tell me about your project..."></textarea>
           </div>
 
           <div class="text-center">
             <button
               type="submit"
-              class="inline-block w-full sm:w-auto bg-slate-900 text-white px-8 py-4 rounded-lg font-medium hover:bg-slate-800 duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-transform disabled:cursor-not-allowed disabled:opacity-60"
+              class="inline-block w-full sm:w-auto bg-(--color-accent) text-(--color-on-accent) px-8 py-4 rounded-lg font-semibold hover:bg-(--color-accent-hover) duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-transform disabled:cursor-not-allowed disabled:opacity-60"
             >
               Send Message
             </button>
@@ -123,7 +123,7 @@ const isDemo = site.contact.mode === "demo"
       </form>
       <p
         id="form-status"
-        class="mt-6 text-center text-gray-700 data-[state=error]:text-red-800 data-[state=success]:text-green-800"
+        class="mt-6 text-center data-[state=error]:text-red-800 data-[state=success]:text-green-800"
         role="status"
         aria-live="polite"
         aria-atomic="true"

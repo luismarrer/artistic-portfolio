@@ -7,8 +7,8 @@ import Footer from "@/components/sections/Footer.astro"
 
 <Layout title={site.pages.portfolio.title} description={site.pages.portfolio.description}>
     <section class="page-intro mx-auto max-w-6xl px-[var(--page-gutter)] pb-6 sm:pb-8">
-        <h1 class="text-3xl sm:text-4xl font-bold">{site.portfolio.catalogueTitle}</h1>
-        <p class="mt-4 max-w-2xl text-lg leading-relaxed text-gray-700">{site.portfolio.catalogueDescription}</p>
+        <h1 class="text-3xl sm:text-4xl">{site.portfolio.catalogueTitle}</h1>
+        <p class="copy mt-4">{site.portfolio.catalogueDescription}</p>
     </section>
     <PortfolioComponent />
     <Footer />

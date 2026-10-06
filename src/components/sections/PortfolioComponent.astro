@@ -20,7 +20,7 @@ const isSelection = variant === "selection"
   {isSelection && (
     <header class="selection-heading">
       <h2>{site.portfolio.selectedTitle}</h2>
-      <p>{site.portfolio.selectedDescription}</p>
+      <p class="copy">{site.portfolio.selectedDescription}</p>
     </header>
   )}
   <div class:list={["grid projects-grid", { "selection-grid": isSelection }]} data-trail-content>
@@ -29,7 +29,7 @@ const isSelection = variant === "selection"
       return (
         <article class="project-entry min-w-0" data-project-entry={project.id}>
           <a href={`/projects/${project.id}`} class="project-card">
-            <div class="project-artwork">
+            <div class="project-artwork print">
               <img
                 src={cover.src}
                 alt={cover.alt}
@@ -37,16 +37,17 @@ const isSelection = variant === "selection"
                 height={cover.height}
                 loading={index === 0 ? "eager" : "lazy"}
                 decoding="async"
+                style={cover.focalPoint ? `--focal: ${cover.focalPoint}` : undefined}
               />
             </div>
             <div class="project-summary min-w-0">
-              <p class="project-category">{project.category}</p>
+              <p class="label">{project.category}</p>
               <h3>{project.title}</h3>
-              <p class="project-context">{project.description}</p>
+              <p class:list={["project-context", isSelection ? "copy" : "copy-small"]}>{project.description}</p>
               <span class="case-link">{site.portfolio.caseLinkLabel} <span aria-hidden="true">→</span></span>
             </div>
           </a>
-          <p class="cover-credit">
+          <p class="cover-credit caption">
             <a href={cover.authorLink} target="_blank" rel="noopener noreferrer">{cover.authorName}</a>
             <span aria-hidden="true"> · </span>
             <a href={cover.sourceLink} target="_blank" rel="noopener noreferrer">{cover.sourceName}</a>
@@ -63,9 +64,14 @@ const isSelection = variant === "selection"
 </section>
 
 <style>
+  /* Transparent on purpose: every route is one sheet of paper, and the hero's grid tail runs behind this section. */
   .portfolio-section {
     padding: 1.5rem var(--page-gutter) 3rem;
-    background: var(--color-paper);
+  }
+  /* Paints above the hero's grid tail (see Hero.astro), below the ink trail (z-index 25). */
+  .portfolio-selection {
+    position: relative;
+    z-index: 1;
   }
   .selection-heading, .projects-grid, .catalogue-link {
     max-width: 72rem;
@@ -81,7 +87,6 @@ const isSelection = variant === "selection"
   .selection-heading p {
     margin-top: 0.5rem;
     color: var(--color-muted);
-    line-height: 1.5;
   }
   .projects-grid {
     gap: 2.5rem;
@@ -90,35 +95,32 @@ const isSelection = variant === "selection"
   .project-card {
     display: grid;
     gap: 1.25rem;
-    border-radius: 0.5rem;
+    border-radius: var(--radius-print);
     color: var(--color-ink);
   }
+  /*
+   * The mount, shadow and radius come from .print; this only sets the stable 4:3 cover crop.
+   * --focal is the cover's validated focalPoint ("<x>% <y>%"), set inline from project data; centered by default.
+   */
   .project-artwork {
     width: 100%;
-    overflow: hidden;
-    border-radius: 0.5rem;
-    background: white;
   }
   .project-artwork img {
     display: block;
     width: 100%;
     height: auto;
-  }
-  .project-category, .cover-credit {
-    font-size: 0.875rem;
-    line-height: 1.6;
-    color: var(--color-muted);
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    object-position: var(--focal, center);
   }
   .project-summary h3 {
     margin-top: 0.35rem;
     font-size: clamp(1.4rem, 2.5vw, 1.75rem);
-    font-weight: 600;
+    font-weight: 700;
     line-height: 1.2;
   }
   .project-context {
     margin-top: 0.75rem;
-    max-width: 42ch;
-    line-height: 1.6;
     color: var(--color-muted);
   }
   .case-link {

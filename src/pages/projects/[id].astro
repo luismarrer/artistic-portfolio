@@ -31,16 +31,16 @@ const notes = [
 
 <Layout title={title} description={description} image={gallery[0]}>
     <section class="page-intro mx-auto max-w-6xl px-[var(--page-gutter)] pb-4 sm:pb-6">
-        <p class="mb-3 text-sm font-semibold uppercase tracking-wider text-[#6B1520]">
+        <p class="label mb-3">
             {project.category}
         </p>
-        <h1 class="max-w-4xl text-4xl font-bold leading-tight sm:text-5xl" data-reveal="title">
+        <h1 class="max-w-4xl text-4xl leading-tight sm:text-5xl" data-reveal="title">
             {title}
         </h1>
-        <p class="mt-5 max-w-3xl text-lg leading-relaxed text-gray-700 sm:text-xl" data-reveal="copy">
+        <p class="copy mt-5" data-reveal="copy">
             {description}
         </p>
-        <p class="mt-5 max-w-3xl text-sm leading-relaxed text-gray-600">
+        <p class="copy-small mt-5 text-(--color-muted)">
             {project.disclosure}
         </p>
     </section>
@@ -51,34 +51,34 @@ const notes = [
         class="mx-auto max-w-6xl px-[var(--page-gutter)] py-10 sm:py-14"
         aria-labelledby="case-notes-title"
     >
-        <h2 id="case-notes-title" class="mb-8 text-3xl font-bold text-gray-900" data-reveal="title">
+        <h2 id="case-notes-title" class="mb-8 text-3xl" data-reveal="title">
             About this collection
         </h2>
         <div class="grid gap-8 lg:grid-cols-3 lg:gap-10">
             {notes.map((note, index) => (
-                <article class="border-t border-[#B22222]/25 pt-5" data-reveal="copy">
-                    <p class="mb-2 text-sm text-[#6B1520]" aria-hidden="true">0{index + 1}</p>
-                    <h3 class="mb-3 text-xl font-semibold text-gray-900">{note.title}</h3>
-                    <p class="leading-relaxed text-gray-700">{note.body}</p>
+                <article class="border-t border-(--color-accent)/25 pt-5" data-reveal="copy">
+                    <p class="caption mb-2" aria-hidden="true">0{index + 1}</p>
+                    <h3 class="mb-3 text-xl font-semibold">{note.title}</h3>
+                    <p class="copy">{note.body}</p>
                 </article>
             ))}
         </div>
     </section>
 
     <nav
-        class="mx-auto grid max-w-6xl gap-4 border-t border-gray-200 px-[var(--page-gutter)] py-10 sm:grid-cols-2 sm:gap-6"
+        class="mx-auto grid max-w-6xl gap-4 border-t border-(--color-ink)/20 px-[var(--page-gutter)] py-10 sm:grid-cols-2 sm:gap-6"
         aria-label="Project navigation"
     >
-        <a class="flex min-h-11 items-center text-[#6B1520] underline underline-offset-4" href="/portfolio">
+        <a class="flex min-h-11 items-center text-(--color-accent) underline underline-offset-4" href="/portfolio">
             ← Back to all collections
         </a>
         {nextProject && (
-            <a class="flex min-h-11 items-center text-[#6B1520] underline underline-offset-4" href={`/projects/${nextProject.id}`} rel="next">
+            <a class="flex min-h-11 items-center text-(--color-accent) underline underline-offset-4" href={`/projects/${nextProject.id}`} rel="next">
                 Next collection: {nextProject.title} →
             </a>
         )}
-        <a class="flex min-h-11 items-center text-gray-700 underline underline-offset-4" href="/">Home</a>
-        <a class="flex min-h-11 items-center text-gray-700 underline underline-offset-4" href="/contact">Contact</a>
+        <a class="flex min-h-11 items-center underline underline-offset-4" href="/">Home</a>
+        <a class="flex min-h-11 items-center underline underline-offset-4" href="/contact">Contact</a>
     </nav>
     <Footer />
 </Layout>

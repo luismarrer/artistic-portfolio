@@ -17,12 +17,12 @@ const heroTitle = site.hero.title
             text-center
             px-[var(--page-gutter)]
             pt-[var(--header-space)]
-            overflow-hidden
+            overflow-x-clip
             grid-background"
 >
     <div class="z-10 flex w-full flex-col items-center max-w-4xl mx-auto">
         <h1
-            class="js-hero-title hero-heading w-full text-[clamp(2.5rem,7.5vw,4.5rem)] font-bold leading-tight"
+            class="js-hero-title hero-heading w-full text-[clamp(2.75rem,7.5vw,4.5rem)] leading-tight"
         >
             {
                 heroTitle.split(" ").map((word) => (
@@ -48,7 +48,7 @@ const heroTitle = site.hero.title
         </a>
     </div>
     <div class="absolute bottom-3 right-0 left-0 mx-auto">
-        <KeepScrolling class="js-scroll-hint mx-auto text-[#201b20]" />
+        <KeepScrolling class="js-scroll-hint mx-auto text-(--color-ink)" />
     </div>
 
     <style>
@@ -60,22 +60,39 @@ const heroTitle = site.hero.title
             color: var(--color-on-accent);
         }
         .hero-cta:hover {
-            background: #a52a2a;
+            background: var(--color-accent-hover);
         }
+        /*
+         * A peach wash that ends exactly in paper at the hero's bottom edge, under a ruled grid.
+         * The ruled rows are anchored to that bottom edge, so the grid tail below the hero starts
+         * on a line and the rows continue at the same pitch. Both layers draw the same lines.
+         */
         .grid-background {
-            box-shadow: 0 40px 60px -20px rgba(243, 172, 158, 0.5) inset;
-            background-image: linear-gradient(
-                    to right,
-                    rgba(178, 34, 34, 0.2) 1px,
-                    transparent 1px
-                ),
-                linear-gradient(
-                    to bottom,
-                    rgba(178, 34, 34, 0.2) 1px,
-                    transparent 1px
-                ),
+            --grid-lines: linear-gradient(to right, var(--color-grid-line) 1px, transparent 1px),
+                linear-gradient(to bottom, var(--color-grid-line) 1px, transparent 1px);
+            background-image: var(--grid-lines),
                 linear-gradient(to bottom, var(--color-peach) 0%, var(--color-paper) 100%);
-            background-size: 35px 35px, 35px 35px, 100% 100%;
+            background-size: var(--grid-size) var(--grid-size), var(--grid-size) var(--grid-size), 100% 100%;
+            background-position: 0 100%, 0 100%, 0 0;
+        }
+        /*
+         * The grid keeps going behind the start of the first work and fades out. It is decorative:
+         * out of flow (the hero's layout box, which the ink trail measures, does not change),
+         * pinned to both hero edges (no horizontal overflow) and inert. The selected work
+         * (#projects, z-index 1) paints above it; the ink trail (z-index 25) stays above everything.
+         */
+        .grid-background::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            height: clamp(8rem, 20vw, 16rem);
+            pointer-events: none;
+            background-image: var(--grid-lines);
+            background-size: var(--grid-size) var(--grid-size);
+            -webkit-mask-image: linear-gradient(to bottom, #000 0%, rgb(0 0 0 / 0.55) 45%, transparent 100%);
+            mask-image: linear-gradient(to bottom, #000 0%, rgb(0 0 0 / 0.55) 45%, transparent 100%);
         }
 
         .hero-heading {

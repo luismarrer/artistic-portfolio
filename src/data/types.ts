@@ -12,6 +12,11 @@ export interface GalleryImage extends LocalImage {
   authorLink: string
   sourceName: string
   sourceLink: string
+  /**
+   * Optional point that stays visible when this image is cropped as a 4:3 cover (CSS `object-position`):
+   * `"<x>% <y>%"`, each from 0 to 100. Case galleries are never cropped, so they ignore it.
+   */
+  focalPoint?: string
 }
 
 export interface SocialLink {

@@ -25,27 +25,28 @@ if (!images?.length) {
           data-project-cover={index === 0 ? "" : undefined}
           data-reveal="card"
         >
-          <div class="overflow-hidden rounded-lg bg-[#FEEACA] p-2 shadow-sm sm:p-3">
+          {/* Gallery artwork keeps its natural ratio inside the print mount: never cropped. */}
+          <div class="print">
             <img
               src={image.src}
               alt={image.alt}
               width={image.width}
               height={image.height}
-              class="mx-auto h-auto w-full rounded object-contain"
+              class="block h-auto w-full"
               loading={index === 0 ? "eager" : "lazy"}
               fetchpriority={index === 0 ? "high" : undefined}
               decoding="async"
             />
           </div>
-          <figcaption class="mt-4 space-y-1 text-gray-800">
-            <p class="text-base leading-relaxed">{image.caption}</p>
-            <p class="text-sm leading-relaxed text-gray-600">
+          <figcaption class="mt-4 space-y-1">
+            <p class="copy-small">{image.caption}</p>
+            <p class="caption">
               By{" "}
               <a
                 href={image.authorLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                class="inline-block py-2 underline decoration-[#B22222]/40 underline-offset-4 hover:text-[#B22222]"
+                class="inline-block py-2 underline decoration-(--color-accent)/40 underline-offset-4 hover:text-(--color-accent)"
               >
                 {image.authorName}
               </a>
@@ -54,7 +55,7 @@ if (!images?.length) {
                 href={image.sourceLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                class="inline-block py-2 underline decoration-[#B22222]/40 underline-offset-4 hover:text-[#B22222]"
+                class="inline-block py-2 underline decoration-(--color-accent)/40 underline-offset-4 hover:text-(--color-accent)"
               >
                 {image.sourceName}
               </a>

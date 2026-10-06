@@ -72,12 +72,24 @@ function dimensions(bytes: Buffer): [number, number] | undefined {
   if (viewBox) return [Number(viewBox[1]), Number(viewBox[2])]
 }
 
+/**
+ * Cover crop focus, written straight into a CSS custom property: exactly "<x>% <y>%", each a plain
+ * integer or decimal from 0 to 100. No keywords, other units, signs or extra tokens.
+ */
+function focalPoint(value: unknown, path: string) {
+  const match = typeof value === 'string' ? /^(\d+(?:\.\d+)?)% (\d+(?:\.\d+)?)%$/.exec(value) : null
+  if (!match || Number(match[1]) > 100 || Number(match[2]) > 100) {
+    fail(path, 'expected "<x>% <y>%" with each value from 0 to 100, for example "50% 20%"')
+  }
+}
+
 function image(value: unknown, path: string, directory: string, credited = false, raster = false) {
   const item = record(value, path)
   text(item.src, `${path}.src`)
   text(item.alt, `${path}.alt`, 8)
   positiveInteger(item.width, `${path}.width`)
   positiveInteger(item.height, `${path}.height`)
+  if (item.focalPoint !== undefined) focalPoint(item.focalPoint, `${path}.focalPoint`)
   let decoded: string
   try { decoded = decodeURIComponent(item.src) } catch { return fail(`${path}.src`, 'invalid URL encoding') }
   if (!decoded.startsWith('/') || decoded.startsWith('//') || /[\\?#]/.test(decoded)

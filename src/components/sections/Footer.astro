@@ -13,13 +13,33 @@ const currentYear = new Date().getFullYear()
 const paragraph = site.footer.description
 ---
 
-<footer class="bg-white text-black py-12">
+<footer class="pt-6 pb-12">
+  <div class="mx-auto mb-10 max-w-7xl px-[var(--page-gutter)]">
+    {/* Hand-drawn closing rule: decorative, spans the content width, and the stroke stays 2px at any width. */}
+    <svg
+      class="block h-3 w-full"
+      viewBox="0 0 1200 12"
+      preserveAspectRatio="none"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path
+        d="M2 7 C 120 4, 260 9, 420 6 S 700 3.5, 860 6.5 S 1100 8.5, 1198 5"
+        fill="none"
+        stroke="currentColor"
+        stroke-opacity="0.55"
+        stroke-width="2"
+        stroke-linecap="round"
+        vector-effect="non-scaling-stroke"
+      />
+    </svg>
+  </div>
   <div
     class="mx-auto grid max-w-7xl grid-cols-1 gap-8 px-[var(--page-gutter)] md:grid-cols-2 mb-8"
   >
     <section>
       <h3 class="text-2xl font-bold mb-4">{siteName}</h3>
-      <p class="text-gray-600">{paragraph}</p>
+      <p class="copy-small text-(--color-muted)">{paragraph}</p>
     </section>
     <section>
       <h4 class="text-lg font-semibold mb-4">{site.footer.linksTitle}</h4>
@@ -31,7 +51,7 @@ const paragraph = site.footer.description
                 href={link.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                class="flex min-h-11 min-w-11 items-center justify-center text-gray-600 hover:text-black transition-colors"
+                class="flex min-h-11 min-w-11 items-center justify-center text-(--color-muted) hover:text-(--color-ink) transition-colors"
                 aria-label={link.name}
               >
                 <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
@@ -44,10 +64,8 @@ const paragraph = site.footer.description
       </ul>
     </section>
   </div>
-  <section
-    class="border-t mx-auto max-w-7xl border-gray-800 px-[var(--page-gutter)] pt-8 text-center text-gray-600"
-  >
+  <section class="mx-auto max-w-7xl px-[var(--page-gutter)] pt-8 text-center">
     <Signature variant="footer" class="mx-auto mb-4 w-44 md:w-56" />
-    <p>&copy; {currentYear} {siteName}. {site.footer.rights}</p>
+    <p class="caption">&copy; {currentYear} {siteName}. {site.footer.rights}</p>
   </section>
 </footer>
