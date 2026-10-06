@@ -1,6 +1,6 @@
 ---
 import Layout from "@/layouts/Layout.astro"
-import projectsData from "@/data/projects.json"
+import { projects } from "@/data/projects"
 import Reportage from "@/components/svgs/Reportage.astro"
 import Connected from "@/components/svgs/Connected.astro"
 import Grown from "@/components/svgs/Grown.astro"
@@ -12,12 +12,12 @@ const { id } = Astro.params
 let project
 if (id) {
     // Find project info with the id from the url
-    project = projectsData.find((project) => project.id === Number(id))
+    project = projects.find((project) => project.id === Number(id))
 }
 
 // Generate static paths for each project
 export async function getStaticPaths() {
-    return projectsData.map((project) => ({
+    return projects.map((project) => ({
         params: { id: String(project.id) },
     }))
 }

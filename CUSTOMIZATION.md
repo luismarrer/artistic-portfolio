@@ -1,121 +1,117 @@
 # Personalizar Musea Art
 
-Esta guía describe las interfaces que existen hoy. La identidad y parte del contenido se editan directamente en los componentes; todavía no hay un archivo único de configuración. Consulta [ROADMAP.md](ROADMAP.md) y [docs/DESIGN.md](docs/DESIGN.md) para las mejoras previstas.
+Edita **`src/data/site.ts`** para la identidad y **`src/data/projects.ts`** para los proyectos. Ambos archivos usan los tipos de `src/data/types.ts` y se validan antes de renderizar: una configuración inválida detiene la compilación.
+
+## Ruta rápida
+
+1. Cambia nombre, idioma, textos, biografía, navegación y redes en `site.ts`.
+2. Sustituye las imágenes y los proyectos de demostración con contenido propio y permisos comprobados.
+3. Conserva `contact.mode: 'demo'` hasta tener un destino de contacto propio.
+4. Ejecuta `pnpm test` y `pnpm build`; revisa después móvil, escritorio y navegación sin JavaScript.
 
 ## 1. Identidad y metadatos
 
-| Qué cambiar | Dónde |
+| Contenido | Campo de `site.ts` |
 | --- | --- |
-| Nombre, logo, enlaces y etiquetas de navegación | `src/components/sections/Header.astro` |
-| Título y descripción del inicio | `src/pages/index.astro`, en `<Layout>` |
-| Metadatos de portfolio y contacto | `src/pages/portfolio.astro` y `src/pages/contact.astro` |
-| Valores por defecto de metadatos, idioma y título móvil | `src/layouts/Layout.astro` |
-| Nombre, descripción y redes del pie | `src/components/sections/Footer.astro` |
-| Texto, título y etiqueta accesible de la firma | `src/components/svgs/Signature.astro` |
-| Iconos y nombre de la aplicación | `public/` y `public/site.webmanifest` |
+| Nombre, idioma y descripción general | `name`, `lang`, `description` |
+| URL pública de referencia | `publicUrl` |
+| Logo y firma | `logo`, `signature` |
+| Título y botón inicial | `hero` |
+| Navegación y redes | `navigation`, `socials` |
+| Biografía, imagen, áreas de práctica y estadísticas opcionales | `about` |
+| Título y descripción de cada página | `pages.home`, `pages.portfolio`, `pages.contact` |
+| Textos del pie | `footer` |
+| Modo, destino y textos de contacto | `contact` |
 
-`Layout.astro` acepta `title`, `description` y `class`. Los metadatos de cada proyecto se obtienen de su título y descripción en el JSON de proyectos.
+La cabecera, el inicio, la biografía, el pie y el layout consumen esta configuración. `Layout.astro` mantiene sus props `title`, `description` y `class` para páginas adicionales. `lang` debe ser una etiqueta como `en` o `es`; cambiarla no traduce automáticamente los textos.
 
-```astro
-<Layout title="Ana · Ilustración" description="Ilustración editorial y proyectos personales de Ana.">
-  <!-- Contenido de la página -->
-</Layout>
-```
+La firma animada original corresponde a «Musea». Con otra identidad se utiliza texto manuscrito adaptable: cambia `signature.label` si quieres un nombre corto y usa `useDemoArtwork: false`. Si solo cambias `name`, la etiqueta original también se sustituye por el nuevo nombre. La firma sigue visible sin JavaScript.
 
-Si traduces el contenido al español, cambia también `<html lang="en">` a `lang="es"` y las etiquetas accesibles. El logo de cabecera está en `public/logo.png`; los iconos utilizados por el layout incluyen `favicon.svg`, `favicon-96x96.png` y `apple-touch-icon.png`. Actualiza además los dos iconos y nombres referenciados en `site.webmanifest`.
+Actualiza además los archivos de iconos de `public/` y el nombre y los iconos de `public/site.webmanifest`; estos recursos estáticos no se generan desde la configuración.
 
 ## 2. Inicio y biografía
 
-`Hero.astro` **no acepta props de contenido**. Edita el título, texto del botón y destino del enlace en `src/components/sections/Hero.astro`. El botón apunta a `#projects`, el identificador del listado de proyectos. El título se define en `heroTitle` y se renderiza por palabras. Conserva `data-hero`, `.js-hero-title`, `.js-scroll-hint`, `data-magnetic` y el identificador `start` si quieres mantener las animaciones que los utilizan.
+Los textos iniciales viven en `site.hero`. Conserva `data-hero`, `.js-hero-title`, `.js-scroll-hint`, `data-magnetic` y `start` al modificar los componentes: las animaciones de `src/scripts/artistic-motion.ts` usan esos selectores. El botón inicial apunta a `#projects`.
 
-Las animaciones están centralizadas en `src/scripts/artistic-motion.ts`, que se inicia desde `Layout.astro`. Gestiona la entrada del título, la firma, el trazo de tinta ligado al scroll, las apariciones de secciones, el dibujo de portfolio y el botón. `Signature.astro` dibuja la firma del hero y del pie; `InkTrail.astro` contiene el SVG del trazo como hijo directo del body. Conserva esa ubicación para que su altura abarque la página. Comprueba las animaciones después de cambiar textos, fuentes o espaciados, incluido el regreso al inicio mediante navegación interna y movimiento reducido.
+`site.about` contiene una biografía explícitamente demostrativa. Reemplázala por una historia verificable, no por supuestos clientes o resultados. `stats` es opcional y está vacío por defecto; añade únicamente cifras comprobables. Cada estadística tiene `value`, `suffix` y `label`.
 
-En `src/components/sections/About.astro`, edita el objeto `aboutData`: título de sección, retrato, biografía, habilidades y estadísticas. Sustituye `public/images/profile.png` o cambia su ruta y texto alternativo. Los valores de proyectos, clientes y años son ejemplos: reemplázalos por datos comprobables o elimina ese bloque.
+La imagen de biografía y el logo requieren ruta local, texto alternativo y dimensiones reales. El orden de secciones sigue definido en `src/pages/index.astro`. La cabecera ya forma parte de `Layout`; el pie se incluye desde cada página.
 
-El orden de las secciones se define en `src/pages/index.astro`. Para añadir una, importa tu componente y colócalo dentro de `Layout`; este ya incorpora la cabecera. El pie se incluye explícitamente en las páginas.
+## 3. Proyectos e ilustraciones
 
-## 3. Proyectos y sus ilustraciones
+Cada registro de `src/data/projects.ts` usa `Project`:
 
-Edita `src/data/projects.json`. Cada registro tiene esta forma:
-
-```json
+```ts
 {
-  "title": "Cuaderno de campo",
-  "category": "Ilustración",
-  "image": "Grown",
-  "description": "Una serie de ilustraciones botánicas a partir de observaciones de campo.",
-  "id": 4
+  id: 4,
+  title: 'Cuaderno de campo',
+  category: 'Ilustración personal',
+  image: 'Grown',
+  description: 'Estudios botánicos a partir de observaciones propias.',
+  featured: true,
+  gallery: [/* Imágenes locales con dimensiones y créditos */],
+  editorial: {
+    context: 'El punto de partida del proyecto.',
+    process: 'Lo que realmente hiciste y las decisiones tomadas.',
+    outcome: 'El resultado comprobable, sin métricas inventadas.',
+  },
 }
 ```
 
-Usa un `id` numérico único. La ruta `src/pages/projects/[id].astro` genera una página por registro al compilar; este ejemplo produciría `/projects/4`.
+Un `id` entero positivo y único genera `/projects/ID`. Las rutas existentes `/projects/1`, `/projects/2` y `/projects/3` se mantienen. `image` identifica un componente SVG: `Reportage`, `Connected` o `Grown`, no una URL. Para añadir otra ilustración, amplía el tipo y el validador, crea el componente y actualiza ambos mapas en `PortfolioComponent.astro` y `[id].astro`.
 
-**`image` es una clave de componente SVG**, no una URL de imagen. Los valores disponibles son `Reportage`, `Connected` y `Grown`. Para añadir una ilustración nueva:
+`PortfolioComponent.astro` acepta `items: Project[]`; pasar esa prop solo cambia el listado, no genera rutas adicionales. `featured` permite identificar la selección del inicio sin duplicar registros.
 
-1. Crea un componente SVG en `src/components/svgs/` con un `viewBox` adecuado.
-2. Impórtalo y añádelo al `componentMap` tanto de `src/components/sections/PortfolioComponent.astro` como de `src/pages/projects/[id].astro`.
-3. Usa la misma clave en el campo `image` del JSON.
+## 4. Imágenes y atribución
 
-`PortfolioComponent.astro` acepta una prop `items` con la misma estructura y utiliza el JSON por defecto. Pasar `items` solo cambia ese listado; para generar también las rutas, añade los registros al JSON.
+La galería de cada proyecto es obligatoria y no puede estar vacía. Cada imagen declara:
 
-## 4. Fotografías y galerías
-
-La galería está en `src/components/Collage.astro`. Actualmente `/portfolio` y todas las fichas de proyecto invocan `<Collage />` sin imágenes propias, por lo que muestran el mismo conjunto de ejemplo. Cambiar las fotografías por defecto afecta a todas esas páginas.
-
-Puedes colocar archivos en `public/images/` y pasar una galería explícita:
-
-```astro
-<Collage images={[
-  {
-    src: "/images/cuaderno-portada.webp",
-    alt: "Doble página con estudios de hojas dibujadas a tinta",
-    caption: "Estudios iniciales",
-    size: "large",
-  },
-  {
-    src: "/images/cuaderno-detalle.webp",
-    alt: "Detalle de las nervaduras de una hoja ilustrada",
-    size: "small",
-  },
-]} />
+```ts
+{
+  src: '/images/estudio.webp',
+  alt: 'Estudio botánico a tinta de una rama con tres hojas',
+  width: 1200,
+  height: 800,
+  caption: 'Estudio inicial a partir de observación directa.',
+  size: 'large', // small, medium o large
+  authorName: 'Nombre del creador',
+  authorLink: 'https://tu-sitio.com',
+  sourceName: 'Portfolio del creador',
+  sourceLink: 'https://tu-sitio.com/estudio',
+}
 ```
 
-`src` y `alt` son obligatorios. `size` admite `small`, `medium` o `large`; modifica el espacio ocupado a partir del diseño de tablet. También admite `caption`, `authorName`, `authorLink` y `sourceLink`. Los enlaces de autor y fuente solo se muestran si existe `authorName`. La etiqueta del enlace de fuente está escrita como «Pixabay» en el componente: ajústala si atribuyes otra procedencia.
+La validación comprueba archivos dentro de `public/`, dimensiones intrínsecas de PNG/JPEG/WebP o `viewBox` SVG, textos alternativos descriptivos, captions y créditos. Rechaza archivos ausentes, rutas que salen de `public/`, tamaños incorrectos y enlaces que no usan HTTPS. Un validador no puede comprobar por sí mismo que el texto alternativo sea adecuado ni que tengas derechos de publicación.
 
-Para una galería por proyecto, debes definir las imágenes de cada proyecto y pasarlas desde `[id].astro`; ese enlace entre contenido y galería aún no está implementado. La prop `columns` está declarada pero **no se utiliza**: las columnas actuales se controlan con las clases de la cuadrícula de `Collage.astro`.
+Los ejemplos son colecciones curadas de obras de distintos creadores, no encargos de Musea Art. Las atribuciones heredadas apuntan a perfiles y enlaces genéricos de Pixabay; **no demuestran la licencia de cada archivo**. Verifica los permisos antes de reutilizarlos. No atribuyas a la plantilla el proceso de creación de esas imágenes.
 
-Las fotografías se renderizan con `<img loading="lazy">`. No hay generación automática de `srcset` ni optimización de esas imágenes: comprímelas y dimensiona los archivos antes de añadirlos. Revisa el recorte producido por `object-cover`, los textos alternativos y los permisos de uso de cada recurso.
+La fuente de proyectos ya contiene galerías diferenciadas y texto editorial; la representación de galerías todavía conserva `Collage.astro` durante esta primera unidad de cambios. La siguiente unidad conecta las fichas a sus imágenes propias, sin sustituir galerías ausentes por una colección de ejemplo.
 
-## 5. Formulario de contacto
+## 5. Contacto seguro
 
-El formulario real está en `src/components/ContactForm.astro`. Crea un formulario en tu cuenta de Formspree y sustituye el valor de `action` por tu propio endpoint:
+La configuración inicial es `contact.mode: 'demo'`, **sin endpoint**. El formulario muestra el aviso de demo, deshabilita los campos y no envía mensajes con ni sin JavaScript. No se conserva el destino del autor de la plantilla.
 
-```html
-<form
-  id="contact-form"
-  action="https://formspree.io/f/TU_ID"
-  method="POST"
->
+Para un formulario propio de Formspree, configura explícitamente:
+
+```ts
+contact: {
+  mode: 'live',
+  endpoint: 'https://formspree.io/f/TUIDREAL',
+  title: 'Hablemos de tu proyecto',
+  subtitle: 'Cuéntame qué necesitas.',
+  demoMessage: 'Modo de demostración: no se envían mensajes.',
+}
 ```
 
-El destino incluido corresponde a la demo: **cámbialo antes de recibir mensajes en tu web**. Conserva los atributos `name` de los campos. El script envía `FormData` a `form.action`; no necesitas crear una ruta `/api/contact` para la integración actual. No hay una variable de entorno que sustituya automáticamente ese endpoint.
+El validador exige un endpoint HTTPS de `formspree.io/f/ID` sin consultas, credenciales ni fragmentos. No comprueba propiedad ni entrega: verifica ambos con tu propia cuenta antes de publicar. Para volver a demo, elimina `endpoint` y cambia `mode`; mezclar demo y endpoint detiene la compilación.
 
-Desde `src/pages/contact.astro` puedes personalizar los dos textos que sí acepta el componente:
+`ContactForm.astro` mantiene props opcionales `title` y `subtitle` para una página concreta. Los atributos `name` deben conservarse para Formspree. La gestión completa de envíos pendientes, errores accesibles y reintentos pertenece a la unidad de contacto posterior; no está implementada en esta primera unidad.
 
-```astro
-<ContactForm
-  title="Hablemos de tu proyecto"
-  subtitle="Cuéntame qué necesitas y cuándo te gustaría empezar."
-/>
-```
+## 6. Pie y redes
 
-Traduce también las etiquetas, marcadores de posición, botón y mensajes dentro del componente. Comprueba validación, envío correcto, error de red y recepción con tu propio formulario. Un mensaje visual de éxito no demuestra por sí solo que el correo llegó al destinatario.
+Edita `site.footer` y `site.socials` para todas las páginas. La demo enlaza solamente al repositorio de la plantilla, no presenta perfiles personales como redes de un artista ficticio. Puedes ocultar enlaces con `socials: []`.
 
-## 6. Pie y redes sociales
-
-`Footer.astro` acepta `siteName` y `socialLinks`. Para actualizar todas las páginas, edita sus valores por defecto: `siteName`, `defaultSocialLinks` y `paragraph`. La firma tiene su propio texto «Musea», título y etiqueta accesible en `src/components/svgs/Signature.astro`: cámbialos también, ya que no hereda `siteName`. Si el nombre nuevo no cabe, ajusta el `viewBox`, la máscara y la rúbrica de la firma, y revisa sus dos tamaños. Para una página concreta, pasa props en su `<Footer>`.
-
-Cada red necesita `name`, `url` e `icon`; este último es el atributo `d` de un `<path>` SVG con `viewBox="0 0 24 24"`, no una URL de imagen. `name` se utiliza como etiqueta accesible. Puedes ocultar las redes mediante `<Footer siteName="Ana" socialLinks={[]} />`.
+Cada enlace necesita `name`, `url` e `icon`. `icon` es el atributo `d` de un `<path>` con `viewBox="0 0 24 24"`; `name` se utiliza como etiqueta accesible. `Footer.astro` conserva `siteName` y `socialLinks` para sustituciones locales.
 
 ## 7. Fuentes, colores y responsive
 
@@ -127,7 +123,7 @@ Los márgenes laterales y la reserva para la cabecera se comparten mediante `--p
 
 ## 8. Preparar la publicación
 
-Añade `site: "https://tu-dominio.com"` dentro del objeto de `defineConfig` en `astro.config.mjs`, sin sustituir las integraciones existentes. La integración de sitemap ya está instalada, pero necesita esa URL pública. El layout contiene título y descripción; las etiquetas Open Graph y canonical aún requieren implementación.
+La URL de referencia está en `site.publicUrl`, como origen HTTPS sin ruta, consulta ni fragmento. En esta primera unidad todavía no se conecta a `astro.config.mjs`: el sitemap continúa pendiente, al igual que canonical y Open Graph. La unidad de publicación utilizará esta misma fuente, sin duplicar la URL.
 
 Vercel Analytics ya se monta desde `src/layouts/Layout.astro`; configura el servicio en tu proyecto si quieres usarlo, o elimina su importación y `<Analytics />` si no lo necesitas.
 

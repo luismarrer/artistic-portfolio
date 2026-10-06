@@ -1,13 +1,11 @@
 ---
 import ContactForm from "@/components/ContactForm.astro"
 import Layout from "@/layouts/Layout.astro"
+import { site } from "@/data/site"
 import Footer from "@/components/sections/Footer.astro"
 ---
 
-<Layout
-    title="Contact Us"
-    description="Get in touch with us for any inquiries or questions"
->
+<Layout title={site.pages.contact.title} description={site.pages.contact.description}>
     <ContactForm />
     <Footer />
 </Layout>

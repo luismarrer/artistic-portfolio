@@ -4,6 +4,7 @@ import InkTrail from "@/components/svgs/InkTrail.astro"
 import "@/global.css"
 import { ClientRouter } from "astro:transitions" // Before this ViewTransitions
 import Analytics from "@vercel/analytics/astro"
+import { site } from "@/data/site"
 
 interface Props {
   title?: string
@@ -12,14 +13,14 @@ interface Props {
 }
 
 const {
-  title = "Artistic Portfolio",
-  description = "Showcase your creative work with style",
+  title = site.name,
+  description = site.description,
   class: className,
 } = Astro.props
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang={site.lang}>
   <head>
     <meta charset="UTF-8" />
     <title>{title}</title>
@@ -58,7 +59,7 @@ const {
     <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-    <meta name="apple-mobile-web-app-title" content="Musea Art" />
+    <meta name="apple-mobile-web-app-title" content={site.name} />
     <link rel="manifest" href="/site.webmanifest" />
     <meta name="generator" content={Astro.generator} />
     <ClientRouter />
