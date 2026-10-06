@@ -1,6 +1,6 @@
 # Artistic Portfolio · Musea Art
 
-Plantilla de portfolio artístico con Astro, Tailwind CSS y GSAP. Incluye inicio, portfolio, fichas de proyecto y contacto, con ilustraciones SVG, fuentes locales y diseño adaptable a móvil, tablet y escritorio.
+Plantilla de portfolio artístico con Astro, Tailwind CSS y GSAP. Incluye inicio, portfolio, fichas de proyecto y contacto, con firma y trazo de tinta en SVG, fuentes locales y diseño adaptable a móvil, tablet y escritorio.
 
 [Ver demo](https://artistic-portfolio-nine.vercel.app) · [Personalización](CUSTOMIZATION.md) · [Roadmap](ROADMAP.md) · [Diseño](docs/DESIGN.md)
 
