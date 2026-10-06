@@ -9,7 +9,7 @@ const heroTitle = site.hero.title
 <section
     data-hero
     class="relative
-            min-h-svh
+            hero
             flex
             flex-col
             items-center
@@ -17,13 +17,12 @@ const heroTitle = site.hero.title
             text-center
             px-[var(--page-gutter)]
             pt-[var(--header-space)]
-            pb-28
             overflow-hidden
             grid-background"
 >
     <div class="z-10 flex w-full flex-col items-center max-w-4xl mx-auto">
         <h1
-            class="js-hero-title hero-heading w-full text-[clamp(2.75rem,7.5vw,4.5rem)] font-bold text-[#F9FAFB] leading-tight drop-shadow-sm"
+            class="js-hero-title hero-heading w-full text-[clamp(2.5rem,7.5vw,4.5rem)] font-bold leading-tight"
         >
             {
                 heroTitle.split(" ").map((word) => (
@@ -31,31 +30,38 @@ const heroTitle = site.hero.title
                 ))
             }
         </h1>
-        <Signature variant="hero" class="mt-5 w-72 sm:w-96 md:w-[28rem]" />
+        <Signature variant="hero" class="mt-3 w-52 sm:w-56" />
         <a
             id="start"
             href={site.hero.buttonHref}
             data-magnetic
-            class="mt-8
-                bg-[#B22222]
-                text-[#FFFDD0]
+            class="hero-cta mt-4
                 font-semibold
                 py-3
                 px-8
                 rounded-lg
                 shadow-lg
-                hover:bg-[#A52A2A]
                 text-lg
                 will-change-transform"
         >
             {site.hero.buttonLabel}
         </a>
     </div>
-    <div class="absolute bottom-6 right-0 left-0 mx-auto">
-        <KeepScrolling class="js-scroll-hint mx-auto text-[#F9FAFB] drop-shadow-2xl" />
+    <div class="absolute bottom-3 right-0 left-0 mx-auto">
+        <KeepScrolling class="js-scroll-hint mx-auto text-[#201b20]" />
     </div>
 
     <style>
+        .hero {
+            padding-bottom: 3rem;
+        }
+        .hero-cta {
+            background: var(--color-accent);
+            color: var(--color-on-accent);
+        }
+        .hero-cta:hover {
+            background: #a52a2a;
+        }
         .grid-background {
             box-shadow: 0 40px 60px -20px rgba(243, 172, 158, 0.5) inset;
             background-image: linear-gradient(
@@ -68,11 +74,12 @@ const heroTitle = site.hero.title
                     rgba(178, 34, 34, 0.2) 1px,
                     transparent 1px
                 ),
-                linear-gradient(to bottom, #f3ac9e 0%, #ffeaca 100%);
+                linear-gradient(to bottom, var(--color-peach) 0%, var(--color-paper) 100%);
             background-size: 35px 35px, 35px 35px, 100% 100%;
         }
 
         .hero-heading {
+            color: var(--color-ink);
             font-kerning: none;
             text-rendering: optimizeSpeed;
         }

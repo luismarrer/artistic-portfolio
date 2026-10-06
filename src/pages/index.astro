@@ -5,11 +5,14 @@ import PortfolioComponent from "@/components/sections/PortfolioComponent.astro"
 import Footer from "@/components/sections/Footer.astro"
 import Layout from "@/layouts/Layout.astro"
 import { site } from "@/data/site"
+import { projects } from "@/data/projects"
+
+const selectedProject = projects.find(({ featured }) => featured) ?? projects[0]
 ---
 
 <Layout title={site.pages.home.title} description={site.pages.home.description}>
   <Hero />
+  <PortfolioComponent items={[selectedProject]} variant="selection" />
   <About />
-  <PortfolioComponent />
   <Footer />
 </Layout>

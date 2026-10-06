@@ -17,6 +17,7 @@ Edita **`src/data/site.ts`** para la identidad y **`src/data/projects.ts`** para
 | URL pública de referencia | `publicUrl` |
 | Logo y firma | `logo`, `signature` |
 | Título y botón inicial | `hero` |
+| Selección de inicio, catálogo y textos de sus enlaces | `portfolio` |
 | Navegación y redes | `navigation`, `socials` |
 | Biografía, imagen, áreas de práctica y estadísticas opcionales | `about` |
 | Título y descripción de cada página | `pages.home`, `pages.portfolio`, `pages.contact` |
@@ -31,7 +32,11 @@ Actualiza además los archivos de iconos de `public/` y el nombre y los iconos d
 
 ## 2. Inicio y biografía
 
-Los textos iniciales viven en `site.hero`. Conserva `data-hero`, `.js-hero-title`, `.js-scroll-hint`, `data-magnetic` y `start` al modificar los componentes: las animaciones de `src/scripts/artistic-motion.ts` usan esos selectores. El botón inicial apunta a `#projects`.
+Los textos iniciales viven en `site.hero`. La introducción tiene altura determinada por su contenido, texto oscuro sobre la cuadrícula cálida y una firma compacta; no reserva una pantalla completa antes de mostrar obra. Conserva `data-hero`, `.js-hero-title`, `.js-scroll-hint`, `data-magnetic` y `start` al modificar los componentes: las animaciones de `src/scripts/artistic-motion.ts` usan esos selectores. El botón inicial apunta a `#projects`; si configuras una ruta en lugar de un ancla, mantiene la navegación HTML normal.
+
+El inicio muestra una sola colección antes de la biografía: la primera con `featured: true`, o la primera del archivo si ninguna está destacada. `/portfolio` muestra el catálogo completo. Los títulos, descripciones y etiquetas de estos dos recorridos se editan en `site.portfolio`; cambia el orden de los registros para elegir la primera selección.
+
+Las tarjetas muestran la primera imagen de su propia galería, con sus proporciones originales y créditos siempre visibles fuera del enlace a la ficha. La portada seleccionada, los enlaces y el botón inicial no esperan una aparición de GSAP para ser utilizables. Mantén cada sección y el pie como hijos directos de `main`, y `data-trail-content` en la rejilla: el trazo mide la siguiente sección real para recorrer sus márgenes. La cuadrícula, la firma y las entradas decorativas restantes conservan el sistema de movimiento existente; comprueba navegación interna, teclado y movimiento reducido después de cambiar el layout.
 
 `site.about` contiene una biografía explícitamente demostrativa. Reemplázala por una historia verificable, no por supuestos clientes o resultados. `stats` es opcional y está vacío por defecto; añade únicamente cifras comprobables. Cada estadística tiene `value`, `suffix` y `label`.
 
@@ -46,7 +51,6 @@ Cada registro de `src/data/projects.ts` usa `Project`:
   id: 4,
   title: 'Cuaderno de campo',
   category: 'Ilustración personal',
-  image: 'Grown',
   description: 'Estudios botánicos a partir de observaciones propias.',
   featured: true,
   disclosure: 'Trabajo personal del propietario del portfolio, no una colección de ejemplo.',
@@ -59,9 +63,9 @@ Cada registro de `src/data/projects.ts` usa `Project`:
 }
 ```
 
-Un `id` entero positivo y único genera `/projects/ID`. Las rutas existentes `/projects/1`, `/projects/2` y `/projects/3` se mantienen. `image` identifica un componente SVG: `Reportage`, `Connected` o `Grown`, no una URL. Para añadir otra ilustración, amplía el tipo y el validador, crea el componente y actualiza el mapa de `PortfolioComponent.astro`. Las fichas utilizan como portada la primera imagen de la galería, no el SVG.
+Un `id` entero positivo y único genera `/projects/ID`. Las rutas existentes `/projects/1`, `/projects/2` y `/projects/3` se mantienen. Las tarjetas y las fichas utilizan como portada la primera imagen de la galería: no existe una clave de ilustración SVG obligatoria ni un mapa de componentes que actualizar al añadir un proyecto.
 
-`PortfolioComponent.astro` acepta `items: Project[]`; pasar esa prop solo cambia el listado, no genera rutas adicionales. `featured` permite identificar la selección del inicio sin duplicar registros. `disclosure` es obligatorio: explica la autoría o la condición de demo sin afirmaciones falsas. Cambia también este texto cuando sustituyas los ejemplos por obra propia.
+`PortfolioComponent.astro` acepta `items: Project[]` y `variant: 'selection' | 'catalogue'`; pasar `items` solo cambia el listado, no genera rutas adicionales. `selection` muestra la introducción de obra seleccionada y el enlace al catálogo; `catalogue` usa todas las columnas disponibles sin repetir esa introducción. `featured` permite elegir la selección del inicio sin duplicar registros. `disclosure` es obligatorio: explica la autoría o la condición de demo sin afirmaciones falsas. Cambia también este texto cuando sustituyas los ejemplos por obra propia.
 
 ## 4. Imágenes y atribución
 
@@ -126,7 +130,7 @@ Cada enlace necesita `name`, `url` e `icon`. `icon` es el atributo `d` de un `<p
 
 Las fuentes son locales. `src/global.css` declara Mansalva para los títulos `h1`/`h2` y Josefin Sans para el texto general mediante `@font-face` y `@theme`. Los archivos están en `public/fonts/` y sus precargas en `src/layouts/Layout.astro`. Si cambias una fuente, actualiza las declaraciones, pesos, familias y precargas correspondientes.
 
-Tailwind CSS 4 se integra mediante `@tailwindcss/vite` en `astro.config.mjs`; no hay un `tailwind.config.mjs`. Los colores todavía están repartidos entre utilidades y estilos de componentes: rojo `#B22222`, crema `#FEEACA` y el degradado del Hero son buenos puntos de partida para localizar la paleta actual.
+Tailwind CSS 4 se integra mediante `@tailwindcss/vite` en `astro.config.mjs`; no hay un `tailwind.config.mjs`. El Hero y el listado comparten los tokens de `src/global.css`: `--color-paper`, `--color-peach`, `--color-ink`, `--color-muted`, `--color-accent` y `--color-on-accent`. El resto de los componentes conserva sus colores existentes; cambiar esos tokens no recolorea automáticamente todas las ilustraciones.
 
 Los márgenes laterales y la reserva para la cabecera se comparten mediante `--page-gutter` y `--header-space` en `src/global.css`. Las cuadrículas y los tamaños cambian con las clases `sm:`, `md:` y `lg:`. Verifica títulos largos, enlaces, recortes y formulario en móvil estrecho y escritorio después de personalizar. Mantén el foco visible y las reglas de `prefers-reduced-motion`.
 

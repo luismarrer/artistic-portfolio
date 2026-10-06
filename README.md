@@ -29,7 +29,7 @@ Abre la dirección que indique la terminal; normalmente es `http://localhost:432
 
 ## Antes de usar la plantilla
 
-Sustituye identidad, biografía, redes, imágenes y proyectos siguiendo [CUSTOMIZATION.md](CUSTOMIZATION.md). La biografía y las colecciones de Musea Art son ejemplos explícitamente curados; no incluyen métricas o clientes inventados. Cada ficha tiene su propia galería, portada, captions y créditos visibles, además de notas de selección y navegación entre colecciones.
+Sustituye identidad, biografía, redes, imágenes y proyectos siguiendo [CUSTOMIZATION.md](CUSTOMIZATION.md). La biografía y las colecciones de Musea Art son ejemplos explícitamente curados; no incluyen métricas o clientes inventados. El inicio presenta una colección seleccionada antes de la biografía; el portfolio reúne el catálogo completo con portadas propias. Cada ficha tiene su propia galería, portada, captions y créditos visibles, además de notas de selección y navegación entre colecciones.
 
 **El contacto está en modo demo y no envía mensajes.** Configura tu propio endpoint de Formspree en `src/data/site.ts` antes de aceptar mensajes. Revisa también los derechos y créditos de las imágenes que publiques.
 

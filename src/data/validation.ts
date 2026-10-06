@@ -114,6 +114,9 @@ export function validateSite(value: unknown, options: Options = {}): SiteConfig 
   const hero = record(site.hero, 'site.hero')
   for (const key of ['title', 'buttonLabel']) text(hero[key], `site.hero.${key}`)
   link(hero.buttonHref, 'site.hero.buttonHref')
+  const portfolio = record(site.portfolio, 'site.portfolio')
+  for (const key of ['selectedTitle', 'selectedDescription', 'catalogueTitle', 'catalogueDescription',
+    'catalogueLinkLabel', 'caseLinkLabel']) text(portfolio[key], `site.portfolio.${key}`)
   list(site.navigation, 'site.navigation').forEach((entry, index) => {
     const item = record(entry, `site.navigation[${index}]`)
     text(item.label, `site.navigation[${index}].label`)
@@ -164,7 +167,6 @@ export function validateProjects(value: unknown, options: Options = {}): Project
     if (ids.has(Number(project.id))) fail(`${path}.id`, 'duplicate project identifier')
     ids.add(Number(project.id))
     for (const key of ['title', 'category', 'description', 'disclosure']) text(project[key], `${path}.${key}`)
-    if (!['Reportage', 'Connected', 'Grown'].includes(String(project.image))) fail(`${path}.image`, 'unknown illustration key')
     bool(project.featured, `${path}.featured`)
     list(project.gallery, `${path}.gallery`).forEach((entry, mediaIndex) => {
       image(entry, `${path}.gallery[${mediaIndex}]`, options.publicDirectory ?? defaultPublicDirectory, true)

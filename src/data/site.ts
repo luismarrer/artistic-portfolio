@@ -10,6 +10,14 @@ export const site = validateSite({
   logo: { src: '/logo.png', alt: 'Musea Art identity mark', width: 1024, height: 1024 },
   signature: { label: 'Musea', useDemoArtwork: true },
   hero: { title: 'Turn Your Ideas Into Art', buttonLabel: 'Explore the collections', buttonHref: '#projects' },
+  portfolio: {
+    selectedTitle: 'Selected collection',
+    selectedDescription: 'A closer look at one credited reference collection.',
+    catalogueTitle: 'All collections',
+    catalogueDescription: 'Photography and illustration, presented as credited reference collections.',
+    catalogueLinkLabel: 'Explore all collections',
+    caseLinkLabel: 'View collection',
+  },
   navigation: [
     { label: 'Portfolio', href: '/portfolio' },
     { label: 'About', href: '/#about' },
@@ -31,7 +39,7 @@ export const site = validateSite({
     image: { src: '/images/profile.png', alt: 'Sketch-style portrait used as a demo placeholder', width: 512, height: 512 },
     heading: 'An artist’s story belongs here',
     paragraphs: [
-      'Musea Art is a portfolio template, not a verified artist biography. The collections below demonstrate how photography and illustration can be presented with context and credits.',
+      'Musea Art is a portfolio template, not a verified artist biography. The reference collections demonstrate how photography and illustration can be presented with context and credits.',
       'Replace this introduction with your practice, materials and interests. Add only experience, collaborations and results you can substantiate.',
     ],
     skillsTitle: 'Example practice areas',

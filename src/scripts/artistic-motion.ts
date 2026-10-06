@@ -253,7 +253,7 @@ function buildTrailRoute(L: TrailLayout): Anchor[] {
 
     // ── Hero: leave the signature where the pen lifted, skirt the CTA and
     //    underline it, then glide down to the left margin.
-    const heroSegment = (hero: Box) => {
+    const heroSegment = (heroEl: HTMLElement, hero: Box) => {
         const sig = layoutBoxOf(".js-signature[data-variant='hero']")
         const cta = layoutBoxOf("#start")
         if (sig) add(sig.left + sig.width * 0.25, sig.top + sig.height * 0.81)
@@ -268,11 +268,17 @@ function buildTrailRoute(L: TrailLayout): Anchor[] {
         }
 
         const glideFrom = cta ? cta.bottom + 34 : hero.cy
-        const nextContent = layoutBoxOf("#about article")
+        // Follow the actual next section: the work-first home no longer leads into About.
+        const nextBlock = blocks.slice(blocks.indexOf(heroEl) + 1).find((el) =>
+            el instanceof HTMLElement && el !== footerEl && el.offsetHeight > 0,
+        )
+        const nextContent = nextBlock instanceof HTMLElement
+            ? layoutBox(nextBlock.querySelector("[data-trail-content]") ?? nextBlock)
+            : null
         const nextContentLeft = nextContent && nextContent.left > 1 ? nextContent.left : L.gutter
         const nextLeft = laneLeft(nextContentLeft)
         add(hero.cx + L.width * 0.05, glideFrom + (hero.bottom - glideFrom) * 0.5, true)
-        add(nextLeft + 28, hero.bottom - 26)
+        add(nextLeft + inward(nextContentLeft - nextLeft, 10), hero.bottom - 20)
         contentBottom = hero.bottom
         started = true
         side = "left"
@@ -344,14 +350,16 @@ function buildTrailRoute(L: TrailLayout): Anchor[] {
         const h2 = layoutBox(h2El)
         const cards = Array.from(el.querySelectorAll<HTMLElement>(".project-card"))
         const cardBoxes = cards.map((card) => layoutBox(card))
-        const grid = layoutBox(cards[0]?.parentElement) ?? projects
+        const grid = layoutBox(el.querySelector("[data-trail-content]"))
+            ?? layoutBox(cards[0]?.parentElement) ?? projects
         const rx = laneRight(grid.right, L.width)
 
         if (!started) startInMargin(grid.left > 1 ? grid.left : L.gutter, projects.top)
 
         const bandTop = Math.max(contentBottom, projects.top - 120)
-        const bandBottom = h2 ? h2.top : projects.top + 60
-        const sweepY = (bandTop + Math.max(bandBottom, bandTop + 40)) / 2
+        const bandBottom = h2 ? h2.top : grid.top
+        // The catalogue heading lives in the preceding intro; only cross its real padding gap.
+        const sweepY = bandTop + Math.max(0, bandBottom - bandTop) / 2
         const rightRoom = L.width - rx
         if (side === "left") {
             const fromX = pts[pts.length - 1]?.x ?? 0
@@ -366,6 +374,9 @@ function buildTrailRoute(L: TrailLayout): Anchor[] {
             const rightOfTitle = Math.max(rx, h2.cx + halfText + 40)
             // Land a touch inside the lane so the turn downward stays on-page.
             add(Math.min(rightOfTitle, L.width - EDGE_MIN) - inward(rightRoom, 12), h2.top + h2.height * 0.35)
+        } else {
+            // Reach the outside lane before any image begins, not diagonally through the first row.
+            add(rx, Math.max(sweepY, grid.top - 8))
         }
 
         let lastY = h2 ? h2.bottom : sweepY
@@ -469,7 +480,7 @@ function buildTrailRoute(L: TrailLayout): Anchor[] {
         if (!(el instanceof HTMLElement) || el === footerEl) continue
         const box = layoutBox(el)
         if (!box) continue
-        if (el.matches("[data-hero]")) heroSegment(box)
+        if (el.matches("[data-hero]")) heroSegment(el, box)
         else if (el.id === "about") aboutSegment(el, box)
         else if (el.id === "projects") projectsSegment(el, box)
         else if (el.id === "contact") contactSegment(el, box)
@@ -883,8 +894,8 @@ function initReveals() {
     if (cta) {
         gsap.fromTo(
             cta,
-            { y: 18, autoAlpha: 0 },
-            { y: 0, autoAlpha: 1, duration: 0.7, delay: 1.15, ease: "power3.out" },
+            { y: 12 },
+            { y: 0, duration: 0.5, ease: "power3.out" },
         )
     }
 
@@ -907,13 +918,17 @@ function initReveals() {
 
     gsap.utils.toArray<HTMLElement>("[data-reveal]").forEach((el) => {
         const type = el.dataset.reveal
-        if (type === "card") return
+        if (type === "card" || el.matches("a, button, input, select, textarea")
+            || el.querySelector("a, button, input, select, textarea")) return
+        const box = layoutBox(el)
+        // Full-width mobile copy has no room for lateral entrances. Do not manufacture scroll overflow.
+        const lateralRoom = !!box && box.left >= 64 && window.innerWidth - box.right >= 64
         const from =
-            type === "left"
+            type === "left" && lateralRoom
                 ? { x: -56, y: 0, rotate: -8, autoAlpha: 0 }
-                : type === "right"
+                : type === "right" && lateralRoom
                   ? { x: 48, y: 16, rotate: 0, autoAlpha: 0 }
-                  : { y: 30, rotate: 0, autoAlpha: 0 }
+                  : { x: 0, y: 30, rotate: 0, autoAlpha: 0 }
 
         gsap.fromTo(el, from, {
             x: 0,
@@ -932,14 +947,13 @@ function initReveals() {
 
     const cards = gsap.utils.toArray<HTMLElement>("[data-reveal='card']")
     if (cards.length > 0) {
-        gsap.set(cards, { y: 48, rotate: 2.2, autoAlpha: 0 })
+        gsap.set(cards, { y: 24, rotate: 1 })
         ScrollTrigger.batch(cards, {
             start: "top 90%",
             onEnter: (batch) => {
                 gsap.to(batch, {
                     y: 0,
                     rotate: 0,
-                    autoAlpha: 1,
                     duration: 0.8,
                     stagger: 0.12,
                     ease: "power3.out",
@@ -976,7 +990,9 @@ function initCtaAndHover(signal: AbortSignal) {
         cta.addEventListener(
             "click",
             (event) => {
-                const target = document.querySelector<HTMLElement>("#projects")
+                const href = cta.getAttribute("href")
+                if (!href?.startsWith("#")) return
+                const target = document.getElementById(href.slice(1))
                 if (!target) return
                 event.preventDefault()
                 event.stopPropagation()
@@ -987,30 +1003,6 @@ function initCtaAndHover(signal: AbortSignal) {
                     scrollTo: { y, autoKill: true },
                     ease: "power2.inOut",
                     overwrite: "auto",
-                })
-            },
-            { signal },
-        )
-
-        cta.addEventListener(
-            "mousemove",
-            (event) => {
-                const rect = cta.getBoundingClientRect()
-                const x = event.clientX - rect.left - rect.width / 2
-                const y = event.clientY - rect.top - rect.height / 2
-                gsap.to(cta, { x: x * 0.22, y: y * 0.22, duration: 0.28 })
-            },
-            { signal },
-        )
-
-        cta.addEventListener(
-            "mouseleave",
-            () => {
-                gsap.to(cta, {
-                    x: 0,
-                    y: 0,
-                    duration: 0.55,
-                    ease: "elastic.out(1, 0.45)",
                 })
             },
             { signal },

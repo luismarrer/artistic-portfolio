@@ -37,6 +37,14 @@ export interface SiteConfig {
   logo: LocalImage
   signature: { label: string; useDemoArtwork: boolean }
   hero: { title: string; buttonLabel: string; buttonHref: string }
+  portfolio: {
+    selectedTitle: string
+    selectedDescription: string
+    catalogueTitle: string
+    catalogueDescription: string
+    catalogueLinkLabel: string
+    caseLinkLabel: string
+  }
   navigation: { label: string; href: string }[]
   socials: SocialLink[]
   footer: { description: string; linksTitle: string; rights: string }
@@ -58,7 +66,6 @@ export interface Project {
   id: number
   title: string
   category: string
-  image: 'Reportage' | 'Connected' | 'Grown'
   description: string
   featured: boolean
   disclosure: string

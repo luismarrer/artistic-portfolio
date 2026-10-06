@@ -102,3 +102,64 @@ test('the catalogue no longer appends an unrelated fallback artwork collection',
   assert.ok(!html.includes('photo-1507238691740'))
   assert.ok(!html.includes('See all my work'))
 })
+
+test('the homepage selects one real cover before the biography, rather than repeating the catalogue', () => {
+  const html = page('.')
+  const selection = html.match(/<section\b[^>]*id="projects"[^>]*>([\s\S]*?)<\/section>/)?.[1]
+  assert.ok(selection, 'selected work needs the stable projects anchor')
+  assert.ok(html.indexOf('id="projects"') < html.indexOf('id="about"'), 'work must precede biography')
+  const selected = projects.find(({ featured }) => featured) ?? projects[0]
+  const covers = [...selection.matchAll(/<img\b[^>]*src="([^"]+)"[^>]*>/g)]
+  assert.deepEqual(covers.map(([, src]) => src), [selected.gallery[0].src])
+  assert.ok(selection.includes(`href="/projects/${selected.id}"`))
+  assert.ok(selection.includes(`href="/portfolio"`), 'selection must lead to the full catalogue')
+  assert.ok(selection.includes(escape(selected.title)))
+  assert.ok(selection.includes(escape(selected.category)))
+  assert.ok(selection.includes(escape(selected.description)))
+  assert.ok(covers[0][0].includes('loading="eager"'))
+  assert.ok(!selection.includes('data-reveal'), 'the first artwork and its controls must not start hidden')
+})
+
+test('catalogue cards display the case covers and keep essential credits outside the case link', () => {
+  const html = page('portfolio')
+  const entries = [...html.matchAll(/<article\b[^>]*data-project-entry="(\d+)"[^>]*>([\s\S]*?)<\/article>/g)]
+  assert.deepEqual(entries.map(([, id]) => Number(id)), projects.map(({ id }) => id))
+  for (const [index, [, , body]] of entries.entries()) {
+    const project = projects[index]
+    const cover = project.gallery[0]
+    const caseLink = body.match(/<a\b[^>]*class="[^"]*project-card[^>]*>([\s\S]*?)<\/a>/)
+    assert.ok(caseLink)
+    assert.ok(caseLink[0].includes(`href="/projects/${project.id}"`))
+    assert.ok(caseLink[1].includes(`src="${cover.src}"`))
+    assert.ok(caseLink[1].includes(`alt="${escape(cover.alt)}"`))
+    assert.ok(caseLink[1].includes(`width="${cover.width}"`))
+    assert.ok(caseLink[1].includes(`height="${cover.height}"`))
+    assert.ok(caseLink[1].includes(escape(project.title)))
+    assert.ok(caseLink[1].includes(escape(project.category)))
+    assert.ok(caseLink[1].includes(escape(project.description)))
+    assert.ok(!caseLink[1].includes('<a '), 'do not nest creator links inside a clickable case')
+    assert.ok(!caseLink[0].includes('data-reveal'), 'case navigation must be immediately available')
+    const credit = body.slice(body.indexOf('</a>') + 4)
+    assert.ok(credit.includes(escape(cover.authorName)))
+    assert.ok(credit.includes(`href="${escape(cover.authorLink)}"`))
+    assert.ok(credit.includes(`href="${escape(cover.sourceLink)}"`))
+  }
+  assert.equal([...html.matchAll(/<h1\b/g)].length, 1)
+  assert.ok(!html.includes('Portfolio Page'))
+})
+
+test('the compact hero retains readable anchor controls and its dark-ink visual contract', () => {
+  const html = page('.')
+  const hero = html.match(/<section\b[^>]*data-hero[^>]*>([\s\S]*?)<\/section>/)
+  assert.ok(hero)
+  assert.ok(!hero[0].includes('min-h-svh'), 'the introduction must not reserve a screen before artwork')
+  const cta = hero[1].match(/<a\b[^>]*id="start"[^>]*>/)?.[0]
+  assert.ok(cta?.includes(`href="${site.hero.buttonHref}"`), 'keep a native anchor fallback')
+  assert.ok(!cta.includes('data-reveal'))
+  const cssPaths = [...html.matchAll(/<link\b[^>]*href="([^"]+\.css)"[^>]*>/g)].map(([, href]) => href)
+  const css = [...cssPaths.map((path) => readFileSync(new URL(`../dist${path}`, import.meta.url), 'utf8')),
+    ...[...html.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style>/g)].map(([, content]) => content)].join('\n')
+  assert.match(css, /--color-ink:\s*#201b20/i)
+  assert.match(css, /\.hero-heading[^}]*color:var\(--color-ink\)/)
+  assert.ok(!css.includes('.has-motion #start'), 'the CTA must stay visible before motion initialization')
+})

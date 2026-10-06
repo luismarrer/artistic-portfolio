@@ -33,13 +33,13 @@ Identity is scattered across components; every project uses the same fallback co
 - Forecast: **1,300-1,950 authored additions + deletions**, generated outputs excluded. This is an estimate, not a code cap. Keep tests/docs with behavior; do not compress, omit checks or split artificial units to fit 400 lines.
 - Delivery strategy: `ask-on-risk` (default).
 - Chain strategy: **`stacked-to-main`**, explicitly selected by the user: "cambios integrables por separado hacia `main`". Each slice can land in order; later PRs use their immediate parent until it lands and can be retargeted to main. PR publication still needs separate authorization.
-- Running authored count: **1,374 committed additions + deletions**, including 81 lines of tracking; implementation/tests/docs subtotal 1,293. Generated outputs excluded.
+- Running authored count: **1,824 committed additions + deletions**, including 102 lines of tracking changes; implementation/tests/docs subtotal 1,722. Generated outputs excluded.
 
 ## Tasks and acceptance
 
 - [x] **T1 — Centralize and validate content.** Delegated configuration/data/model wiring and focused tests. Identity, language, biography, navigation, social links, public URL and contact configuration use validated typed sources; compatible numeric IDs and media metadata fail before publication when invalid. Observed checks are recorded below; work-unit commit is recorded after creation.
 - [x] **T2 — Give cases their own evidence.** Delegated project gallery/editorial rendering and tests. All three case galleries are distinct (3 / 1 / 2 images); reference images have visible captions, creator/source links and grounded editorial notes. Configurable required disclosure retains honest demo attribution without mislabelling future original work. No fallback substitution; observed checks below, commit recorded after creation.
-- [ ] **T3 — Put work first and improve readability.** Delegate home/portfolio/hero changes and tests. Selected work precedes biography, the homepage is not the full catalogue, dark hero ink is readable, existing motion hooks remain functional, and relevant essential copy/credits do not require hover. RED/GREEN, build, desktop/mobile browser checks, rollback boundary and commit: pending.
+- [x] **T3 — Put work first and improve readability.** Delegated home/portfolio/hero/controller changes and tests. One selected real cover precedes biography; the full catalogue has three real covers, dark hero ink is readable, controls/credits remain immediately visible, and ink follows the actual layout. Observed checks below; work-unit commit identity recorded after creation.
 - [ ] **T4 — Make contact safe and reliable.** Delegate submission lifecycle/states and controlled tests. Demo mode never sends; live configuration is validated; in-flight duplicates are blocked; success, provider rejection, network failure and retry are accessible; failed input is retained; navigation reinitializes without duplicate listeners; native configured POST remains available without JS. No real delivery. RED/GREEN, build, runtime scenario, rollback boundary and commit: pending.
 - [ ] **T5 — Verify publication and document customization.** Delegate metadata/sitemap checks, CI and accurate docs. Six routes, distinct galleries, asset/internal links and publication metadata are checked; sitemap is generated; CI uses the verified Node/pnpm commands; README/CUSTOMIZATION and scoped roadmap status describe implemented behavior without claiming remote execution or release. RED/GREEN, final build/tests/browser checks, rollback boundary and commit: pending.
 
@@ -53,14 +53,14 @@ Identity is scattered across components; every project uses the same fallback co
 
 ## Next step
 
-Delegate T3: compact readable hero, actual selected cover before biography and full catalogue, preserving the direct-section motion topology. Keep strict TDD and chosen stacked-to-main delivery.
+Delegate T4: reliable contact enhancement and accessible states with injected transport tests, preserving the explicit demo no-send default and native live POST fallback. No real delivery is authorized.
 
 ## Planned local delivery slices
 
 | Slice | Task | Local end-boundary branch | Dependency | Commits / actual lines |
 | --- | --- | --- | --- | --- |
 | 1 | T1 | `codex/portfolio-01-content` | branch point / main | `42fb874e67ff86173f06748b6bb5e3c11d2fef17` / 1,374 (1,293 excluding tracking) |
-| 2 | T2 | `codex/portfolio-02-cases` | slice 1 | pending |
+| 2 | T2 | `codex/portfolio-02-cases` | slice 1 | `fb242f33d6dc61ffbf1c0acab33029caa6175f3b` / 450 (429 excluding tracking) |
 | 3 | T3 | `codex/portfolio-03-presentation` | slice 2 | pending |
 | 4 | T4 | `codex/portfolio-04-contact` | slice 3 | pending |
 | 5 | T5 | `codex/portfolio-05-quality` | slice 4 | pending |
@@ -89,4 +89,15 @@ These are local work-unit boundaries, not published pull requests. Actual counts
 - Contract: `Collage.images` is mandatory/nonempty; every project has validated nonempty `disclosure`. Current content stays explicitly curated reference/demo, not commissioned or original artwork claims.
 - Rollback: revert the ten rendering/data/test/doc files together to T1 boundary; no unrelated tooling changes.
 - Authored implementation/tests/docs count: 429; keep the coherent unit and recommend publication size exception if needed rather than stripping checks for 400.
-- RDD: disabled/unmanaged. Work-unit commit: pending creation.
+- RDD: disabled/unmanaged. Work-unit commit: `fb242f33d6dc61ffbf1c0acab33029caa6175f3b` — `feat(portfolio): render credited project-specific cases`; local end-boundary branch `codex/portfolio-02-cases` created. No push/PR.
+
+## T3 evidence
+
+- Route: delegated direct; home/catalogue/hero, shared content, motion and their tests/docs form one presentation behavior unit.
+- RED: initial 24 tests had 20 pass / 4 fail for work order, real covers, full-screen hero and obsolete decorative image key. Actual-controller tests exposed duplicate magnetic handlers and hidden controls. Mobile overflow regression observed x48 instead of x0. Final ink curve regression had 5 pass / 1 fail before measuring the full grid and actual pre-image gap.
+- GREEN/refactor: parent final `pnpm test` passed 31 / 31, exit 0; parent `pnpm build` checked 29 files, zero errors/warnings/hints, six HTML pages, exit 0. Separate skipped-sitemap warning stays pending T5. `git diff --check` passed.
+- Runtime: parent browser verified 1440x900 and 390x844 home, work before biography, loaded first artwork beginning at y533/y568 respectively; mobile cover ends at y801 before the fold. Settled dark heading is rgb(32,27,32). Document width equals viewport at 320, 390 and 1440. CTA settles at the selected work (section top16), and trail is a direct body child. Mobile catalogue has three loaded distinct covers; desktop ink stays outside cards and below artwork/copy. No remote form delivery.
+- Fixes: narrow reveals use vertical motion when lateral room is absent; essential links/cards are never hidden by either CSS or GSAP. Ink routing uses the actual adjacent section and explicit full grid, not the later biography or first card wrapper. Non-anchor CTA destinations keep native navigation.
+- Rollback: revert the T3 home/catalogue/hero/data-contract/CSS/controller/test/doc files together to T2; preserve the gallery/disclosure foundation and unrelated tooling.
+- Authored implementation/tests/docs: 639 additions + deletions. One coherent presentation/motion unit; recommend publication size exception rather than splitting tests from the behavior or removing required checks.
+- RDD: disabled/unmanaged. Local work-unit commit/end-boundary branch: pending creation; no push/PR.

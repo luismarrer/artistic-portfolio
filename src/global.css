@@ -62,6 +62,12 @@
 }
 
 :root {
+  --color-paper: #FEEACA;
+  --color-peach: #F3AC9E;
+  --color-ink: #201b20;
+  --color-muted: #494149;
+  --color-accent: #B22222;
+  --color-on-accent: #FFFDD0;
   --page-gutter: clamp(1.25rem, 4vw, 3rem);
   --header-space: 9rem;
 }
@@ -141,8 +147,7 @@ h2,
 }
 
 .has-motion .js-hero-title span,
-.has-motion [data-reveal],
-.has-motion #start,
+.has-motion [data-reveal]:not([data-reveal="card"]):not(a, button, input, select, textarea):not(:has(a, button, input, select, textarea)),
 .has-motion .js-scroll-hint,
 .has-motion .js-signature [data-draw],
 .has-motion .js-signature .signature-pen,
@@ -156,8 +161,7 @@ h2,
   }
 
   .has-motion .js-hero-title span,
-  .has-motion [data-reveal],
-  .has-motion #start,
+  .has-motion [data-reveal]:not([data-reveal="card"]):not(a, button, input, select, textarea):not(:has(a, button, input, select, textarea)),
   .has-motion .js-scroll-hint,
   .has-motion .js-signature [data-draw],
   .has-motion .js-signature .signature-pen,

@@ -19,7 +19,7 @@ const image = {
   sourceName: 'Test collection', sourceLink: 'https://example.org/image', size: 'small',
 }
 const project = {
-  id: 1, title: 'Test case', category: 'Curated demo', image: 'Grown',
+  id: 1, title: 'Test case', category: 'Curated demo',
   description: 'A test collection, not an artist commission.', featured: true,
   disclosure: 'Curated reference collection — test demo attribution.',
   gallery: [image], editorial: { context: 'Test context', process: 'Test curation', outcome: 'Test result' },
@@ -70,6 +70,10 @@ test('rejects missing identity, copy and malformed language', () => {
   }
 })
 
+test('requires configured selection and catalogue copy', () => {
+  assert.throws(() => validateSite({ ...validSite(), portfolio: undefined }, options), /portfolio/)
+})
+
 test('requires a root HTTPS public URL, rejecting credentials and query strings', () => {
   for (const publicUrl of ['javascript:alert(1)', 'http://example.org', 'https://user:pass@example.org',
     'https://example.org/subpath', 'https://example.org?query=1', 'https://example.org/#hash']) {
@@ -105,6 +109,12 @@ test('accepts a complete project and rejects empty collections', () => {
   assert.throws(() => validateProjects([], options), /projects/)
 })
 
+test('uses the first validated gallery image as cover without an unrelated illustration key', () => {
+  const input = changeProject((p) => { delete p.image })
+  assert.doesNotThrow(() => validateProjects(input, options))
+  assert.equal(validateProjects(input, options)[0].gallery[0].src, image.src)
+})
+
 test('rejects duplicate, nonnumeric and incompatible project identifiers', () => {
   assert.throws(() => validateProjects([project, structuredClone(project)], options), /id/)
   for (const id of [0, -1, 1.5, '1', Number.MAX_SAFE_INTEGER + 1]) {
@@ -112,8 +122,8 @@ test('rejects duplicate, nonnumeric and incompatible project identifiers', () =>
   }
 })
 
-test('rejects an unknown illustration, missing summary or unlabelled featured flag', () => {
-  for (const mutate of [(p) => { p.image = 'Unknown' }, (p) => { p.description = '' },
+test('rejects a missing summary or unlabelled featured flag', () => {
+  for (const mutate of [(p) => { p.description = '' },
     (p) => { p.featured = 'yes' }]) {
     assert.throws(() => validateProjects(changeProject(mutate), options), /content/i)
   }
