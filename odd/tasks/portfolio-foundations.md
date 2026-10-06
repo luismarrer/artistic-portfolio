@@ -33,7 +33,7 @@ Identity is scattered across components; every project uses the same fallback co
 - Forecast: **1,300-1,950 authored additions + deletions**, generated outputs excluded. This is an estimate, not a code cap. Keep tests/docs with behavior; do not compress, omit checks or split artificial units to fit 400 lines.
 - Delivery strategy: `ask-on-risk` (default).
 - Chain strategy: **`stacked-to-main`**, explicitly selected by the user: "cambios integrables por separado hacia `main`". Each slice can land in order; later PRs use their immediate parent until it lands and can be retargeted to main. PR publication still needs separate authorization.
-- Running authored count: **3,026 committed additions + deletions**, including 147 lines of tracking changes; implementation/tests/docs subtotal 2,879. Generated outputs excluded. The original forecast was low; remaining quality scope is retained.
+- Running authored count: **3,761 additions + deletions**, including 194 tracking lines; implementation/tests/docs subtotal 3,567. This includes five behavior commits (3,751) and final tracking closure (10). Generated outputs excluded; the original forecast was low, not a scope cap.
 
 ## Tasks and acceptance
 
@@ -53,7 +53,7 @@ Identity is scattered across components; every project uses the same fallback co
 
 ## Next step
 
-All five approved implementation outcomes are locally verified. Finish commit bookkeeping, then deliver the local stacked-to-main boundaries. Push/PR/deployment and provider delivery remain separate user decisions, not incomplete local implementation.
+All five approved implementation outcomes are locally verified and committed. Local boundary branches are ready for integration in order toward main. PR publication requires separate authorization and accepted size exceptions; no remote operation has been performed.
 
 ## Planned local delivery slices
 
@@ -63,7 +63,7 @@ All five approved implementation outcomes are locally verified. Finish commit bo
 | 2 | T2 | `codex/portfolio-02-cases` | slice 1 | `fb242f33d6dc61ffbf1c0acab33029caa6175f3b` / 450 (429 excluding tracking) |
 | 3 | T3 | `codex/portfolio-03-presentation` | slice 2 | `06e68846cc18b15dc6ddf932dde5e26a9cb33dd6` / 660 (639 excluding tracking) |
 | 4 | T4 | `codex/portfolio-04-contact` | slice 3 | `2bd95a19008bb539e7a9f3d5637c48b59c864361` / 542 (518 excluding tracking) |
-| 5 | T5 | `codex/portfolio-05-quality` | slice 4 | pending |
+| 5 | T5 | `codex/portfolio-05-quality` | slice 4 | `7f9432e45d373030a9e885f13505e779f67ae640` / 725 (688 excluding tracking), plus 10 docs-only closure lines at this boundary tip |
 
 These are local work-unit boundaries, not published pull requests. Actual counts may justify a cohesive over-budget slice; recommend `size:exception` when publishing if a single honest slicing pass cannot keep it below 400, never reduce implementation or tests for line count.
 
@@ -126,7 +126,7 @@ These are local work-unit boundaries, not published pull requests. Actual counts
 - Docs: README/CUSTOMIZATION explain current personalization/contact/publication/checks; ROADMAP distinguishes completed local foundations from licensing, final-content/accessibility/load budgets, provider delivery, remote CI, deployment and release work not authorized here.
 - Rollback: restore the 17 T5 publication/data/layout/robots/motion/test/workflow/package/doc files together to T4; retain contact/presentation and unrelated tooling. No new dependency/library, CMS, lightbox, slug migration or animation system.
 - Authored implementation/tests/docs: 688 additions + deletions. Publication and its critical regressions/CI/docs stay coherent; recommend publication size exception rather than stripping proof or artificial file-type slices.
-- RDD: disabled/unmanaged, reconfirmed off by global source. Work-unit commit/end-boundary branch: pending creation; no push/PR/deploy or actual POST.
+- RDD: disabled/unmanaged, reconfirmed off by global source. Work-unit commit: `7f9432e45d373030a9e885f13505e779f67ae640` — `feat(quality): verify publication and navigation lifecycle`; local end-boundary branch `codex/portfolio-05-quality` includes the final docs-only evidence closure. No push/PR/deploy or actual POST.
 
 ## Completion audit
 
@@ -140,3 +140,5 @@ These are local work-unit boundaries, not published pull requests. Actual counts
 | Local independent delivery in order toward main | Five behavior work-unit commits and named boundary branches; main remains at original branch point; no remote operations |
 
 All required local checks pass. Remote CI, deployed URLs, Formspree ownership/delivery, third-party licensing and a full final-content responsive/accessibility/performance matrix were not run or claimed; these are outside this authorized foundation scope. RDD remains disabled/unmanaged. Over-400 publication slices need an accepted size exception before PR publication. Unrelated .atl/ and .codegraph/ remain untracked and unstaged.
+
+Final tracking closure records these commit identities without altering source/tests/docs behavior: 10 authored lines, complete delivery count 3,761 (3,567 implementation/tests/docs and 194 tracking). The last boundary branch tip identifies that closure without a self-referential commit hash.
