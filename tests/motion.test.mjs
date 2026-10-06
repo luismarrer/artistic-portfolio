@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { test } from 'node:test'
 import { runInNewContext } from 'node:vm'
 import ts from 'typescript'
@@ -13,9 +13,10 @@ function controller(document, overrides = {}) {
   const contexts = []
   const timelines = []
   const triggers = []
+  const batches = []
   const glides = []
   const scrollTrigger = {
-    batch() {},
+    batch(targets, config) { batches.push({ targets, config }) },
     create(config) {
       const trigger = { config, killed: false, kill() { this.killed = true } }
       triggers.push(trigger)
@@ -49,20 +50,24 @@ function controller(document, overrides = {}) {
       ownedTriggers = triggers.slice(firstTrigger)
       return context
     },
-    timeline() {
+    // Timelines record what is scheduled (`entries`, with the position each tween was placed at) so a test can
+    // read the real schedule back; `play` joins `calls` so ordering against `gsap.set` is observable.
+    timeline(vars) {
       const timeline = {
+        vars,
+        entries: [],
         killed: false,
         position: 0,
-        set() { return this },
-        to() { return this },
-        fromTo() { return this },
+        set(target, props, at) { this.entries.push({ kind: 'set', target, vars: props, at }); return this },
+        to(target, props, at) { this.entries.push({ kind: 'to', target, vars: props, at }); return this },
+        fromTo(target, from, props, at) { this.entries.push({ kind: 'fromTo', target, from, vars: props, at }); return this },
         progress(value) {
           if (value === undefined) return this.position
           this.position = value
           return this
         },
         isActive: () => false,
-        play() { return this },
+        play() { calls.push({ kind: 'play', timeline: this }); return this },
         kill() { this.killed = true },
       }
       timelines.push(timeline)
@@ -82,8 +87,8 @@ function controller(document, overrides = {}) {
     require: (name) => name === 'gsap' ? { gsap } : { ScrollTrigger: scrollTrigger },
     ...overrides,
   }
-  runInNewContext(`${compiled}\nglobalThis.api = { buildTrailRoute, toSmoothPath, initCtaAndHover, initReveals };`, context)
-  return { api: context.api, boot: context.exports.bootArtisticMotion, calls, contexts, timelines, triggers, glides }
+  runInNewContext(`${compiled}\nglobalThis.api = { buildTrailRoute, toSmoothPath, initCtaAndHover, initReveals, initSignatures, initInkTrail };`, context)
+  return { api: context.api, boot: context.exports.bootArtisticMotion, calls, contexts, timelines, triggers, batches, glides }
 }
 
 class EventTargetDouble {
@@ -112,14 +117,16 @@ class ElementDouble extends EventTargetDouble {
     super()
     Object.assign(this, { id, tagName, offsetLeft: left, offsetTop: top, offsetWidth: width,
       offsetHeight: height, offsetParent: null, parentElement: null, children: [], hero,
-      dataset: {}, selectors: {}, style: {}, attributes: {} })
+      dataset: {}, selectors: {}, style: {}, attributes: {}, focused: [] })
   }
   matches(selector) { return selector === '[data-hero]' && this.hero }
   querySelector(selector) { return this.selectors[selector] ?? null }
   querySelectorAll(selector) { return this.selectors[selector] ?? [] }
   getBoundingClientRect() { return { left: this.offsetLeft, width: this.offsetWidth, top: this.offsetTop, height: this.offsetHeight } }
   getAttribute(name) { return this.attributes[name] ?? this[name] ?? null }
+  hasAttribute(name) { return name in this.attributes }
   setAttribute(name, value) { this.attributes[name] = value }
+  focus(options) { this.focused.push(options) }
   getTotalLength() { return 100 }
   getPointAtLength(length) { return { x: 20, y: 100 + length * 14 } }
   replaceChildren(...children) { this.children = children }
@@ -274,6 +281,339 @@ test('catalogue ink reaches the outer grid margin before the first artwork, incl
   }
 })
 
+// ── One written intro, within budget ────────────────────────────────────────
+// A hero as the controller sees it: headline words, signature, CTA and scroll hint.
+function heroPage({ variant = 'hero', words = 5, top = 0, writing = true } = {}) {
+  const wordElements = Array.from({ length: words }, () => new ElementDouble())
+  const hint = new ElementDouble()
+  const cta = new ElementDouble({ id: 'start', tagName: 'A', top: 330, width: 224, height: 52 })
+  cta.href = '#projects'
+  const parts = {
+    clip: new ElementDouble(), pen: new ElementDouble(), writePath: new ElementDouble(),
+    underline: new ElementDouble(), word: new ElementDouble(),
+  }
+  parts.clip.attributes.width = '560'
+  const signature = new ElementDouble({ top })
+  signature.dataset.variant = variant
+  Object.assign(signature.selectors, {
+    '[data-draw]': [parts.underline], '.signature-clip': parts.clip,
+    '.signature-pen': parts.pen, '.signature-word': parts.word,
+  })
+  // A custom signature may have no writing path for the pen to follow.
+  if (writing) signature.selectors['.signature-write-path'] = parts.writePath
+  const singles = { '#start': cta, '.js-scroll-hint': hint }
+  const lists = { '.js-hero-title span': wordElements, '.js-signature': [signature], '[data-magnetic]': [cta] }
+  const document = {
+    querySelector: (selector) => singles[selector] ?? null,
+    querySelectorAll: (selector) => lists[selector] ?? [],
+    getElementById: () => null,
+  }
+  const runtime = controller(document, { window: { scrollY: 0, innerWidth: 1440, innerHeight: 900 } })
+  runtime.api.initSignatures()
+  runtime.api.initReveals()
+  return { ...runtime, ...parts, wordElements, hint, cta, signature }
+}
+
+const entryEnd = ({ at, vars }) => at + (vars.duration ?? 0)
+const wordWipe = (page) => page.calls.find(({ kind, target }) => kind === 'fromTo' && target === page.wordElements)
+const penWrite = (page) => page.timelines[0].entries.find(({ target, vars }) =>
+  target === page.pen && vars.motionPath?.path === page.writePath)
+// "inset(top right bottom left)" as numbers, to read the wipe geometry back.
+const insets = (value) => {
+  const [top, right, bottom, left] = value.match(/inset\(([^)]*)\)/)[1].trim().split(/\s+/).map(parseFloat)
+  return { top, right, bottom, left }
+}
+
+test('hero words are written left to right by a clip wipe, with no flight, spin or scale', () => {
+  const wipe = wordWipe(heroPage())
+  assert.ok(wipe, 'the headline words animate as one staggered group')
+  const motion = /^(?:x|y|z|xPercent|yPercent|scale\w*|rotat\w*|skew\w*)$/
+  for (const side of [wipe.from, wipe.to]) {
+    assert.deepEqual(Object.keys(side).filter((name) => motion.test(name)), [], 'words never fly, spin or scale')
+  }
+  const hidden = insets(wipe.from.clipPath)
+  const shown = insets(wipe.to.clipPath)
+  // inset(top right bottom left): only the right edge travels, so the reveal runs left to right.
+  assert.ok(hidden.right >= 100, 'the whole word starts clipped away')
+  assert.ok(shown.right <= 0, 'nothing stays clipped on the right once written')
+  for (const side of ['top', 'bottom', 'left']) assert.equal(hidden[side], shown[side], `only the right edge moves (${side})`)
+  for (const side of ['top', 'right', 'bottom', 'left']) {
+    assert.ok(shown[side] < 0, `a negative ${side} inset keeps Mansalva overhangs and descenders unclipped at rest`)
+  }
+  assert.equal(wipe.from.autoAlpha, 1, 'the clip hides the word, so the .has-motion opacity gate cannot flash it')
+  assert.equal(wipe.to.autoAlpha, 1, 'every word ends visible')
+  assert.ok(typeof wipe.to.stagger === 'number' && wipe.to.stagger > 0, 'words are written in reading order')
+  assert.equal(wipe.to.clearProps, 'clipPath', 'only the clip is removed afterwards, never the opacity that keeps the word shown')
+})
+
+test('a long headline tightens its stagger so it is still written by 0.85 s', () => {
+  for (const words of [1, 5, 12]) {
+    const { to } = wordWipe(heroPage({ words }))
+    const end = (to.delay ?? 0) + (words - 1) * to.stagger + to.duration
+    assert.ok(end <= 0.85, `${words} words end at ${end.toFixed(2)} s`)
+  }
+})
+
+test('the whole hero intro (words, signature, underline, pen lift, scroll hint) ends within 1.25 s', () => {
+  const page = heroPage()
+  const [timeline] = page.timelines
+  assert.ok(timeline.entries.length > 0 && timeline.entries.every(({ at }) => typeof at === 'number'),
+    'every signature tween sits at an absolute time')
+  const { to: words } = wordWipe(page)
+  const lastWordStart = (words.delay ?? 0) + (page.wordElements.length - 1) * words.stagger
+  const wordsEnd = lastWordStart + words.duration
+  const signatureStart = Math.min(...timeline.entries.map(({ at }) => at))
+  const signatureEnd = Math.max(...timeline.entries.map(entryEnd))
+  const hint = page.calls.find(({ kind, target }) => kind === 'fromTo' && target === page.hint)
+  const end = Math.max(wordsEnd, signatureEnd, (hint.to.delay ?? 0) + hint.to.duration)
+  assert.ok(end <= 1.25, `the intro ends at ${end.toFixed(2)} s`)
+  assert.ok(end >= 1.1, `the intro really uses its budget (ends at ${end.toFixed(2)} s)`)
+  assert.ok(signatureStart >= lastWordStart && signatureStart < wordsEnd,
+    'the signature starts while the last words are still being written')
+})
+
+test('the signature clip starts closed and wipes open in step with the pen along the writing path', () => {
+  const page = heroPage()
+  const closed = page.calls.find(({ kind, target }) => kind === 'set' && target === page.clip)
+  assert.equal(closed?.from.attr?.width, 0, 'motion mode closes the clip before the signature plays')
+  assert.ok(page.calls.indexOf(closed) < page.calls.findIndex(({ kind }) => kind === 'play'), 'closed before it plays')
+  const wipe = page.timelines[0].entries.find(({ target }) => target === page.clip)
+  const pen = penWrite(page)
+  assert.ok(wipe && pen, 'the wipe and the pen both run')
+  assert.equal(wipe.vars.attr.width, 560)
+  assert.equal(wipe.at, pen.at, 'they start together')
+  assert.equal(wipe.vars.duration, pen.vars.duration, 'and take the same time')
+  assert.ok(wipe.vars.ease, 'the ease is named on the wipe')
+  assert.equal(wipe.vars.ease, pen.vars.ease, 'and is the same ease, so they cannot drift apart')
+})
+
+test('a signature with nothing to write along keeps its clip as authored, so its word is never left hidden', () => {
+  const page = heroPage({ writing: false })
+  assert.ok(!page.calls.some(({ target }) => target === page.clip), 'the clip is not closed when nothing would open it')
+  assert.ok(!page.timelines[0].entries.some(({ target }) => target === page.clip), 'and no wipe is scheduled')
+  assert.equal(page.clip.attributes.width, '560')
+  const fades = page.timelines[0].entries.filter(({ target, vars }) => target === page.pen && 'autoAlpha' in vars)
+  assert.equal(fades.at(-1).vars.autoAlpha, 0, 'the pen still lifts at the end')
+})
+
+test('the signature pen is hidden before it plays, shown only while it writes, and ends hidden', () => {
+  for (const variant of ['hero', 'footer']) {
+    const page = heroPage({ variant, top: variant === 'hero' ? 0 : 2400 })
+    const hidden = page.calls.findIndex(({ kind, target, from }) => kind === 'set' && target === page.pen && from.autoAlpha === 0)
+    assert.ok(hidden >= 0, `${variant}: the pen is hidden up front`)
+    if (variant === 'footer') page.triggers.find(({ config }) => config.trigger === page.signature).config.onEnter()
+    assert.ok(page.calls.findIndex(({ kind }) => kind === 'play') > hidden, `${variant}: hidden before the signature plays`)
+    const { entries } = page.timelines[0]
+    const fades = entries.filter(({ target, vars }) => target === page.pen && 'autoAlpha' in vars)
+    assert.equal(fades[0].vars.autoAlpha, 1, `${variant}: the pen appears when it starts writing`)
+    assert.equal(fades[0].at, Math.min(...entries.map(({ at }) => at)), `${variant}: and not before`)
+    const last = fades.at(-1)
+    assert.equal(last.vars.autoAlpha, 0, `${variant}: the last thing the pen does is lift`)
+    assert.ok(!entries.some((entry) => entry.target === page.pen && entry.at > last.at), `${variant}: nothing moves the pen after it lifts`)
+    assert.ok(Math.abs(entryEnd(last) - Math.max(...entries.map(entryEnd))) < 1e-9,
+      `${variant}: the timeline ends with the pen hidden`)
+  }
+})
+
+test('the footer signature keeps the hero character, a little slower, and waits to scroll into view', () => {
+  const footer = heroPage({ variant: 'footer', top: 2400 })
+  assert.equal(footer.calls.some(({ kind }) => kind === 'play'), false, 'below the fold it waits')
+  const trigger = footer.triggers.find(({ config }) => config.trigger === footer.signature)
+  assert.equal(trigger.config.once, true)
+  assert.equal(trigger.config.start, 'top 99%')
+  trigger.config.onEnter()
+  assert.equal(footer.calls.filter(({ kind }) => kind === 'play').length, 1)
+  const [footerWrite, heroWrite] = [footer, heroPage()].map(penWrite)
+  assert.ok(footerWrite.vars.duration >= 0.6 && footerWrite.vars.duration <= 0.8, 'about 0.7 s')
+  assert.ok(footerWrite.vars.duration > heroWrite.vars.duration)
+  assert.equal(footerWrite.vars.ease, heroWrite.vars.ease, 'the same character')
+})
+
+test('nothing loops forever, and the scroll hint fades in once and then stays still', () => {
+  const page = heroPage()
+  const scheduled = [
+    ...page.calls.flatMap(({ from, to }) => [from, to]),
+    ...page.timelines.flatMap(({ vars, entries }) => [vars, ...entries.flatMap(({ from, vars: props }) => [from, props])]),
+  ].filter(Boolean)
+  assert.ok(scheduled.length > 10, 'the intro schedules real tweens')
+  for (const vars of scheduled) {
+    assert.ok(!(vars.repeat < 0 || vars.repeat === Infinity), 'no tween repeats forever')
+    assert.notEqual(vars.yoyo, true, 'no tween bounces back and forth')
+  }
+  const hint = page.calls.filter(({ target }) => target === page.hint)
+  assert.equal(hint.length, 1, 'one fade-in, and nothing that keeps moving the hint')
+  assert.equal(hint[0].kind, 'fromTo')
+  assert.equal(hint[0].from.autoAlpha, 0)
+  assert.equal(hint[0].to.autoAlpha, 1)
+  for (const side of [hint[0].from, hint[0].to]) assert.ok(!('y' in side) && !('x' in side), 'the hint does not drift')
+  assert.ok(hint[0].to.duration >= 0.25 && hint[0].to.duration <= 0.35, 'about 0.3 s')
+  assert.ok(hint[0].to.delay >= 0.85 && hint[0].to.delay <= 1.15, 'around 1 s, once the signature is being written')
+})
+
+test('secondary reveals are short fades with a small rise, never lateral or rotated', () => {
+  const reveals = ['title', 'copy', 'left', 'right'].map((type, index) => {
+    // Wide blocks with room on both sides: the old left/right entrances would have slid in from the margins.
+    const el = new ElementDouble({ left: 200, top: 400 + index * 300, width: 700, height: 200 })
+    el.dataset.reveal = type
+    return el
+  })
+  const document = {
+    querySelector: () => null,
+    querySelectorAll: (selector) => selector === '[data-reveal]' ? reveals : [],
+  }
+  const { api, calls } = controller(document, { window: { scrollY: 0, innerWidth: 1440, innerHeight: 900 } })
+  api.initReveals()
+  for (const el of reveals) {
+    const { from, to } = calls.find(({ target }) => target === el)
+    const name = el.dataset.reveal
+    assert.equal(from.autoAlpha, 0)
+    assert.equal(to.autoAlpha, 1)
+    assert.equal(from.x, 0, `${name}: no lateral entrance`)
+    assert.equal(to.x, 0)
+    assert.equal(from.rotate, 0, `${name}: no tilt`)
+    assert.equal(to.rotate, 0)
+    assert.ok(from.y > 0 && from.y <= 12, `${name}: a small rise (${from.y}px)`)
+    assert.equal(to.y, 0)
+    assert.ok(to.duration >= 0.4 && to.duration <= 0.6, `${name}: short (${to.duration}s)`)
+    assert.equal(to.ease, 'power2.out')
+    assert.equal(to.scrollTrigger.start, 'top 90%')
+  }
+})
+
+test('cards rise a few pixels with a short stagger and are never hidden', () => {
+  const cards = [new ElementDouble(), new ElementDouble(), new ElementDouble()]
+  cards.forEach((card) => { card.dataset.reveal = 'card' })
+  const document = {
+    querySelector: () => null,
+    querySelectorAll: (selector) => selector === '[data-reveal]' || selector === "[data-reveal='card']" ? cards : [],
+  }
+  const { api, calls, batches } = controller(document)
+  api.initReveals()
+  const start = calls.find(({ kind, target }) => kind === 'set' && target === cards)
+  assert.ok(start.from.y > 0 && start.from.y <= 12, 'a rise of at most 12px')
+  for (const name of ['rotate', 'rotation', 'x', 'autoAlpha', 'opacity']) {
+    assert.ok(!(name in start.from), `cards never start with ${name}`)
+  }
+  assert.equal(batches.length, 1)
+  batches[0].config.onEnter(cards)
+  const settle = calls.find(({ kind, target }) => kind === 'to' && target === cards)
+  assert.equal(settle.to.y, 0)
+  assert.ok(!('rotate' in settle.to), 'no tilt on the way back either')
+  assert.ok(settle.to.duration >= 0.4 && settle.to.duration <= 0.6)
+  assert.ok(settle.to.stagger >= 0.04 && settle.to.stagger <= 0.08, 'about 0.06 s')
+})
+
+test('the CTA is simply present, pulls gently toward the pointer and returns without elastic motion', () => {
+  const page = heroPage()
+  assert.ok(!page.calls.some(({ target }) => target === page.cta), 'no entrance: the primary action never waits for the intro')
+  page.api.initCtaAndHover(new AbortController().signal)
+  page.cta.dispatch('mousemove', { clientX: 212, clientY: 356 }) // 100px right of the centre, level with it
+  const pull = page.calls.findLast(({ kind, target }) => kind === 'to' && target === page.cta)
+  assert.ok(Math.abs(pull.to.x - 12) < 1e-9, `a 0.12 pull, got ${pull.to.x}`)
+  page.cta.dispatch('mouseleave')
+  const settle = page.calls.findLast(({ kind, target }) => kind === 'to' && target === page.cta)
+  assert.equal(settle.to.x, 0)
+  assert.equal(settle.to.y, 0)
+  assert.equal(settle.to.ease, 'power3.out')
+  assert.ok(settle.to.duration >= 0.4 && settle.to.duration <= 0.5)
+})
+
+test('activating the CTA moves focus to its target at once, before a sub-second scroll', () => {
+  const cta = new ElementDouble({ id: 'start' })
+  cta.href = '#projects'
+  const destination = new ElementDouble({ id: 'projects', top: 460, width: 390, height: 440 })
+  const document = {
+    querySelector: (selector) => selector === '#start' ? cta : null,
+    querySelectorAll: () => [],
+    getElementById: (id) => id === 'projects' ? destination : null,
+  }
+  const { api, calls } = controller(document)
+  let scrollsWhenFocused
+  destination.focus = (options) => {
+    destination.focused.push(options)
+    scrollsWhenFocused = calls.filter(({ to }) => to?.scrollTo).length
+  }
+  api.initCtaAndHover(new AbortController().signal)
+  assert.equal(cta.dispatch('click').defaultPrevented, true)
+  // Options are built inside the vm realm, so compare their fields rather than the (cross-realm) object.
+  assert.equal(destination.focused.length, 1, 'focus moves exactly once')
+  assert.equal(destination.focused[0].preventScroll, true, 'moving focus must not jump the page ahead of the animated scroll')
+  assert.equal(scrollsWhenFocused, 0, 'focus never waits for the scroll animation')
+  const scroll = calls.find(({ to }) => to?.scrollTo)
+  assert.equal(scroll.to.scrollTo.y, 444)
+  assert.ok(scroll.to.duration <= 1, `the scroll takes ${scroll.to.duration}s`)
+  assert.equal(destination.attributes.tabindex, '-1', 'a target that cannot take focus yet becomes a programmatic focus target')
+  destination.attributes.tabindex = '0'
+  cta.dispatch('click')
+  assert.equal(destination.attributes.tabindex, '0', 'an existing tabindex is never overwritten')
+})
+
+// A hero plus selected work, and the ink overlay the trail is drawn into.
+function trailPage(width) {
+  const height = 1800
+  const hero = new ElementDouble({ width, height: 460, hero: true })
+  const cta = new ElementDouble({ left: width / 2 - 112, top: 330, width: 224, height: 52 })
+  const selection = new ElementDouble({ id: 'projects', top: 460, width, height: 440 })
+  const margin = width < 640 ? 24 : 144
+  const grid = new ElementDouble({ left: margin, top: 550, width: width - margin * 2, height: 300 })
+  const card = new ElementDouble({ left: margin, top: 550, width: grid.offsetWidth, height: 300 })
+  card.parentElement = grid
+  const art = new ElementDouble({ left: margin, top: 550, width: grid.offsetWidth, height: 200 })
+  art.selectors['svg, img'] = art
+  card.selectors['.project-artwork'] = art
+  selection.selectors['.project-card'] = [card]
+  selection.selectors['[data-trail-content]'] = grid
+  const main = new ElementDouble()
+  main.children = [hero, selection]
+  const path = new ElementDouble()
+  const splatters = new ElementDouble()
+  const root = new ElementDouble()
+  Object.assign(root.selectors, {
+    svg: new ElementDouble(), '#ink-path': path, '#ink-path-shadow': new ElementDouble(),
+    '#ink-pen': new ElementDouble(), '#ink-splatters': splatters,
+  })
+  const document = {
+    querySelector: (selector) => ({ main, '#start': cta, '#ink-trail': root })[selector] ?? null,
+    createRange: () => ({ selectNodeContents() {}, getBoundingClientRect: () => ({ width: 0 }) }),
+    createElementNS: () => new ElementDouble(),
+    documentElement: { clientWidth: width, clientHeight: 900, scrollHeight: height },
+    body: { offsetHeight: height },
+  }
+  const runtime = controller(document, { window: { scrollY: 0, innerWidth: width, innerHeight: 900 } })
+  const layout = { width, height, vw: width, vh: 900, gutter: Math.min(48, Math.max(20, width * 0.04)), mobile: width < 640 }
+  return { ...runtime, path, splatters, layout }
+}
+
+test('ink blots sit exactly on the stroke: one per turn, sized to the line, revealed as the pen passes', () => {
+  for (const width of [1440, 390]) {
+    const { api, path, splatters, layout, timelines } = trailPage(width)
+    api.initInkTrail()
+    const turns = api.buildTrailRoute(layout).filter(({ blot }) => blot)
+    assert.ok(turns.length >= 2, `${width}px: the route has turns to mark`)
+    const blots = splatters.children
+    assert.equal(blots.length, turns.length, `${width}px: exactly one blot per marked turn`)
+    const stroke = Number(path.attributes['stroke-width'])
+    const curve = sampleCurve(path.attributes.d)
+    blots.forEach((blot, index) => {
+      const gap = Math.min(...curve.map(({ x, y }) => Math.hypot(x - Number(blot.attributes.cx), y - Number(blot.attributes.cy))))
+      assert.ok(gap < 0.1, `${width}px: blot ${index} floats ${gap.toFixed(2)}px off the stroke`)
+      const radius = Number(blot.attributes.r)
+      assert.ok(radius >= stroke * 0.9 && radius <= stroke * 1.2, `${width}px: radius ${radius} against a ${stroke}px line`)
+      assert.equal(blot.style.fill, 'var(--color-accent)', 'accent ink, from the token')
+      assert.equal(blot.attributes.opacity, '0', 'a blot starts hidden')
+    })
+    const reveals = timelines.at(-1).entries.filter(({ target }) => blots.includes(target))
+    assert.equal(reveals.length, blots.length, 'each blot is revealed once, by the pen')
+    for (const { vars } of reveals) assert.ok(Math.abs(vars.opacity - 0.7) <= 0.05, `revealed at ink opacity, got ${vars.opacity}`)
+  }
+})
+
+test('the legacy sketch animation and its orphan component are gone', () => {
+  assert.doesNotMatch(source, /initSketch|\.firma\b|Combined-Shape/)
+  assert.doesNotMatch(readFileSync(new URL('../src/global.css', import.meta.url), 'utf8'), /\.firma\b/)
+  assert.equal(existsSync(new URL('../src/components/svgs/Drawing.astro', import.meta.url)), false)
+})
+
 function deferred() {
   let resolve
   const promise = new Promise((accept) => { resolve = accept })
@@ -334,11 +674,15 @@ function lifecycle({ reduced = false } = {}) {
   const hint = new ElementDouble()
   const signatureWord = new ElementDouble()
   const signaturePath = new ElementDouble()
+  const signaturePen = new ElementDouble()
+  const writePath = new ElementDouble()
   const clip = new ElementDouble()
   const signature = new ElementDouble()
   signature.selectors['[data-draw]'] = [signaturePath]
   signature.selectors['.signature-clip'] = clip
   signature.selectors['.signature-word'] = signatureWord
+  signature.selectors['.signature-write-path'] = writePath
+  signature.selectors['.signature-pen'] = signaturePen
   const root = new ElementDouble()
   const path = new ElementDouble()
   const shadow = new ElementDouble()
@@ -351,10 +695,12 @@ function lifecycle({ reduced = false } = {}) {
   const paths = [signaturePath, path, shadow]
   visibleContent.forEach((element) => Object.assign(element.style, { opacity: '0', transform: 'translateY(42px)' }))
   paths.forEach((element) => Object.assign(element.style, { strokeDashoffset: '100', strokeDasharray: '100' }))
+  // Nothing but JavaScript hides the pen in this state: an unstyled pen is fully visible.
+  signaturePen.style.opacity = '1'
   const singles = { '#start': cta, '#ink-trail': root, '#ink-pen': pen }
   const collections = {
     '.js-signature': [signature], '.js-hero-title span': [word], '[data-reveal]': [copy],
-    '[data-magnetic]': [cta], '.signature-clip': [clip],
+    '[data-magnetic]': [cta], '.signature-clip': [clip], '.js-signature .signature-pen': [signaturePen],
     '.js-signature [data-draw], #ink-path, #ink-path-shadow': paths,
     '[data-reveal], .js-hero-title span, #start, .js-scroll-hint, .js-signature .signature-word': visibleContent,
   }
@@ -375,7 +721,7 @@ function lifecycle({ reduced = false } = {}) {
   })
   runtime.boot()
   return { ...runtime, document, window, frames, timers, fonts, observers, classes,
-    cta, visibleContent, paths, clip, pen }
+    cta, destination, visibleContent, paths, clip, pen, signaturePen }
 }
 
 test('reduced motion takes the visible static early exit without animations or enhanced CTA handlers', async () => {
@@ -390,8 +736,10 @@ test('reduced motion takes the visible static early exit without animations or e
   for (const element of state.visibleContent) {
     assert.equal(element.style.opacity, '1')
     assert.equal(element.style.transform, 'none')
+    assert.ok([undefined, '', 'none'].includes(element.style.clipPath), 'a finished headline is never left clipped')
   }
   assert.equal(state.pen.style.opacity, '0')
+  assert.equal(state.signaturePen.style.opacity, '0', 'the signature pen is a motion-only prop: static mode must not show it')
   assert.equal(state.classes.has('has-motion'), false)
   assert.equal(state.calls.length, 0)
   assert.equal(state.contexts.length, 0)

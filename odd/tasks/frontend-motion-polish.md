@@ -106,7 +106,7 @@ Observed in the local dev server at 1440x900 and 375x812, and in the delegated c
   - Artworks (featured, catalogue, gallery) use one mounted-print treatment, with catalogue covers at 4:3.
   - Body text follows the 1.125rem/1.6 scale with a 64ch measure. Labels are sentence case.
   - Contact fields use surface and token borders with at least 3:1 contrast.
-- [ ] **T2 — One written intro within budget.**
+- [x] **T2 — One written intro within budget.**
   - Hero words are written left to right by a clip wipe, with no flight or rotation.
   - The signature clip actually wipes, synchronized with a shorter pen.
   - The complete intro ends by about 1.2s.
@@ -165,6 +165,37 @@ Observed in the local dev server at 1440x900 and 375x812, and in the delegated c
   - One slicing pass found no independent split below 400: paper, prints and type share tokens, `PortfolioComponent` and their tests.
   - Recommend `size:exception` when publishing.
 
+- **Work-unit commit.** `f2ec28d`, `feat(presentation): put every page on one paper with mounted prints`. Local boundary branch: `codex/frontend-01-paper`. No push and no PR.
+
+## T2 evidence
+
+- **Route.** Delegated direct to one bounded writer. Trigger: the motion controller, global CSS, markup and two test files are non-trivial.
+- **RED.**
+  - Full suite: 88 tests, 72 pass / 16 fail. That is 14 motion failures plus 2 built-output failures; the motion file alone was 24 tests, 10 pass / 14 fail.
+  - One more edge-case test was proven RED by temporarily reverting the line under test.
+- **GREEN.** 89 / 89. The parent re-ran `pnpm test`: 89 pass / 0 fail.
+- **Functional checks.** Writer `pnpm build`: astro check over 32 files with 0 errors, warnings or hints; 6 pages. `git diff --check`: clean.
+- **Production-build browser check (parent).**
+  - Method: the built `dist` was served statically. The Browser pane is hidden, so native `requestAnimationFrame` never fires there. The page was loaded in an iframe with a setTimeout-based rAF polyfill injected before its scripts. Timers measured 60 Hz.
+  - Observed from motion boot:
+    - Words are clip-written from 0.28s to 0.78s.
+    - The signature clip wipes 0 to 560 in sync with the pen from 0.44s to 0.93s.
+    - The pen lifts by 1.20s.
+    - The scroll hint fades in once from 0.93s to 1.20s and never moves again.
+  - The final state shows no pen mark and no clipped glyphs.
+  - Ink blots are measured within 0.7px of the stroke.
+  - CTA activation focuses `#projects` immediately with no outline, and the scroll settles in about 0.9s with the target 16px from the top.
+- **Root cause of the visible pen mark.** The pen had no default hidden state. Only the `.has-motion` gate and GSAP inline styles hid it, and the reduced-motion block even forced it visible. It is now hidden by default and in the static fallback.
+- **Decisions.**
+  - The suggested timings summed to about 1.37s, so the writer tightened them (start .40, write .50, underline .22, lift .12) to meet the 1.25s assertion.
+  - The pen rule uses `opacity: 0; visibility: hidden`, because Lightning CSS merged an opacity-only rule into a `:has()` list that older browsers would drop.
+  - `Drawing.astro` and `initSketch` were removed. No `.firma` CSS existed.
+- **Environment notes.** The dev server returns "504 Outdated Optimize Dep" after builds, which stops GSAP from loading in dev. Production-build checks are authoritative.
+- **Native assessment.** Risk `medium` (`executable_change`), RDD off: writer self-verification plus parent spot check and runtime check. No review was started.
+- **Size.** 883 authored lines (+624 / -259; tests +410 / -12).
+  - The motion rewrite is one cohesive controller change: timing constants, signature schedule, reveals, CTA focus and blots share `initSignatures`, `initReveals` and the harness doubles.
+  - Recommend `size:exception` when publishing.
+
 ## Next step
 
-Commit T1, then delegate T2 (written intro within budget) to one bounded writer.
+Commit T2, then delegate T3 (motion that answers navigation).

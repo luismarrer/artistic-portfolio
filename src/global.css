@@ -132,6 +132,14 @@ textarea:focus-visible {
 }
 
 /*
+ * A container that only receives focus programmatically (the work section, right after the start
+ * button is activated) is not a control, so it draws no ring. Real controls keep the ring above.
+ */
+[tabindex="-1"]:not(a, button, input, select, textarea):focus {
+  outline: none;
+}
+
+/*
  * Shared roles. They live in the components layer so a Tailwind utility on the same element
  * (spacing, alignment, a colour override) still wins without specificity tricks.
  */
@@ -249,13 +257,29 @@ h2,
   overflow: visible;
 }
 
+/*
+ * What GSAP reveals starts hidden only once motion is on. The hero words are gated by opacity alone
+ * (never clip-path): the wipe sets opacity inline and clears only its clip, so a finished headline
+ * cannot fall back to a hidden state.
+ */
 .has-motion .js-hero-title span,
 .has-motion [data-reveal]:not([data-reveal="card"]):not(a, button, input, select, textarea):not(:has(a, button, input, select, textarea)),
 .has-motion .js-scroll-hint,
 .has-motion .js-signature [data-draw],
-.has-motion .js-signature .signature-pen,
 .has-motion .js-signature .signature-word {
   opacity: 0;
+}
+
+/*
+ * The signature pen is a motion-only prop, never content, so it is hidden in every state (no
+ * JavaScript, reduced motion, before the signature plays). GSAP shows it inline only while it
+ * writes and lifts it at the end. Left unhidden it sits, fully drawn, at the signature's origin.
+ * Both properties are what GSAP's autoAlpha: 0 writes; keeping them also stops the minifier from
+ * merging this rule into the :has()-based gate above, which an older browser would drop whole.
+ */
+.js-signature .signature-pen {
+  opacity: 0;
+  visibility: hidden;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -267,7 +291,6 @@ h2,
   .has-motion [data-reveal]:not([data-reveal="card"]):not(a, button, input, select, textarea):not(:has(a, button, input, select, textarea)),
   .has-motion .js-scroll-hint,
   .has-motion .js-signature [data-draw],
-  .has-motion .js-signature .signature-pen,
   .has-motion .js-signature .signature-word {
     opacity: 1;
   }

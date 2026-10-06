@@ -677,3 +677,53 @@ test('artwork and cards use no hover motion', () => {
     }
   }
 })
+
+// ── Motion hooks in the built output ────────────────────────────────────────
+// Every innermost rule of the built CSS with a selector that mentions `needle`: just those selectors (split at
+// top-level commas) and the rule body. The minifier merges rules that share declarations, so only the selectors
+// that mention the hook may be judged against it.
+function rulesMentioning(css, needle) {
+  return [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+    .map(([, selectors, body]) => ({
+      selectors: topLevelItems(selectors).map(simplify).filter((selector) => selector.includes(needle)),
+      body,
+    }))
+    .filter(({ selectors }) => selectors.length > 0)
+}
+
+test('the signature pen is hidden by default and no stylesheet shows it again', () => {
+  const css = stylesheetFor('/')
+  const rules = rulesMentioning(css, 'signature-pen')
+  assert.ok(rules.length > 0, 'the pen needs a rule that hides it')
+  for (const { selectors, body } of rules) {
+    assert.ok(selectors.every((selector) => !selector.includes('has-motion')),
+      `hiding the pen cannot depend on motion being enabled: ${selectors.join(', ')}`)
+    assert.match(body, /(?:^|;)opacity:\s*0(?:;|$)/, `a rule on the pen may only hide it, never show it: ${body}`)
+  }
+  assert.equal(declarations(css, '.js-signature .signature-pen').opacity, '0',
+    'without JavaScript, or with reduced motion, the pen is not drawn at the signature origin')
+})
+
+test('hero words are gated by opacity only, so clearing the wipe never hides them again', () => {
+  for (const { body } of rulesMentioning(stylesheetFor('/'), 'js-hero-title')) {
+    assert.ok(!/clip-path/.test(body), 'a clip-path rule on the words would return when GSAP clears the inline wipe')
+  }
+})
+
+test('the start button can hand focus to the work section without a ring around a container', () => {
+  for (const route of ['/', '/portfolio']) {
+    const tag = documentFor(route).match(/<section\b[^>]*id="projects"[^>]*>/)?.[0]
+    assert.ok(tag, `${route} renders #projects`)
+    assert.equal(attributes(tag).tabindex, '-1', `${route}: #projects must be a programmatic focus target`)
+  }
+  const suppress = rulesMentioning(stylesheetFor('/'), 'tabindex').filter(({ body }) => /outline:\s*none/.test(body))
+  assert.ok(suppress.length > 0, 'a programmatic focus target is a container: it draws no outline of its own')
+  for (const { selectors } of suppress) {
+    for (const selector of selectors) {
+      const excluded = (selector.match(/:not\(([^)]*)\)/)?.[1] ?? '').split(',').map((name) => name.trim())
+      for (const control of ['a', 'button', 'input', 'select', 'textarea']) {
+        assert.ok(excluded.includes(control), `real controls keep their focus ring (${control}): ${selector}`)
+      }
+    }
+  }
+})

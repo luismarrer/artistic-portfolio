@@ -508,6 +508,45 @@ function buildTrailRoute(L: TrailLayout): Anchor[] {
     return pts
 }
 
+// ─── Intro: one written moment ──────────────────────────────────────────────
+//
+// The page-load intro is the only orchestrated motion, and it is over by about
+// 1.2 s: the headline is written word by word, the signature starts as its last
+// words land (the pen and a clip wipe write it together, then the pen underlines
+// it and lifts), and the scroll hint arrives last, once. Nothing flies, spins or
+// loops. Every time below is in seconds.
+
+/** Headline words are revealed left to right by a clip wipe, in reading order. */
+const WORD_WIPE = {
+    // Negative insets keep Mansalva's overhangs and descenders unclipped at rest.
+    hidden: "inset(-30% 110% -45% -12%)",
+    shown: "inset(-30% -12% -45% -12%)",
+    delay: 0.05,
+    duration: 0.38,
+    stagger: 0.08,
+    /** A long headline tightens its stagger so it is still written by this time. */
+    end: 0.8,
+}
+
+/**
+ * The hero signature joins the headline while its last words are being written;
+ * the footer one plays on arrival, with the same character, a little slower.
+ */
+const SIGNATURE_TIMING = {
+    hero: { start: 0.4, write: 0.5, underline: 0.22, lift: 0.12 },
+    footer: { start: 0.05, write: 0.7, underline: 0.3, lift: 0.15 },
+}
+/** The pen starts lifting this long before the underline ends, as the stroke closes. */
+const PEN_LIFT_OVERLAP = 0.05
+
+/** The scroll hint fades in once, as the intro finishes, and then stays still. */
+const SCROLL_HINT = { delay: 0.9, duration: 0.3 }
+
+/** Secondary reveals and cards settle from at most this many pixels below: a hint, not an entrance. */
+const REVEAL_RISE = 12
+
+const WRITING_EASE = "power1.inOut"
+
 function initSignatures() {
     const signatures = document.querySelectorAll<SVGSVGElement>(".js-signature")
 
@@ -523,79 +562,79 @@ function initSignatures() {
         const word = svg.querySelector<SVGTextElement>(".signature-word")
         if (paths.length === 0 && !clipRect) return
 
+        const variant = svg.dataset.variant
+        const { start, write, underline, lift } =
+            SIGNATURE_TIMING[variant === "hero" ? "hero" : "footer"]
+
         paths.forEach((path) => {
             prepDraw(path)
             gsap.set(path, { autoAlpha: 1 })
         })
+        // The pen is a prop: hidden until it writes, and the last tween below always lifts it.
         if (pen) gsap.set(pen, { autoAlpha: 0 })
+        // Close the clip before the word is shown, so the finished word can never flash. Only when
+        // the timeline below will open it again: a clip nothing wipes open must stay as authored.
+        if (clipRect && writePath) gsap.set(clipRect, { attr: { width: 0 } })
         if (word) gsap.set(word, { autoAlpha: 1 })
 
         const timeline = gsap.timeline({
             paused: true,
-            defaults: { ease: "power1.inOut" },
+            defaults: { ease: WRITING_EASE },
+        })
+        const follow = (path: SVGPathElement) => ({
+            path,
+            align: path,
+            alignOrigin: [0.5, 0.12],
+            autoRotate: 90,
         })
 
+        // Absolute times, so the whole schedule can be read (and budgeted) at a glance.
+        let cursor = start
+        if (pen) timeline.set(pen, { autoAlpha: 1 }, cursor)
+
+        // The pen writes the word along its path while the clip opens in step with it.
         if (clipRect && writePath) {
-            const writeDuration = 1.85
             if (pen) {
-                timeline.set(pen, { autoAlpha: 1 }, 0.08)
                 timeline.to(
                     pen,
-                    {
-                        motionPath: {
-                            path: writePath,
-                            align: writePath,
-                            alignOrigin: [0.5, 0.12],
-                            autoRotate: 90,
-                        },
-                        duration: writeDuration,
-                        ease: "power1.inOut",
-                    },
-                    0.08,
+                    { motionPath: follow(writePath), duration: write, ease: WRITING_EASE },
+                    cursor,
                 )
             }
             timeline.to(
                 clipRect,
-                { attr: { width: 560 }, duration: writeDuration, ease: "power1.inOut" },
-                0.08,
+                { attr: { width: 560 }, duration: write, ease: WRITING_EASE },
+                cursor,
             )
+            cursor += write
         }
 
-        paths.forEach((path, index) => {
-            const length = path.getTotalLength()
-            const duration = clamp(length / 240, 0.45, 1.4)
-            const at = clipRect ? ">" : index === 0 ? 0.05 : ">"
-
+        // Then the underline is drawn, with the pen riding it.
+        const stroke = underline / Math.max(1, paths.length)
+        paths.forEach((path) => {
             if (pen) {
-                timeline.set(pen, { autoAlpha: 1 }, at)
                 timeline.to(
                     pen,
-                    {
-                        motionPath: {
-                            path,
-                            align: path,
-                            alignOrigin: [0.5, 0.12],
-                            autoRotate: 90,
-                        },
-                        duration,
-                        ease: "power1.inOut",
-                    },
-                    "<",
+                    { motionPath: follow(path), duration: stroke, ease: WRITING_EASE },
+                    cursor,
                 )
             }
-
             timeline.to(
                 path,
-                { strokeDashoffset: 0, duration },
-                pen ? "<" : at,
+                { strokeDashoffset: 0, duration: stroke, ease: WRITING_EASE },
+                cursor,
             )
+            cursor += stroke
         })
 
         if (pen) {
-            timeline.to(pen, { autoAlpha: 0, duration: 0.25 }, ">-0.05")
+            timeline.to(
+                pen,
+                { autoAlpha: 0, duration: lift },
+                Math.max(start, cursor - PEN_LIFT_OVERLAP),
+            )
         }
 
-        const variant = svg.dataset.variant
         const play = () => {
             if (timeline.progress() === 0 && !timeline.isActive()) {
                 timeline.play(0)
@@ -621,6 +660,11 @@ function initSignatures() {
 // horizontal flourishes therefore never make the pen lag behind or race ahead
 // of the visible area.
 
+/** A blot's radius as a multiple of the stroke width: a pool just wider than the line. */
+const BLOT_RADIUS = 1.1
+/** Opacity of a revealed blot, close to the stroke's own so it reads as the same ink. */
+const BLOT_OPACITY = 0.7
+
 interface InkTrail {
     timeline: gsap.core.Timeline
     trigger: ScrollTrigger
@@ -636,12 +680,15 @@ let trailObserver: ResizeObserver | undefined
 
 /**
  * Builds a monotonic lookup from page depth (y) to the path length at which
- * the pen first reaches that depth.
+ * the pen first reaches that depth, plus the length at which the pen is nearest
+ * to a given point of the page (used to time ink that sits on the stroke).
  */
 function buildDepthLookup(path: SVGPathElement, length: number) {
     const n = Math.max(2, Math.ceil(length / 6))
     const lens = new Float32Array(n + 1)
     const depth = new Float32Array(n + 1)
+    const xs = new Float32Array(n + 1)
+    const ys = new Float32Array(n + 1)
     let maxY = -Infinity
     for (let i = 0; i <= n; i++) {
         const l = (i / n) * length
@@ -649,6 +696,8 @@ function buildDepthLookup(path: SVGPathElement, length: number) {
         if (pt.y > maxY) maxY = pt.y
         lens[i] = l
         depth[i] = maxY
+        xs[i] = pt.x
+        ys[i] = pt.y
     }
     const startY = depth[0]
     const endY = depth[n]
@@ -668,7 +717,19 @@ function buildDepthLookup(path: SVGPathElement, length: number) {
         const t = y1 > y0 ? (y - y0) / (y1 - y0) : 1
         return lens[i0] + (lens[lo] - lens[i0]) * t
     }
-    return { startY, endY, lengthAt }
+    const lengthNear = (x: number, y: number) => {
+        let nearest = 0
+        let best = Infinity
+        for (let i = 0; i <= n; i++) {
+            const distance = (xs[i] - x) ** 2 + (ys[i] - y) ** 2
+            if (distance < best) {
+                best = distance
+                nearest = i
+            }
+        }
+        return lens[nearest]
+    }
+    return { startY, endY, lengthAt, lengthNear }
 }
 
 function killInkTrail() {
@@ -762,32 +823,30 @@ function initInkTrail() {
     prepDraw(path)
     if (pathShadow) prepDraw(pathShadow)
 
-    const { startY, endY, lengthAt } = buildDepthLookup(path, length)
-
-    // Ink drops where the pen pauses or turns, revealed as it passes by.
-    splatters.replaceChildren()
-    const blots: { circle: SVGCircleElement; at: number }[] = []
-    anchors.forEach((anchor, index) => {
-        if (!anchor.blot) return
-        const count = L.mobile ? 1 : 2
-        for (let k = 0; k < count; k++) {
-            const seed = index * 7 + k * 3
-            const circle = document.createElementNS(SVG_NS, "circle")
-            const dx = (seed % 2 === 0 ? 1 : -1) * (6 + (seed % 5) * 3)
-            const dy = ((seed * 13) % 17) - 8
-            circle.setAttribute("cx", `${anchor.x + dx}`)
-            circle.setAttribute("cy", `${anchor.y + dy}`)
-            circle.setAttribute("r", `${(L.mobile ? 1.2 : 1.6) + (seed % 3) * 0.7}`)
-            circle.setAttribute("fill", seed % 3 === 0 ? "#8B1A1A" : "#B22222")
-            circle.setAttribute("opacity", "0")
-            splatters.appendChild(circle)
-            blots.push({ circle, at: clamp(lengthAt(anchor.y) / length, 0, 0.98) })
-        }
-    })
+    const { startY, endY, lengthAt, lengthNear } = buildDepthLookup(path, length)
 
     const stroke = L.mobile ? 1.7 : L.vw < 1024 ? 2.1 : 2.6
     path.setAttribute("stroke-width", `${stroke}`)
     if (pathShadow) pathShadow.setAttribute("stroke-width", `${stroke + 2.4}`)
+
+    // One ink pool where the pen pauses or turns, revealed as it passes by. The
+    // route runs exactly through its anchors (they are the end points of the
+    // spline's segments), so a blot centred on an anchor sits on the stroke
+    // instead of floating beside it.
+    splatters.replaceChildren()
+    const blots: { circle: SVGCircleElement; at: number }[] = []
+    anchors.forEach((anchor) => {
+        if (!anchor.blot) return
+        const circle = document.createElementNS(SVG_NS, "circle")
+        // Rounded like the path data, so the centre is the path's own vertex.
+        circle.setAttribute("cx", anchor.x.toFixed(1))
+        circle.setAttribute("cy", anchor.y.toFixed(1))
+        circle.setAttribute("r", `${(stroke * BLOT_RADIUS).toFixed(2)}`)
+        circle.style.fill = "var(--color-accent)"
+        circle.setAttribute("opacity", "0")
+        splatters.appendChild(circle)
+        blots.push({ circle, at: clamp(lengthNear(anchor.x, anchor.y) / length, 0, 0.98) })
+    })
 
     const penScale = L.mobile ? 1.25 : L.vw < 1024 ? 1.45 : 1.65
     gsap.set(pen, { autoAlpha: 0, scale: penScale, transformOrigin: "50% 18%" })
@@ -815,7 +874,7 @@ function initInkTrail() {
     timeline.fromTo(pen, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.012 }, 0.0005)
     timeline.to(pen, { autoAlpha: 0, duration: 0.015 }, 0.985)
     blots.forEach(({ circle, at }) => {
-        timeline.to(circle, { opacity: 0.45, duration: 0.02 }, at)
+        timeline.to(circle, { opacity: BLOT_OPACITY, duration: 0.02 }, at)
     })
 
     const progressFor = (scroll: number) => {
@@ -881,88 +940,76 @@ function watchTrailLayout() {
 function initReveals() {
     const heroWords = document.querySelectorAll<HTMLElement>(".js-hero-title span")
     if (heroWords.length > 0) {
+        const { hidden, shown, delay, duration, end } = WORD_WIPE
+        // The words arrive already in place and are written by a clip wipe. Opacity is 1 from the
+        // first frame (overriding the .has-motion gate) because the clip is what hides them, and
+        // only the clip is cleared afterwards, so a finished headline can never be left hidden.
+        const stagger = Math.min(
+            WORD_WIPE.stagger,
+            (end - delay - duration) / Math.max(1, heroWords.length - 1),
+        )
         gsap.fromTo(
             heroWords,
-            { y: 42, autoAlpha: 0, rotateZ: -6 },
+            { autoAlpha: 1, clipPath: hidden },
             {
-                y: 0,
                 autoAlpha: 1,
-                rotateZ: 0,
-                duration: 0.85,
-                stagger: 0.1,
-                ease: "back.out(1.5)",
-                delay: 0.05,
+                clipPath: shown,
+                duration,
+                stagger,
+                delay,
+                ease: WRITING_EASE,
+                clearProps: "clipPath",
             },
         )
     }
 
-    const cta = document.querySelector<HTMLElement>("#start")
-    if (cta) {
-        gsap.fromTo(
-            cta,
-            { y: 12 },
-            { y: 0, duration: 0.5, ease: "power3.out" },
-        )
-    }
+    // The CTA has no entrance: the primary action is simply there. Its only motion answers the pointer.
 
     const hint = document.querySelector<HTMLElement>(".js-scroll-hint")
     if (hint) {
         gsap.fromTo(
             hint,
-            { autoAlpha: 0, y: -6 },
-            { autoAlpha: 1, y: 0, duration: 0.6, delay: 1.4 },
+            { autoAlpha: 0 },
+            { autoAlpha: 1, ...SCROLL_HINT },
         )
-        gsap.to(hint, {
-            y: 8,
-            duration: 1.1,
-            repeat: -1,
-            yoyo: true,
-            ease: "sine.inOut",
-            delay: 1.8,
-        })
     }
 
+    // Secondary reveals are short fades with a small rise: no lateral entrance, no tilt.
     gsap.utils.toArray<HTMLElement>("[data-reveal]").forEach((el) => {
-        const type = el.dataset.reveal
-        if (type === "card" || el.matches("a, button, input, select, textarea")
+        if (el.dataset.reveal === "card" || el.matches("a, button, input, select, textarea")
             || el.querySelector("a, button, input, select, textarea")) return
-        const box = layoutBox(el)
-        // Full-width mobile copy has no room for lateral entrances. Do not manufacture scroll overflow.
-        const lateralRoom = !!box && box.left >= 64 && window.innerWidth - box.right >= 64
-        const from =
-            type === "left" && lateralRoom
-                ? { x: -56, y: 0, rotate: -8, autoAlpha: 0 }
-                : type === "right" && lateralRoom
-                  ? { x: 48, y: 16, rotate: 0, autoAlpha: 0 }
-                  : { x: 0, y: 30, rotate: 0, autoAlpha: 0 }
 
-        gsap.fromTo(el, from, {
-            x: 0,
-            y: 0,
-            rotate: 0,
-            autoAlpha: 1,
-            duration: 0.95,
-            ease: "power3.out",
-            scrollTrigger: {
-                trigger: el,
-                start: "top 88%",
-                toggleActions: "play none none none",
+        gsap.fromTo(
+            el,
+            { x: 0, y: REVEAL_RISE, rotate: 0, autoAlpha: 0 },
+            {
+                x: 0,
+                y: 0,
+                rotate: 0,
+                autoAlpha: 1,
+                duration: 0.5,
+                ease: "power2.out",
+                scrollTrigger: {
+                    trigger: el,
+                    start: "top 90%",
+                    toggleActions: "play none none none",
+                },
             },
-        })
+        )
     })
 
+    // Cards hold links and artwork, so they are never hidden: they only settle a few pixels.
     const cards = gsap.utils.toArray<HTMLElement>("[data-reveal='card']")
     if (cards.length > 0) {
-        gsap.set(cards, { y: 24, rotate: 1 })
+        gsap.set(cards, { y: REVEAL_RISE })
         ScrollTrigger.batch(cards, {
             start: "top 90%",
             onEnter: (batch) => {
                 gsap.to(batch, {
                     y: 0,
-                    rotate: 0,
-                    duration: 0.8,
-                    stagger: 0.12,
-                    ease: "power3.out",
+                    duration: 0.5,
+                    stagger: 0.06,
+                    ease: "power2.out",
                     overwrite: true,
                 })
             },
@@ -990,6 +1037,10 @@ function initReveals() {
     })
 }
 
+/** Motion that answers a person's action: a gentle pull toward the pointer, and a short scroll. */
+const MAGNETIC_PULL = 0.12
+const CTA_SCROLL_DURATION = 0.9
+
 function initCtaAndHover(signal: AbortSignal) {
     const cta = document.querySelector<HTMLAnchorElement>("#start")
     if (cta) {
@@ -1002,10 +1053,15 @@ function initCtaAndHover(signal: AbortSignal) {
                 if (!target) return
                 event.preventDefault()
                 event.stopPropagation()
+                // Focus never waits for the scroll: the next Tab starts inside the destination, as it
+                // does after a native anchor jump. A target that cannot take focus yet is made a
+                // programmatic one (tabindex="-1" keeps it out of the Tab order).
+                if (!target.hasAttribute("tabindex")) target.setAttribute("tabindex", "-1")
+                target.focus({ preventScroll: true })
                 const y =
                     target.getBoundingClientRect().top + window.scrollY - 16
                 gsap.to(window, {
-                    duration: 1.55,
+                    duration: CTA_SCROLL_DURATION,
                     scrollTo: { y, autoKill: true },
                     ease: "power2.inOut",
                     overwrite: "auto",
@@ -1022,7 +1078,11 @@ function initCtaAndHover(signal: AbortSignal) {
                 const rect = el.getBoundingClientRect()
                 const x = event.clientX - rect.left - rect.width / 2
                 const y = event.clientY - rect.top - rect.height / 2
-                gsap.to(el, { x: x * 0.18, y: y * 0.18, duration: 0.28 })
+                gsap.to(el, {
+                    x: x * MAGNETIC_PULL,
+                    y: y * MAGNETIC_PULL,
+                    duration: 0.28,
+                })
             },
             { signal },
         )
@@ -1032,56 +1092,12 @@ function initCtaAndHover(signal: AbortSignal) {
                 gsap.to(el, {
                     x: 0,
                     y: 0,
-                    duration: 0.5,
-                    ease: "elastic.out(1, 0.5)",
+                    duration: 0.45,
+                    ease: "power3.out",
                 })
             },
             { signal },
         )
-    })
-}
-
-function initSketch() {
-    const sketches = document.querySelectorAll<SVGSVGElement>(".firma")
-    sketches.forEach((svg) => {
-        const fillPath = svg.querySelector<SVGPathElement>("#Combined-Shape")
-        const inkPaths = Array.from(
-            svg.querySelectorAll<SVGPathElement>("#Ink path"),
-        ).filter((path) => path.getTotalLength() > 12)
-
-        if (fillPath) {
-            gsap.set(fillPath, { autoAlpha: 0 })
-        }
-
-        inkPaths.forEach((path) => {
-            path.setAttribute("stroke", "#111")
-            path.setAttribute("fill", "none")
-            prepDraw(path)
-        })
-
-        const timeline = gsap.timeline({
-            scrollTrigger: {
-                trigger: svg,
-                start: "top 75%",
-                once: true,
-            },
-        })
-
-        inkPaths.forEach((path) => {
-            timeline.to(
-                path,
-                {
-                    strokeDashoffset: 0,
-                    duration: clamp(path.getTotalLength() / 420, 0.2, 0.9),
-                    ease: "none",
-                },
-                "<0.05",
-            )
-        })
-
-        if (fillPath) {
-            timeline.to(fillPath, { autoAlpha: 1, duration: 0.8 }, ">-0.2")
-        }
     })
 }
 
@@ -1107,8 +1123,14 @@ function showStaticFallback() {
             el.style.opacity = "1"
             el.style.transform = "none"
         })
+    // Pens are motion-only props: static mode never shows them (the stylesheet hides them too).
     const trailPen = document.querySelector<SVGGElement>("#ink-pen")
     if (trailPen) trailPen.style.opacity = "0"
+    document
+        .querySelectorAll<SVGGElement>(".js-signature .signature-pen")
+        .forEach((pen) => {
+            pen.style.opacity = "0"
+        })
 }
 
 function initMotion() {
@@ -1128,7 +1150,6 @@ function initMotion() {
     motionCtx = gsap.context(() => {
         initSignatures()
         initReveals()
-        initSketch()
         initCtaAndHover(listeners!.signal)
     })
     initInkTrail()

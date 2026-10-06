@@ -10,10 +10,13 @@ interface Props {
 
 const { items = projects, variant = "catalogue" } = Astro.props
 const isSelection = variant === "selection"
+// The section is a programmatic focus target (tabindex="-1", never in the Tab order): the start
+// button hands focus here as soon as it is activated, so the next Tab begins inside the work.
 ---
 
 <section
   id="projects"
+  tabindex="-1"
   class:list={["portfolio-section", { "portfolio-selection": isSelection }]}
   aria-label={isSelection ? site.portfolio.selectedTitle : site.portfolio.catalogueTitle}
 >
