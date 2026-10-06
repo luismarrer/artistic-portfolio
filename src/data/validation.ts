@@ -163,7 +163,7 @@ export function validateProjects(value: unknown, options: Options = {}): Project
     positiveInteger(project.id, `${path}.id`)
     if (ids.has(Number(project.id))) fail(`${path}.id`, 'duplicate project identifier')
     ids.add(Number(project.id))
-    for (const key of ['title', 'category', 'description']) text(project[key], `${path}.${key}`)
+    for (const key of ['title', 'category', 'description', 'disclosure']) text(project[key], `${path}.${key}`)
     if (!['Reportage', 'Connected', 'Grown'].includes(String(project.image))) fail(`${path}.image`, 'unknown illustration key')
     bool(project.featured, `${path}.featured`)
     list(project.gallery, `${path}.gallery`).forEach((entry, mediaIndex) => {

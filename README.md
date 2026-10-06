@@ -29,7 +29,7 @@ Abre la dirección que indique la terminal; normalmente es `http://localhost:432
 
 ## Antes de usar la plantilla
 
-Sustituye identidad, biografía, redes, imágenes y proyectos siguiendo [CUSTOMIZATION.md](CUSTOMIZATION.md). La biografía y las colecciones de Musea Art son ejemplos explícitamente curados; no incluyen métricas o clientes inventados. Las fichas comparten actualmente la galería de demostración de `Collage.astro`.
+Sustituye identidad, biografía, redes, imágenes y proyectos siguiendo [CUSTOMIZATION.md](CUSTOMIZATION.md). La biografía y las colecciones de Musea Art son ejemplos explícitamente curados; no incluyen métricas o clientes inventados. Cada ficha tiene su propia galería, portada, captions y créditos visibles, además de notas de selección y navegación entre colecciones.
 
 **El contacto está en modo demo y no envía mensajes.** Configura tu propio endpoint de Formspree en `src/data/site.ts` antes de aceptar mensajes. Revisa también los derechos y créditos de las imágenes que publiques.
 
@@ -46,7 +46,7 @@ Para otro proveedor, adapta primero el adaptador y la configuración de Astro. N
 
 - `src/pages/`: rutas y metadatos de cada página.
 - `src/components/sections/`: cabecera, Hero, biografía, listado de proyectos y pie.
-- `src/components/Collage.astro`: galería y fotografías de ejemplo.
+- `src/components/Collage.astro`: galería explícita por proyecto, sin colección de sustitución.
 - `src/components/ContactForm.astro`: formulario seguro en modo demo por defecto.
 - `src/data/site.ts`: identidad, textos, navegación, redes y modo de contacto.
 - `src/data/projects.ts`: proyectos tipados, galerías acreditadas y contenido editorial que generan `/projects/[id]`.

@@ -49,6 +49,7 @@ Cada registro de `src/data/projects.ts` usa `Project`:
   image: 'Grown',
   description: 'Estudios botánicos a partir de observaciones propias.',
   featured: true,
+  disclosure: 'Trabajo personal del propietario del portfolio, no una colección de ejemplo.',
   gallery: [/* Imágenes locales con dimensiones y créditos */],
   editorial: {
     context: 'El punto de partida del proyecto.',
@@ -58,9 +59,9 @@ Cada registro de `src/data/projects.ts` usa `Project`:
 }
 ```
 
-Un `id` entero positivo y único genera `/projects/ID`. Las rutas existentes `/projects/1`, `/projects/2` y `/projects/3` se mantienen. `image` identifica un componente SVG: `Reportage`, `Connected` o `Grown`, no una URL. Para añadir otra ilustración, amplía el tipo y el validador, crea el componente y actualiza ambos mapas en `PortfolioComponent.astro` y `[id].astro`.
+Un `id` entero positivo y único genera `/projects/ID`. Las rutas existentes `/projects/1`, `/projects/2` y `/projects/3` se mantienen. `image` identifica un componente SVG: `Reportage`, `Connected` o `Grown`, no una URL. Para añadir otra ilustración, amplía el tipo y el validador, crea el componente y actualiza el mapa de `PortfolioComponent.astro`. Las fichas utilizan como portada la primera imagen de la galería, no el SVG.
 
-`PortfolioComponent.astro` acepta `items: Project[]`; pasar esa prop solo cambia el listado, no genera rutas adicionales. `featured` permite identificar la selección del inicio sin duplicar registros.
+`PortfolioComponent.astro` acepta `items: Project[]`; pasar esa prop solo cambia el listado, no genera rutas adicionales. `featured` permite identificar la selección del inicio sin duplicar registros. `disclosure` es obligatorio: explica la autoría o la condición de demo sin afirmaciones falsas. Cambia también este texto cuando sustituyas los ejemplos por obra propia.
 
 ## 4. Imágenes y atribución
 
@@ -85,7 +86,15 @@ La validación comprueba archivos dentro de `public/`, dimensiones intrínsecas 
 
 Los ejemplos son colecciones curadas de obras de distintos creadores, no encargos de Musea Art. Las atribuciones heredadas apuntan a perfiles y enlaces genéricos de Pixabay; **no demuestran la licencia de cada archivo**. Verifica los permisos antes de reutilizarlos. No atribuyas a la plantilla el proceso de creación de esas imágenes.
 
-La fuente de proyectos ya contiene galerías diferenciadas y texto editorial; la representación de galerías todavía conserva `Collage.astro` durante esta primera unidad de cambios. La siguiente unidad conecta las fichas a sus imágenes propias, sin sustituir galerías ausentes por una colección de ejemplo.
+Cada ficha muestra únicamente `project.gallery`, con su primera imagen como portada y todas las proporciones originales, captions y enlaces de creador/fuente visibles sin hover. Las notas presentan contexto, proceso de selección y resultado de presentación; en la demo no describen la creación de las obras ajenas. Al final hay enlaces al inicio, catálogo, siguiente colección y contacto.
+
+`Collage.astro` requiere `images: GalleryImage[]` y acepta `label` para el nombre accesible de la galería. No tiene imágenes por defecto ni prop `columns`: una galería ausente o vacía falla, no se sustituye silenciosamente. La portada ocupa el ancho completo; las imágenes restantes usan dos columnas en escritorio y una en móvil. `size: 'large'` permite extender otra imagen a ambas columnas; `small` y `medium` conservan una columna. El catálogo ya no añade el antiguo collage genérico.
+
+```astro
+<Collage images={project.gallery} label={`${project.title} — galería acreditada`} />
+```
+
+La portada usa carga inmediata; las imágenes restantes se cargan de forma diferida. No hay `srcset` ni optimización automática de los archivos: comprime las imágenes antes de publicarlas.
 
 ## 5. Contacto seguro
 

@@ -1,78 +1,84 @@
 ---
 import Layout from "@/layouts/Layout.astro"
 import { projects } from "@/data/projects"
-import Reportage from "@/components/svgs/Reportage.astro"
-import Connected from "@/components/svgs/Connected.astro"
-import Grown from "@/components/svgs/Grown.astro"
+import type { Project } from "@/data/types"
 import Footer from "@/components/sections/Footer.astro"
 import Collage from "@/components/Collage.astro"
 
-const { id } = Astro.params
-
-let project
-if (id) {
-    // Find project info with the id from the url
-    project = projects.find((project) => project.id === Number(id))
+interface Props {
+    project: Project
+    nextProject?: Project
 }
 
-// Generate static paths for each project
-export async function getStaticPaths() {
-    return projects.map((project) => ({
+export function getStaticPaths() {
+    return projects.map((project, index) => ({
         params: { id: String(project.id) },
+        props: {
+            project,
+            nextProject: projects.length > 1 ? projects[(index + 1) % projects.length] : undefined,
+        },
     }))
 }
 
-const { title, description } = project || {
-    title: "Project",
-    description:
-        "Sorry, the project you are looking has not been found. Please try again later.",
-}
-
-const componentMap = {
-    Reportage,
-    Connected,
-    Grown,
-}
-
-const SvgComponent = componentMap[project?.image as keyof typeof componentMap]
+const { project, nextProject } = Astro.props
+const { title, description, gallery, editorial } = project
+const notes = [
+    { title: "Context", body: editorial.context },
+    { title: "Selection process", body: editorial.process },
+    { title: "Presentation outcome", body: editorial.outcome },
+]
 ---
 
 <Layout title={title} description={description}>
+    <section class="page-intro mx-auto max-w-6xl px-[var(--page-gutter)] pb-4 sm:pb-6">
+        <p class="mb-3 text-sm font-semibold uppercase tracking-wider text-[#6B1520]">
+            {project.category}
+        </p>
+        <h1 class="max-w-4xl text-4xl font-bold leading-tight sm:text-5xl" data-reveal="title">
+            {title}
+        </h1>
+        <p class="mt-5 max-w-3xl text-lg leading-relaxed text-gray-700 sm:text-xl" data-reveal="copy">
+            {description}
+        </p>
+        <p class="mt-5 max-w-3xl text-sm leading-relaxed text-gray-600">
+            {project.disclosure}
+        </p>
+    </section>
+
+    <Collage images={gallery} label={`${title} — credited artwork gallery`} />
+
     <section
-        class="page-intro project-intro grid items-center gap-8 md:gap-12 mx-auto max-w-6xl px-[var(--page-gutter)]"
+        class="mx-auto max-w-6xl px-[var(--page-gutter)] py-10 sm:py-14"
+        aria-labelledby="case-notes-title"
     >
-        <div class="project-illustration">
-            {SvgComponent && <SvgComponent />}
-        </div>
-        <div class="min-w-0 flex flex-col gap-5">
-            <h1 class="text-3xl sm:text-4xl font-bold text-center md:text-left">
-                {title}
-            </h1>
-            <p class="text-gray-700 leading-relaxed max-w-prose text-lg lg:text-2xl">
-                {description}
-            </p>
+        <h2 id="case-notes-title" class="mb-8 text-3xl font-bold text-gray-900" data-reveal="title">
+            About this collection
+        </h2>
+        <div class="grid gap-8 lg:grid-cols-3 lg:gap-10">
+            {notes.map((note, index) => (
+                <article class="border-t border-[#B22222]/25 pt-5" data-reveal="copy">
+                    <p class="mb-2 text-sm text-[#6B1520]" aria-hidden="true">0{index + 1}</p>
+                    <h3 class="mb-3 text-xl font-semibold text-gray-900">{note.title}</h3>
+                    <p class="leading-relaxed text-gray-700">{note.body}</p>
+                </article>
+            ))}
         </div>
     </section>
-    <section>
-        <Collage />
-    </section>
+
+    <nav
+        class="mx-auto grid max-w-6xl gap-4 border-t border-gray-200 px-[var(--page-gutter)] py-10 sm:grid-cols-2 sm:gap-6"
+        aria-label="Project navigation"
+    >
+        <a class="flex min-h-11 items-center text-[#6B1520] underline underline-offset-4" href="/portfolio">
+            ← Back to all collections
+        </a>
+        {nextProject && (
+            <a class="flex min-h-11 items-center text-[#6B1520] underline underline-offset-4" href={`/projects/${nextProject.id}`} rel="next">
+                Next collection: {nextProject.title} →
+            </a>
+        )}
+        <a class="flex min-h-11 items-center text-gray-700 underline underline-offset-4" href="/">Home</a>
+        <a class="flex min-h-11 items-center text-gray-700 underline underline-offset-4" href="/contact">Contact</a>
+    </nav>
     <Footer />
 </Layout>
-
-<style>
-    .project-illustration {
-        width: 100%;
-        height: clamp(12rem, 50vw, 20rem);
-    }
-
-    .project-illustration :global(svg) {
-        width: 100%;
-        height: 100%;
-    }
-
-    @media (min-width: 48rem) {
-        .project-intro {
-            grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
-        }
-    }
-</style>

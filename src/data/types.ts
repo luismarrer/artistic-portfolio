@@ -61,6 +61,7 @@ export interface Project {
   image: 'Reportage' | 'Connected' | 'Grown'
   description: string
   featured: boolean
+  disclosure: string
   gallery: GalleryImage[]
   editorial: { context: string; process: string; outcome: string }
 }

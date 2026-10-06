@@ -33,12 +33,12 @@ Identity is scattered across components; every project uses the same fallback co
 - Forecast: **1,300-1,950 authored additions + deletions**, generated outputs excluded. This is an estimate, not a code cap. Keep tests/docs with behavior; do not compress, omit checks or split artificial units to fit 400 lines.
 - Delivery strategy: `ask-on-risk` (default).
 - Chain strategy: **`stacked-to-main`**, explicitly selected by the user: "cambios integrables por separado hacia `main`". Each slice can land in order; later PRs use their immediate parent until it lands and can be retargeted to main. PR publication still needs separate authorization.
-- Running authored count: 0 committed lines. Slice boundaries/commit identities will be recorded from actual work units.
+- Running authored count: **1,374 committed additions + deletions**, including 81 lines of tracking; implementation/tests/docs subtotal 1,293. Generated outputs excluded.
 
 ## Tasks and acceptance
 
 - [x] **T1 — Centralize and validate content.** Delegated configuration/data/model wiring and focused tests. Identity, language, biography, navigation, social links, public URL and contact configuration use validated typed sources; compatible numeric IDs and media metadata fail before publication when invalid. Observed checks are recorded below; work-unit commit is recorded after creation.
-- [ ] **T2 — Give cases their own evidence.** Delegate project gallery/editorial rendering and tests. All three case galleries are distinct; one reference case has at least three relevant credited images with visible captions, grounded context/process/result, honest demo attribution and navigation back/next/contact; no fallback gallery substitution. RED/GREEN, build, runtime scenario, rollback boundary and commit: pending.
+- [x] **T2 — Give cases their own evidence.** Delegated project gallery/editorial rendering and tests. All three case galleries are distinct (3 / 1 / 2 images); reference images have visible captions, creator/source links and grounded editorial notes. Configurable required disclosure retains honest demo attribution without mislabelling future original work. No fallback substitution; observed checks below, commit recorded after creation.
 - [ ] **T3 — Put work first and improve readability.** Delegate home/portfolio/hero changes and tests. Selected work precedes biography, the homepage is not the full catalogue, dark hero ink is readable, existing motion hooks remain functional, and relevant essential copy/credits do not require hover. RED/GREEN, build, desktop/mobile browser checks, rollback boundary and commit: pending.
 - [ ] **T4 — Make contact safe and reliable.** Delegate submission lifecycle/states and controlled tests. Demo mode never sends; live configuration is validated; in-flight duplicates are blocked; success, provider rejection, network failure and retry are accessible; failed input is retained; navigation reinitializes without duplicate listeners; native configured POST remains available without JS. No real delivery. RED/GREEN, build, runtime scenario, rollback boundary and commit: pending.
 - [ ] **T5 — Verify publication and document customization.** Delegate metadata/sitemap checks, CI and accurate docs. Six routes, distinct galleries, asset/internal links and publication metadata are checked; sitemap is generated; CI uses the verified Node/pnpm commands; README/CUSTOMIZATION and scoped roadmap status describe implemented behavior without claiming remote execution or release. RED/GREEN, final build/tests/browser checks, rollback boundary and commit: pending.
@@ -53,13 +53,13 @@ Identity is scattered across components; every project uses the same fallback co
 
 ## Next step
 
-Delegate T2 with strict RED/GREEN/refactor evidence using `site`, `projects`, `GalleryImage` and `editorial` from `src/data/`. Preserve the full goal and chosen stacked-to-main delivery.
+Delegate T3: compact readable hero, actual selected cover before biography and full catalogue, preserving the direct-section motion topology. Keep strict TDD and chosen stacked-to-main delivery.
 
 ## Planned local delivery slices
 
 | Slice | Task | Local end-boundary branch | Dependency | Commits / actual lines |
 | --- | --- | --- | --- | --- |
-| 1 | T1 | `codex/portfolio-01-content` | branch point / main | pending |
+| 1 | T1 | `codex/portfolio-01-content` | branch point / main | `42fb874e67ff86173f06748b6bb5e3c11d2fef17` / 1,374 (1,293 excluding tracking) |
 | 2 | T2 | `codex/portfolio-02-cases` | slice 1 | pending |
 | 3 | T3 | `codex/portfolio-03-presentation` | slice 2 | pending |
 | 4 | T4 | `codex/portfolio-04-contact` | slice 3 | pending |
@@ -78,4 +78,15 @@ These are local work-unit boundaries, not published pull requests. Actual counts
 - Rollback: revert new typed data/validation/tests and migrated consumers together, restoring `projects.json`; unrelated local tooling is outside the boundary.
 - Delivery: exactly one read-only slicing pass found no independent existing-byte behavior/test/doc split below 400. Implementation/tests/docs are 1,293 authored lines; no line-golf or omission. Recommend `size:exception` before eventual PR publication, not before this authorized local commit.
 - RDD outcome: disabled/unmanaged; no native review or fabricated approval.
-- Work-unit commit: pending creation.
+- Work-unit commit: `42fb874e67ff86173f06748b6bb5e3c11d2fef17` — `feat(content): centralize validated portfolio configuration`; local end-boundary branch `codex/portfolio-01-content` created. No push/PR.
+
+## T2 evidence
+
+- Route: delegated direct; gallery, case renderer, data contract, tests and docs form one behavior unit.
+- RED: 19 tests, 16 pass / 3 fail for own galleries/editorial/catalogue; new disclosure validation then had 20 tests, 18 pass / 2 fail, followed by 19 pass / 1 fail until rendered from data.
+- GREEN/refactor: parent reran `pnpm test`, 20 passed / 0 failed, exit 0. Worker `pnpm build` checked 28 files with zero errors/warnings/hints and six pages, exit 0; sitemap remains T5. Diff check passed.
+- Runtime: production HTML asserts exact per-case galleries, intrinsic image dimensions, eager uncropped covers, visible captions/credits, editorial and onward links. Parent browsed the nature case on desktop and crossing case at 390x844: loaded own image, readable settled content and documentWidth=viewportWidth=390; no form delivery.
+- Contract: `Collage.images` is mandatory/nonempty; every project has validated nonempty `disclosure`. Current content stays explicitly curated reference/demo, not commissioned or original artwork claims.
+- Rollback: revert the ten rendering/data/test/doc files together to T1 boundary; no unrelated tooling changes.
+- Authored implementation/tests/docs count: 429; keep the coherent unit and recommend publication size exception if needed rather than stripping checks for 400.
+- RDD: disabled/unmanaged. Work-unit commit: pending creation.

@@ -21,6 +21,7 @@ const image = {
 const project = {
   id: 1, title: 'Test case', category: 'Curated demo', image: 'Grown',
   description: 'A test collection, not an artist commission.', featured: true,
+  disclosure: 'Curated reference collection — test demo attribution.',
   gallery: [image], editorial: { context: 'Test context', process: 'Test curation', outcome: 'Test result' },
 }
 const validSite = () => {
@@ -151,4 +152,11 @@ test('checks biography and logo assets too, and rejects invalid stats', () => {
   input.about.image.width = 1
   input.about.stats = [{ value: -1, suffix: '+', label: 'Projects' }]
   assert.throws(() => validateSite(input, options), /stats/)
+})
+
+test('requires project disclosure so original work can replace the demo without false framing', () => {
+  assert.throws(() => validateProjects(changeProject((p) => { delete p.disclosure }), options), /disclosure/)
+  assert.throws(() => validateProjects(changeProject((p) => { p.disclosure = ' ' }), options), /disclosure/)
+  const original = changeProject((p) => { p.disclosure = 'Original personal work by the portfolio owner.' })
+  assert.equal(validateProjects(original, options)[0].disclosure, original[0].disclosure)
 })

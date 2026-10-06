@@ -2,7 +2,6 @@
 import Layout from "@/layouts/Layout.astro"
 import { site } from "@/data/site"
 import Drawing from "@/components/svgs/Drawing.astro"
-import Collage from "@/components/Collage.astro"
 import PortfolioComponent from "@/components/sections/PortfolioComponent.astro"
 import Footer from "@/components/sections/Footer.astro"
 ---
@@ -13,9 +12,5 @@ import Footer from "@/components/sections/Footer.astro"
         <Drawing />
     </section>
     <PortfolioComponent />
-    <section>
-        <h2 class="text-2xl sm:text-3xl font-bold text-center mt-12 sm:mt-20 px-[var(--page-gutter)]">See all my work</h2>
-        <Collage />
-    </section>
     <Footer />
 </Layout>

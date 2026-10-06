@@ -10,6 +10,7 @@ export const projects = validateProjects([
     image: 'Grown',
     description: 'A reference collection moving from misty landscape to a small wildlife encounter and an illustrated woodland gathering.',
     featured: true,
+    disclosure: 'Curated reference collection — three existing works by independent creators. This is a portfolio demo, not a commissioned series.',
     gallery: [
       {
         src: '/images/project-page/nature-9881953_1280.jpg',
@@ -55,6 +56,7 @@ export const projects = validateProjects([
     image: 'Reportage',
     description: 'A single-image reference study of striped geometry, contrast and people moving through a city crossing.',
     featured: true,
+    disclosure: 'Curated reference collection — a single credited street photograph used as a portfolio demo, not a documentary commission.',
     gallery: [{
       src: '/images/project-page/visual-poetry-9872761_1280.jpg',
       alt: 'Pedestrians crossing bold diagonal stripes in a black-and-white street photograph',
@@ -78,6 +80,7 @@ export const projects = validateProjects([
     image: 'Connected',
     description: 'Two illustration references explore a smiling seasonal character and a quiet blue moonlit scene.',
     featured: false,
+    disclosure: 'Curated reference collection — two independent illustration references, shown as a demo rather than a shared commissioned series.',
     gallery: [
       {
         src: '/images/project-page/halloween-9862664_1280.png',
