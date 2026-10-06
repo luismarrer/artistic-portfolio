@@ -118,7 +118,15 @@ contact: {
 
 El validador exige un endpoint HTTPS de `formspree.io/f/ID` sin consultas, credenciales ni fragmentos. No comprueba propiedad ni entrega: verifica ambos con tu propia cuenta antes de publicar. Para volver a demo, elimina `endpoint` y cambia `mode`; mezclar demo y endpoint detiene la compilación.
 
-`ContactForm.astro` mantiene props opcionales `title` y `subtitle` para una página concreta. Los atributos `name` deben conservarse para Formspree. La gestión completa de envíos pendientes, errores accesibles y reintentos pertenece a la unidad de contacto posterior; no está implementada en esta primera unidad.
+`ContactForm.astro` mantiene props opcionales `title` y `subtitle` para una página concreta. Conserva los atributos `name` para Formspree. En modo live, el formulario usa el `action` configurado y `method="POST"`: sin JavaScript, mantiene la validación y el envío nativos del navegador.
+
+Con JavaScript, `src/scripts/contact-form.ts` añade estos estados sin sustituir las restricciones nativas de los campos:
+
+- **Pendiente:** bloquea envíos duplicados, deshabilita el botón y marca el formulario con `aria-busy`.
+- **Éxito:** comunica la confirmación en un estado accesible junto al formulario y solo entonces limpia los campos.
+- **Error del proveedor o de red:** conserva los datos, vuelve a habilitar el envío y permite reintentar. Los mensajes de estado se anuncian con `aria-live="polite"`.
+
+La inicialización en `astro:page-load` no duplica listeners. `astro:before-swap` cancela la petición pendiente y el controlador ignora respuestas tardías de la página anterior. Mantén este ciclo de vida al modificar el formulario; un estado de éxito local no sustituye la comprobación de entrega en tu propia cuenta de Formspree.
 
 ## 6. Pie y redes
 

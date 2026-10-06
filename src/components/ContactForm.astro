@@ -36,6 +36,7 @@ const isDemo = site.contact.mode === "demo"
         data-contact-mode={site.contact.mode}
         aria-describedby={isDemo ? "contact-demo" : undefined}
         method="POST"
+        data-astro-reload
         data-reveal="copy"
       >
         <fieldset disabled={isDemo} class="space-y-6">
@@ -113,58 +114,24 @@ const isDemo = site.contact.mode === "demo"
           <div class="text-center">
             <button
               type="submit"
-              class="inline-block w-full sm:w-auto bg-slate-900 text-white px-8 py-4 rounded-lg font-medium hover:bg-slate-800 duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-transform"
+              class="inline-block w-full sm:w-auto bg-slate-900 text-white px-8 py-4 rounded-lg font-medium hover:bg-slate-800 duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-transform disabled:cursor-not-allowed disabled:opacity-60"
             >
               Send Message
             </button>
           </div>
         </fieldset>
       </form>
-      <div
-        id="form-success"
-        class="hidden mt-6 text-center text-green-800 px-4 py-3 rounded"
+      <p
+        id="form-status"
+        class="mt-6 text-center text-gray-700 data-[state=error]:text-red-800 data-[state=success]:text-green-800"
         role="status"
         aria-live="polite"
-      >
-        ✅ Thank you — your message has been sent. I'll get back to you shortly.
-      </div>
+        aria-atomic="true"
+      ></p>
     </div>
   </div>
 </section>
 <script>
-  function initializeContactForm() {
-    const form = document.getElementById("contact-form") as HTMLFormElement | null
-    const successMsg = document.getElementById(
-      "form-success",
-    ) as HTMLElement | null
-
-    if (form) {
-      form.addEventListener("submit", async (e) => {
-        e.preventDefault()
-        if (form.dataset.contactMode !== "live") return
-
-        const data = new FormData(form)
-
-        try {
-          const res = await fetch(form.action, {
-            method: "POST",
-            body: data,
-            headers: { Accept: "application/json" },
-          })
-
-          if (res.ok) {
-            form.reset()
-            if (successMsg) successMsg.classList.remove("hidden")
-          } else {
-            alert("❌ Something went wrong. Please try again later.")
-          }
-        } catch (err) {
-          console.error(err)
-          alert("❌ Something went wrong. Please try again later.")
-        }
-      })
-    }
-  }
-
-  document.addEventListener("astro:page-load", initializeContactForm)
+  import { bootContactForm } from "@/scripts/contact-form"
+  bootContactForm()
 </script>

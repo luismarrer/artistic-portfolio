@@ -33,15 +33,15 @@ Identity is scattered across components; every project uses the same fallback co
 - Forecast: **1,300-1,950 authored additions + deletions**, generated outputs excluded. This is an estimate, not a code cap. Keep tests/docs with behavior; do not compress, omit checks or split artificial units to fit 400 lines.
 - Delivery strategy: `ask-on-risk` (default).
 - Chain strategy: **`stacked-to-main`**, explicitly selected by the user: "cambios integrables por separado hacia `main`". Each slice can land in order; later PRs use their immediate parent until it lands and can be retargeted to main. PR publication still needs separate authorization.
-- Running authored count: **1,824 committed additions + deletions**, including 102 lines of tracking changes; implementation/tests/docs subtotal 1,722. Generated outputs excluded.
+- Running authored count: **2,484 committed additions + deletions**, including 123 lines of tracking changes; implementation/tests/docs subtotal 2,361. Generated outputs excluded. The original forecast was low; remaining quality/contact scope is retained.
 
 ## Tasks and acceptance
 
 - [x] **T1 — Centralize and validate content.** Delegated configuration/data/model wiring and focused tests. Identity, language, biography, navigation, social links, public URL and contact configuration use validated typed sources; compatible numeric IDs and media metadata fail before publication when invalid. Observed checks are recorded below; work-unit commit is recorded after creation.
 - [x] **T2 — Give cases their own evidence.** Delegated project gallery/editorial rendering and tests. All three case galleries are distinct (3 / 1 / 2 images); reference images have visible captions, creator/source links and grounded editorial notes. Configurable required disclosure retains honest demo attribution without mislabelling future original work. No fallback substitution; observed checks below, commit recorded after creation.
 - [x] **T3 — Put work first and improve readability.** Delegated home/portfolio/hero/controller changes and tests. One selected real cover precedes biography; the full catalogue has three real covers, dark hero ink is readable, controls/credits remain immediately visible, and ink follows the actual layout. Observed checks below; work-unit commit identity recorded after creation.
-- [ ] **T4 — Make contact safe and reliable.** Delegate submission lifecycle/states and controlled tests. Demo mode never sends; live configuration is validated; in-flight duplicates are blocked; success, provider rejection, network failure and retry are accessible; failed input is retained; navigation reinitializes without duplicate listeners; native configured POST remains available without JS. No real delivery. RED/GREEN, build, runtime scenario, rollback boundary and commit: pending.
-- [ ] **T5 — Verify publication and document customization.** Delegate metadata/sitemap checks, CI and accurate docs. Six routes, distinct galleries, asset/internal links and publication metadata are checked; sitemap is generated; CI uses the verified Node/pnpm commands; README/CUSTOMIZATION and scoped roadmap status describe implemented behavior without claiming remote execution or release. RED/GREEN, final build/tests/browser checks, rollback boundary and commit: pending.
+- [x] **T4 — Make contact safe and reliable.** Delegated submission lifecycle/states and controlled tests. Demo mode never sends; live configuration is validated; in-flight duplicates are blocked; success, provider rejection, network failure and retry are accessible; failed input is retained; navigation reinitializes without duplicate listeners; actual live HTML preserves native configured POST. No real delivery; observed checks below, commit recorded after creation.
+- [ ] **T5 — Verify publication and document customization.** Delegate metadata/sitemap checks, critical motion lifecycle regressions, CI and accurate docs. Six routes, distinct galleries, asset/internal links and publication metadata are checked; sitemap is generated; reduced-motion and repeated page-load/swap are tested, including cancellation of queued frame/late-font setup found during verification. CI uses the verified Node/pnpm commands; README/CUSTOMIZATION and scoped roadmap status describe implemented behavior without claiming remote execution or release. RED/GREEN, final build/tests/browser checks, rollback boundary and commit: pending.
 
 ## Progress and evidence
 
@@ -53,7 +53,7 @@ Identity is scattered across components; every project uses the same fallback co
 
 ## Next step
 
-Delegate T4: reliable contact enhancement and accessible states with injected transport tests, preserving the explicit demo no-send default and native live POST fallback. No real delivery is authorized.
+Delegate T5: publication identity/metadata/sitemap, critical reduced-motion/navigation checks, reproducible CI and accurate documentation. Retain local-only authorization and the explicit demo no-send contact default.
 
 ## Planned local delivery slices
 
@@ -61,7 +61,7 @@ Delegate T4: reliable contact enhancement and accessible states with injected tr
 | --- | --- | --- | --- | --- |
 | 1 | T1 | `codex/portfolio-01-content` | branch point / main | `42fb874e67ff86173f06748b6bb5e3c11d2fef17` / 1,374 (1,293 excluding tracking) |
 | 2 | T2 | `codex/portfolio-02-cases` | slice 1 | `fb242f33d6dc61ffbf1c0acab33029caa6175f3b` / 450 (429 excluding tracking) |
-| 3 | T3 | `codex/portfolio-03-presentation` | slice 2 | pending |
+| 3 | T3 | `codex/portfolio-03-presentation` | slice 2 | `06e68846cc18b15dc6ddf932dde5e26a9cb33dd6` / 660 (639 excluding tracking) |
 | 4 | T4 | `codex/portfolio-04-contact` | slice 3 | pending |
 | 5 | T5 | `codex/portfolio-05-quality` | slice 4 | pending |
 
@@ -100,4 +100,16 @@ These are local work-unit boundaries, not published pull requests. Actual counts
 - Fixes: narrow reveals use vertical motion when lateral room is absent; essential links/cards are never hidden by either CSS or GSAP. Ink routing uses the actual adjacent section and explicit full grid, not the later biography or first card wrapper. Non-anchor CTA destinations keep native navigation.
 - Rollback: revert the T3 home/catalogue/hero/data-contract/CSS/controller/test/doc files together to T2; preserve the gallery/disclosure foundation and unrelated tooling.
 - Authored implementation/tests/docs: 639 additions + deletions. One coherent presentation/motion unit; recommend publication size exception rather than splitting tests from the behavior or removing required checks.
-- RDD: disabled/unmanaged. Local work-unit commit/end-boundary branch: pending creation; no push/PR.
+- RDD: disabled/unmanaged. Work-unit commit: `06e68846cc18b15dc6ddf932dde5e26a9cb33dd6` — `feat(presentation): put credited artwork before biography`; local end-boundary branch `codex/portfolio-03-presentation` created. No push/PR.
+
+## T4 evidence
+
+- Route: delegated direct; contact component, import-safe injectable controller, runtime/rendering tests and scoped docs are one behavior unit.
+- RED: missing controller/rendering semantics yielded 33 tests, 31 pass / 2 fail; old disposer regression yielded 46 tests, 45 pass / 1 fail before its idempotence guard.
+- GREEN/refactor: parent `pnpm test` passed 46 / 46, exit 0, rebuilding default-demo output. Worker and parent local live-fixture build checked 31 files, zero diagnostics, six pages, exit 0; separate sitemap warning stays T5. Diff check passed.
+- Runtime: fourteen actual-controller scenarios use injected transport and native EventTarget/Response/FormData, proving demo/invalid/missing-action no-send, payload/signal, pending lock, success, HTTP/network errors with retained input and retry, abort/noncooperative late-result guards, navigation return and idempotent disposal/reinitialization. No external POST occurs.
+- Native fallback: parent temporarily changed only contact mode/endpoint to a synthetic Formspree URL, built production HTML and asserted explicit action, POST, data-astro-reload, enabled required/email fields and polite status. Exact original config was restored in finally, then default-demo tests rebuilt output. This proves markup, not provider ownership or delivery.
+- Browser: mobile native navigation to contact shows explicit demo disclosure, no action, disabled visible fields, empty polite status, documentWidth=viewportWidth=390; no console errors/warnings observed. No real send was attempted.
+- Rollback: revert src/scripts/contact-form.ts, src/components/ContactForm.astro, tests/contact-form.test.mjs, tests/content-rendering.test.mjs and the contact doc changes together to T3, preserving unrelated tooling/tracking.
+- Authored implementation/tests/docs: 518 additions + deletions; keep transport/lifecycle tests with their controller and recommend publication size exception instead of an artificial split.
+- RDD: disabled/unmanaged. Work-unit commit/end-boundary branch: pending creation; no push/PR.

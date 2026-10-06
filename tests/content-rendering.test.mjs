@@ -46,6 +46,25 @@ test('renders the configured contact mode without a fallback owner destination',
   assert.ok(!html.includes('mpwynwav'))
 })
 
+test('contact renders a polite inline status and preserves native form semantics', () => {
+  const html = page('contact')
+  const form = html.match(/<form\b[^>]*id="contact-form"[^>]*>/)?.[0]
+  assert.ok(form?.includes('method="POST"'))
+  assert.ok(form.includes('data-astro-reload'), 'native fallback must not become a ClientRouter POST')
+  assert.ok(!form.includes('novalidate'), 'keep native required/email validation without JavaScript')
+  const status = html.match(/<p\b[^>]*id="form-status"[^>]*>([\s\S]*?)<\/p>/)
+  assert.ok(status, 'all request outcomes need a stable inline status region')
+  assert.ok(status[0].includes('role="status"'))
+  assert.ok(status[0].includes('aria-live="polite"'))
+  assert.ok(status[0].includes('aria-atomic="true"'))
+  assert.equal(status[1].trim(), '', 'do not announce success before a message was sent')
+  assert.ok(!/\bhidden\b/.test(status[0]), 'an initially empty live region must remain in the accessibility tree')
+  for (const name of ['name', 'email', 'subject', 'message']) {
+    assert.ok(html.includes(`name="${name}"`))
+    assert.ok(html.includes(`for="${name}"`))
+  }
+})
+
 test('each case renders only its own credited gallery with an intrinsic-size cover', () => {
   const renderedGalleries = []
   for (const project of projects) {
