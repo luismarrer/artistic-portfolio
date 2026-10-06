@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { spawnSync } from 'node:child_process'
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
+import { resolve, sep } from 'node:path'
 import { test } from 'node:test'
 import { site } from '../src/data/site.ts'
 import { projects } from '../src/data/projects.ts'
@@ -10,6 +11,113 @@ const build = spawnSync('pnpm', ['build'], { cwd: new URL('../', import.meta.url
 assert.equal(build.status, 0, `${build.stdout}\n${build.stderr}`)
 const page = (path) => readFileSync(new URL(`../dist/${path}/index.html`, import.meta.url), 'utf8')
 const escape = (text) => text.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
+const decode = (text) => text.replaceAll('&amp;', '&').replaceAll('&quot;', '"').replaceAll('&#39;', "'")
+const attributes = (tag) => Object.fromEntries([...tag.matchAll(/([\w:-]+)="([^"]*)"/g)]
+  .map(([, name, value]) => [name, decode(value)]))
+const routes = ['/', '/portfolio', '/contact', ...projects.map(({ id }) => `/projects/${id}`)]
+const documentFor = (route) => page(route === '/' ? '.' : route.slice(1))
+const dist = resolve(new URL('../dist/', import.meta.url).pathname)
+const routePath = (path) => path === '/' ? path : path.replace(/\/$/, '')
+
+function htmlRoutes(directory = dist) {
+  return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+    const path = resolve(directory, entry.name)
+    if (entry.isDirectory()) return htmlRoutes(path)
+    if (entry.name !== 'index.html') return []
+    const relative = path.slice(dist.length).replace(/\/index\.html$/, '')
+    return [relative || '/']
+  })
+}
+
+function localAsset(path) {
+  const file = resolve(dist, `.${decodeURIComponent(path)}`)
+  assert.ok(file.startsWith(`${dist}${sep}`), `asset must remain inside dist: ${path}`)
+  assert.ok(existsSync(file), `built local asset must resolve: ${path}`)
+  assert.ok(statSync(file).isFile(), `built local resource must be a file: ${path}`)
+  return file
+}
+
+test('publishes exactly six current HTML routes with consistent canonical and social metadata', () => {
+  assert.deepEqual(htmlRoutes().sort(), [...routes].sort())
+  assert.ok(site.socialImage, 'a configurable validated raster default social image is required')
+  const canonicalUrls = new Set()
+  for (const route of routes) {
+    const html = documentFor(route)
+    const project = projects.find(({ id }) => route === `/projects/${id}`)
+    const expected = project ?? site.pages[route === '/' ? 'home' : route.slice(1)]
+    const image = project?.gallery[0] ?? site.socialImage
+    const meta = Object.fromEntries([...html.matchAll(/<meta\b[^>]*>/g)].map(([tag]) => {
+      const item = attributes(tag)
+      return [item.property ?? item.name, item.content]
+    }))
+    const canonicalTag = [...html.matchAll(/<link\b[^>]*>/g)].map(([tag]) => attributes(tag))
+      .filter(({ rel }) => rel === 'canonical')
+    assert.equal(canonicalTag.length, 1, `${route} needs one canonical URL`)
+    const canonical = new URL(canonicalTag[0].href)
+    assert.equal(canonical.origin, new URL(site.publicUrl).origin)
+    assert.equal(canonical.href, new URL(route, site.publicUrl).href)
+    assert.equal(canonical.search + canonical.hash, '')
+    canonicalUrls.add(canonical.href)
+    assert.ok(html.includes(`<title>${escape(expected.title)}</title>`))
+    assert.equal(meta.description, expected.description)
+    assert.equal(meta['og:title'], expected.title)
+    assert.equal(meta['og:description'], expected.description)
+    assert.equal(meta['og:site_name'], site.name)
+    assert.equal(meta['og:url'], canonical.href)
+    assert.equal(meta['og:type'], 'website')
+    assert.equal(meta['og:image'], new URL(image.src, site.publicUrl).href)
+    assert.equal(meta['og:image:alt'], image.alt)
+    assert.equal(meta['og:image:width'], String(image.width))
+    assert.equal(meta['og:image:height'], String(image.height))
+    assert.equal(meta['twitter:card'], 'summary_large_image')
+    assert.equal(meta['twitter:title'], expected.title)
+    assert.equal(meta['twitter:description'], expected.description)
+    assert.equal(meta['twitter:image'], meta['og:image'])
+    assert.equal(meta['twitter:image:alt'], image.alt)
+    localAsset(new URL(meta['og:image']).pathname)
+  }
+  assert.equal(canonicalUrls.size, routes.length)
+})
+
+test('all rendered local resources and internal navigation destinations exist', () => {
+  for (const route of routes) {
+    const html = documentFor(route)
+    for (const [tag] of html.matchAll(/<(?:a|img|script|link)\b[^>]*>/g)) {
+      const { href, src } = attributes(tag)
+      const value = href ?? src
+      if (!value || (!value.startsWith('/') && !value.startsWith('#'))) continue
+      const url = new URL(value, new URL(route, site.publicUrl))
+      assert.equal(url.origin, new URL(site.publicUrl).origin)
+      if (tag.startsWith('<a')) {
+        const destination = routePath(url.pathname)
+        assert.ok(routes.includes(destination), `${route} links to missing route ${value}`)
+        if (url.hash) {
+          const ids = [...documentFor(destination).matchAll(/\bid="([^"]+)"/g)].map(([, id]) => decode(id))
+          assert.ok(ids.includes(decodeURIComponent(url.hash.slice(1))), `${route} links to missing fragment ${value}`)
+        }
+      } else localAsset(url.pathname)
+    }
+    for (const [, cssPath] of html.matchAll(/<link\b[^>]*href="([^"]+\.css)"[^>]*>/g)) {
+      const css = readFileSync(localAsset(cssPath), 'utf8')
+      for (const [, asset] of css.matchAll(/url\(["']?(\/[^)"']+)["']?\)/g)) localAsset(asset)
+    }
+  }
+  const manifest = JSON.parse(readFileSync(localAsset('/site.webmanifest'), 'utf8'))
+  for (const { src } of manifest.icons) localAsset(src)
+})
+
+test('generated sitemap and robots use the configured origin and only the six HTML routes', () => {
+  const index = readFileSync(localAsset('/sitemap-index.xml'), 'utf8')
+  const indexLocations = [...index.matchAll(/<loc>([^<]+)<\/loc>/g)].map(([, value]) => decode(value))
+  assert.deepEqual(indexLocations, [new URL('/sitemap-0.xml', site.publicUrl).href])
+  const sitemap = readFileSync(localAsset('/sitemap-0.xml'), 'utf8')
+  const locations = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map(([, value]) => decode(value))
+  const canonicals = routes.map((route) => attributes(documentFor(route).match(/<link\b[^>]*rel="canonical"[^>]*>/)?.[0] ?? '').href)
+  assert.deepEqual(locations.sort(), canonicals.sort())
+  const robots = readFileSync(localAsset('/robots.txt'), 'utf8')
+  assert.match(robots, /User-agent: \*\nAllow: \/\n/)
+  assert.ok(robots.includes(`Sitemap: ${new URL('/sitemap-index.xml', site.publicUrl).href}`))
+})
 
 test('renders configured identity, biography, navigation and page language', () => {
   const html = page('.')

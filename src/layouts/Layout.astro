@@ -5,18 +5,27 @@ import "@/global.css"
 import { ClientRouter } from "astro:transitions" // Before this ViewTransitions
 import Analytics from "@vercel/analytics/astro"
 import { site } from "@/data/site"
+import type { LocalImage } from "@/data/types"
+import { validateSocialImage } from "@/data/validation"
 
 interface Props {
   title?: string
   description?: string
+  image?: LocalImage
   class?: string
 }
 
 const {
   title = site.name,
   description = site.description,
+  image = site.socialImage,
   class: className,
 } = Astro.props
+// Directory output includes a slash at build time; publication uses the existing slashless routes.
+const canonicalPath = Astro.url.pathname.replace(/\/$/, '') || '/'
+const canonical = new URL(canonicalPath, site.publicUrl)
+const socialImage = validateSocialImage(image)
+const socialImageUrl = new URL(socialImage.src, site.publicUrl)
 ---
 
 <!doctype html>
@@ -26,6 +35,22 @@ const {
     <title>{title}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={site.name} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={socialImageUrl} />
+    <meta property="og:image:alt" content={socialImage.alt} />
+    <meta property="og:image:width" content={String(socialImage.width)} />
+    <meta property="og:image:height" content={String(socialImage.height)} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={socialImageUrl} />
+    <meta name="twitter:image:alt" content={socialImage.alt} />
     <!-- Fonts -->
     <link
       rel="preload"

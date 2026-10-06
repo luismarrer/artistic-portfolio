@@ -1,26 +1,29 @@
 # Roadmap de Artistic Portfolio
 
-Estado: propuesta de próximas iteraciones. Actualizado el 13 de septiembre de 2026.
+Estado: base T1–T5 implementada localmente; entrega completa de plantilla pendiente. Actualizado el 6 de octubre de 2026.
 
 ## Objetivo
 
 Convertir Musea Art en una plantilla artística reutilizable: una persona debe poder mostrar una obra convincente, explicar su proceso y recibir consultas; quien clone el repositorio debe poder sustituir la identidad y el contenido sin perseguir valores repartidos por los componentes.
 
-La dirección visual y los contratos de contenido están en [docs/DESIGN.md](docs/DESIGN.md). Este roadmap establece orden y criterios de salida; no afirma que las propuestas estén implementadas.
+La dirección visual y los contratos de contenido están en [docs/DESIGN.md](docs/DESIGN.md). Este roadmap distingue la base implementada de los criterios de la plantilla completa: ningún hito se cierra solo por cubrir una parte de su alcance.
 
 ## Punto de partida
 
 El código inspeccionado utiliza Astro 7, Tailwind CSS 4 y GSAP 3.15. Ya incluye:
 
-- Inicio, portfolio, contacto y tres fichas generadas desde `src/data/projects.json`.
+- Identidad y publicación centralizadas en `src/data/site.ts`; inicio, portfolio, contacto y tres fichas generadas desde proyectos tipados en `src/data/projects.ts`.
 - Fuentes locales Mansalva y Josefin Sans; márgenes fluidos, rejillas adaptables y objetivos táctiles en la navegación.
 - Animaciones GSAP centralizadas: entrada del hero, firma, trazo de tinta ligado al scroll, apariciones de secciones, desplazamiento al portfolio y alternativa de movimiento reducido.
-- Formulario con validación HTML y envío a Formspree, confirmación de éxito y tratamiento básico de errores.
-- Galería con créditos, metadatos básicos y adaptación a diferentes anchos.
+- Inicio con una colección seleccionada antes de la biografía; catálogo completo con portadas propias y textos legibles sin esperar animaciones.
+- Contacto demo deshabilitado y sin envío por defecto; modo live explícito con POST nativo, estados accesibles, bloqueo de duplicados, errores y reintento.
+- Tres galerías distintas sin collage de sustitución, créditos visibles y una referencia editorial identificada como colección curada, no como un encargo propio.
+- Canonical y metadatos sociales por página, imagen social local, sitemap y robots derivados de la URL pública configurada.
+- Pruebas de configuración, HTML de producción y controladores; workflow de GitHub Actions con Node 24, pnpm fijado e instalación con lockfile congelado.
 
-Las correcciones de la publicación actual son la base de este plan. La compilación y las comprobaciones de publicación se registran en su cambio correspondiente; esta lista no sustituye esos resultados.
+La implementación y su evidencia local por unidad se registran en [odd/tasks/portfolio-foundations.md](odd/tasks/portfolio-foundations.md). Esta lista no sustituye los resultados de pruebas, compilación o navegador. La configuración de CI no demuestra una ejecución remota; tampoco se ha publicado una release, desplegado esta base ni comprobado entrega real de Formspree.
 
-Persisten diferencias entre una demo funcional y una plantilla terminada: las fichas comparten el collage predeterminado, el contenido y la identidad están repartidos, existen afirmaciones de ejemplo sin evidencia, y faltan un recorrido editorial propio y criterios verificables de calidad. No se debe presentar el contenido de demostración como trabajos o resultados reales.
+Persisten diferencias entre una demo funcional y una plantilla terminada: falta verificar la matriz completa responsive y de accesibilidad con contenido final, medir los presupuestos de carga, optimizar imágenes, añadir una vía alternativa de contacto y validar la entrega real en una cuenta propia. Los créditos heredados no demuestran las licencias; la demo no acredita autoría, clientes ni resultados reales.
 
 ## Orden de trabajo
 
@@ -36,17 +39,21 @@ No se asignan fechas sin conocer la disponibilidad de contenido. Los hitos se ci
 
 ## 1. Configuración y contenido
 
-**Entregables:** configuración tipada de identidad, idioma, navegación, redes, contacto y SEO; colección validada de proyectos; guía de migración desde el JSON actual. El contrato propuesto se detalla en el documento de diseño.
+**Base actual:** configuración tipada y validada, sin endpoint ajeno; guía de personalización sobre `site.ts` y `projects.ts`. Se conserva la identidad numérica de las rutas; la migración a slugs no forma parte de T1–T5.
+
+**Entregables de la plantilla completa:** configuración de identidad, idioma, navegación, redes, contacto y SEO; colección validada de proyectos. El documento de diseño conserva propuestas adicionales que deben aceptarse antes de implementarlas.
 
 **Aceptación:**
 
 - Cambiar nombre, biografía, redes, idioma, correo, URL pública y endpoint no exige editar componentes.
-- Un proyecto inválido falla en la comprobación previa a publicar con un mensaje que identifique el campo; se detectan slugs repetidos, archivos inexistentes y galerías vacías.
+- Un proyecto inválido falla en la comprobación previa a publicar con un mensaje que identifique el campo; se detectan IDs repetidos, archivos inexistentes y galerías vacías. Si se adoptan slugs, también deberán validarse.
 - No se reutiliza un endpoint del autor por defecto en una instalación sin configurar.
 - Los datos de demostración están identificados como tales; métricas, clientes y testimonios son opcionales y solo se muestran con contenido sustentado.
 - Las URLs actuales `/projects/1`, `/projects/2` y `/projects/3` conservan acceso mediante redirecciones si se adoptan slugs legibles.
 
 ## 2. Un caso de referencia
+
+**Base actual:** tres colecciones con galerías propias de 3, 1 y 2 imágenes; la primera tiene notas editoriales de selección. Sustituirlas por obra propia y verificar permisos sigue pendiente para una plantilla personalizada.
 
 **Entregables:** una ficha editorial completa con portada, contexto, responsabilidad, proceso, resultado observable y galería propia; créditos y procedencia de sus recursos. Después se adapta el mismo contrato a los otros dos ejemplos.
 
@@ -59,6 +66,8 @@ No se asignan fechas sin conocer la disponibilidad de contenido. Los hitos se ci
 - Desde cada caso se puede volver al índice, abrir otro caso y llegar a contacto mediante enlaces con nombres claros.
 
 ## 3. Recorrido y dirección visual
+
+**Base actual:** obra antes de biografía, selección y catálogo distintos, contraste funcional y créditos visibles; comprobaciones locales puntuales a 390 y 1440 px. La matriz completa de `docs/DESIGN.md`, con contenido final y títulos largos, no está cerrada.
 
 **Entregables:** composición revisada de las cinco piezas descritas en el diseño: navegación, inicio, índice, caso y contacto; tokens semánticos compartidos; reglas de imágenes y movimiento.
 
@@ -73,6 +82,8 @@ No se asignan fechas sin conocer la disponibilidad de contenido. Los hitos se ci
 
 ## 4. Contacto y calidad técnica
 
+**Base actual:** contacto y ciclo de vida comprobados con respuestas controladas, metadatos por página y generación de sitemap/robots. Permanecen pendientes la entrega real de Formspree, la vía alternativa de contacto, la matriz completa de acceso/navegación y los presupuestos de carga con imágenes optimizadas.
+
 **Entregables:** estados del formulario, vía alternativa de contacto, imágenes adaptables, metadatos por página, sitemap y comprobaciones de regresión centradas en los recorridos importantes.
 
 **Aceptación:**
@@ -86,6 +97,8 @@ No se asignan fechas sin conocer la disponibilidad de contenido. Los hitos se ci
 
 ## 5. Entrega de plantilla
 
+**Base actual:** requisitos fijados, instalación congelada, pruebas que compilan la fuente actual, CI configurada y documentación alineada. La ejecución remota de CI, prueba de una copia personalizada, capturas finales, release y correspondencia del despliegue con el commit publicado siguen pendientes.
+
 **Entregables:** README con capturas reales, documentación de personalización, inventario de recursos y créditos, guía de despliegue, automatización de comprobaciones y notas de release.
 
 **Aceptación:**
@@ -98,8 +111,8 @@ No se asignan fechas sin conocer la disponibilidad de contenido. Los hitos se ci
 
 ## Fuera de esta secuencia
 
-CMS, búsqueda, filtros, blog, modo oscuro, tienda y traducción a varios idiomas no son requisitos de la primera plantilla completa. Se reconsideran cuando exista contenido o una necesidad concreta que los justifique. Un formulario fiable y tres casos coherentes tienen prioridad sobre añadir más pantallas.
+CMS, búsqueda, filtros, blog, modo oscuro, tienda y traducción a varios idiomas no son requisitos de la primera plantilla completa. El lightbox tampoco está implementado ni forma parte de T1–T5. Se reconsideran cuando exista contenido o una necesidad concreta que los justifique. Un formulario fiable y tres casos coherentes tienen prioridad sobre añadir más pantallas.
 
 ## Primera siguiente iteración
 
-Implementar el mínimo del hito 1 necesario para producir el caso del hito 2: identidad centralizada, contrato de proyecto y una galería propia. Revisar ese caso a 390 y 1440 px antes de extender el diseño a todo el sitio. Esta revisión debe confirmar que el contenido sostiene la dirección visual y que el contrato resulta cómodo de personalizar.
+Completar la matriz responsive y de accesibilidad de las seis rutas con contenido final, y medir la carga antes de fijar la optimización de imágenes. Después, verificar permisos de recursos, una copia personalizada y contacto en una cuenta propia. La publicación de CI, despliegue y release requieren sus comprobaciones separadas; no se deducen de una compilación local correcta.

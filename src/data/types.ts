@@ -34,6 +34,7 @@ export interface SiteConfig {
   lang: string
   description: string
   publicUrl: string
+  socialImage: LocalImage
   logo: LocalImage
   signature: { label: string; useDemoArtwork: boolean }
   hero: { title: string; buttonLabel: string; buttonHref: string }

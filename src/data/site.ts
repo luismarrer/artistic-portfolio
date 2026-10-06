@@ -7,6 +7,11 @@ export const site = validateSite({
   lang: 'en',
   description: 'A curated artistic portfolio demo built around imagery, illustration and visual storytelling.',
   publicUrl: 'https://artistic-portfolio-nine.vercel.app',
+  socialImage: {
+    src: '/images/project-page/nature-9881953_1280.jpg',
+    alt: 'Misty forested hills layered beneath a pale sky',
+    width: 1280, height: 853,
+  },
   logo: { src: '/logo.png', alt: 'Musea Art identity mark', width: 1024, height: 1024 },
   signature: { label: 'Musea', useDemoArtwork: true },
   hero: { title: 'Turn Your Ideas Into Art', buttonLabel: 'Explore the collections', buttonHref: '#projects' },

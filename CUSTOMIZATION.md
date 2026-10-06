@@ -4,7 +4,7 @@ Edita **`src/data/site.ts`** para la identidad y **`src/data/projects.ts`** para
 
 ## Ruta rápida
 
-1. Cambia nombre, idioma, textos, biografía, navegación y redes en `site.ts`.
+1. Cambia nombre, idioma, textos, biografía, navegación, redes y `publicUrl` en `site.ts`.
 2. Sustituye las imágenes y los proyectos de demostración con contenido propio y permisos comprobados.
 3. Conserva `contact.mode: 'demo'` hasta tener un destino de contacto propio.
 4. Ejecuta `pnpm test` y `pnpm build`; revisa después móvil, escritorio y navegación sin JavaScript.
@@ -14,7 +14,8 @@ Edita **`src/data/site.ts`** para la identidad y **`src/data/projects.ts`** para
 | Contenido | Campo de `site.ts` |
 | --- | --- |
 | Nombre, idioma y descripción general | `name`, `lang`, `description` |
-| URL pública de referencia | `publicUrl` |
+| Origen HTTPS de publicación | `publicUrl` |
+| Imagen social predeterminada | `socialImage` |
 | Logo y firma | `logo`, `signature` |
 | Título y botón inicial | `hero` |
 | Selección de inicio, catálogo y textos de sus enlaces | `portfolio` |
@@ -24,7 +25,7 @@ Edita **`src/data/site.ts`** para la identidad y **`src/data/projects.ts`** para
 | Textos del pie | `footer` |
 | Modo, destino y textos de contacto | `contact` |
 
-La cabecera, el inicio, la biografía, el pie y el layout consumen esta configuración. `Layout.astro` mantiene sus props `title`, `description` y `class` para páginas adicionales. `lang` debe ser una etiqueta como `en` o `es`; cambiarla no traduce automáticamente los textos.
+La cabecera, el inicio, la biografía, el pie y el layout consumen esta configuración. `Layout.astro` mantiene sus props `title`, `description` y `class`, y acepta `image: LocalImage` para sustituir la imagen social en una página. `lang` debe ser una etiqueta como `en` o `es`; cambiarla no traduce automáticamente los textos.
 
 La firma animada original corresponde a «Musea». Con otra identidad se utiliza texto manuscrito adaptable: cambia `signature.label` si quieres un nombre corto y usa `useDemoArtwork: false`. Si solo cambias `name`, la etiqueta original también se sustituye por el nuevo nombre. La firma sigue visible sin JavaScript.
 
@@ -64,6 +65,8 @@ Cada registro de `src/data/projects.ts` usa `Project`:
 ```
 
 Un `id` entero positivo y único genera `/projects/ID`. Las rutas existentes `/projects/1`, `/projects/2` y `/projects/3` se mantienen. Las tarjetas y las fichas utilizan como portada la primera imagen de la galería: no existe una clave de ilustración SVG obligatoria ni un mapa de componentes que actualizar al añadir un proyecto.
+
+Como esa portada también es la imagen social de la ficha, `gallery[0]` debe ser PNG, JPEG o WebP con dimensiones correctas. SVG sigue permitido para otras imágenes locales de la galería, el logo y la biografía, pero no para las imágenes sociales.
 
 `PortfolioComponent.astro` acepta `items: Project[]` y `variant: 'selection' | 'catalogue'`; pasar `items` solo cambia el listado, no genera rutas adicionales. `selection` muestra la introducción de obra seleccionada y el enlace al catálogo; `catalogue` usa todas las columnas disponibles sin repetir esa introducción. `featured` permite elegir la selección del inicio sin duplicar registros. `disclosure` es obligatorio: explica la autoría o la condición de demo sin afirmaciones falsas. Cambia también este texto cuando sustituyas los ejemplos por obra propia.
 
@@ -144,8 +147,16 @@ Los márgenes laterales y la reserva para la cabecera se comparten mediante `--p
 
 ## 8. Preparar la publicación
 
-La URL de referencia está en `site.publicUrl`, como origen HTTPS sin ruta, consulta ni fragmento. En esta primera unidad todavía no se conecta a `astro.config.mjs`: el sitemap continúa pendiente, al igual que canonical y Open Graph. La unidad de publicación utilizará esta misma fuente, sin duplicar la URL.
+Edita el campo existente `site.publicUrl` con tu origen HTTPS, sin ruta, consulta ni fragmento. Esta única fuente configura `site` en Astro y las URLs absolutas de canonical, Open Graph, sitemap y robots. No dupliques el dominio en componentes o `astro.config.mjs` ni crees una variable de entorno. `pnpm build` genera `sitemap-index.xml`, su sitemap de páginas y `robots.txt` para ese dominio.
+
+La política canonical elimina la barra final en las rutas, salvo en `/`; por ejemplo, usa `/portfolio` y `/projects/1`, no sus variantes con barra. El sitemap sigue la misma política y la navegación conserva las seis rutas existentes.
+
+`site.socialImage` es una imagen local obligatoria con `src`, `alt`, `width` y `height`. Usa un PNG, JPEG o WebP existente en `public/`, con dimensiones intrínsecas correctas; no uses el logo SVG como imagen social. La demo reutiliza una portada horizontal acreditada de 1280 × 853, no una obra original de la plantilla. Al reemplazarla, verifica sus derechos y mantén los créditos correspondientes.
+
+El layout utiliza esta imagen por defecto en Open Graph y Twitter, con URL absoluta, texto alternativo y dimensiones. Cada ficha de proyecto pasa `image={gallery[0]}` para compartir su propia portada. Para otra página, puedes pasar una imagen validada con la misma estructura mediante la prop `image`; no cambia la galería ni crea una copia del archivo.
+
+Los títulos y descripciones provienen de `site.pages` o de los datos de cada proyecto. Después de personalizar, revisa el HTML generado y que las URLs públicas de las imágenes resuelvan en tu despliegue: la existencia local no demuestra que el dominio esté publicado.
 
 Vercel Analytics ya se monta desde `src/layouts/Layout.astro`; configura el servicio en tu proyecto si quieres usarlo, o elimina su importación y `<Analytics />` si no lo necesitas.
 
-Ejecuta `pnpm build` y sigue los pasos de [publicación del README](README.md#publicación-en-vercel). Revisa el resultado desplegado, las rutas de cada proyecto, los recursos locales y tu formulario. El [roadmap](ROADMAP.md) diferencia estas posibilidades actuales de las mejoras pendientes.
+Con Node 24 o superior y pnpm 11.5.2, ejecuta `pnpm test` y `pnpm build`, y sigue los pasos de [publicación del README](README.md#publicación-en-vercel). Las pruebas compilan la fuente actual y revisan el contrato local de publicación; no despliegan ni comprueban una entrega real de Formspree. Revisa el resultado desplegado, las rutas de cada proyecto, los recursos locales y tu formulario. El [roadmap](ROADMAP.md) diferencia estas posibilidades actuales de las mejoras pendientes.

@@ -6,7 +6,13 @@ Plantilla de portfolio artístico con Astro, Tailwind CSS y GSAP. Incluye inicio
 
 ## Desarrollo
 
-Requiere **Node.js 22.12.0 o superior** y pnpm. El proyecto utiliza Astro 7.3.2, Tailwind CSS 4.3.3 y GSAP 3.15.0; las versiones exactas están en [package.json](package.json) y [pnpm-lock.yaml](pnpm-lock.yaml).
+Requiere **Node.js 24 o superior** y **pnpm 11.5.2**, fijado en `packageManager` de [package.json](package.json). La CI usa Node 24. El proyecto utiliza Astro 7.3.2, Tailwind CSS 4.3.3 y GSAP 3.15.0; las versiones exactas están en [package.json](package.json) y [pnpm-lock.yaml](pnpm-lock.yaml).
+
+Con Node instalado, prepara la versión de pnpm documentada:
+
+```sh
+npm install --global pnpm@11.5.2
+```
 
 Usa **Use this template** en GitHub o clona el repositorio:
 
@@ -22,10 +28,18 @@ Abre la dirección que indique la terminal; normalmente es `http://localhost:432
 | Comando | Función |
 | --- | --- |
 | `pnpm dev` | Servidor de desarrollo |
-| `pnpm test` | Tests de contenido y compilación renderizada; requiere Node 24 o superior |
+| `pnpm test` | Tests de contenido, publicación y controladores; compila la fuente actual |
 | `pnpm build` | Comprobación de Astro/TypeScript y compilación de producción |
 | `pnpm preview` | Vista previa local de la compilación |
 | `pnpm astro check` | Comprobación de Astro/TypeScript sin compilar |
+
+## Comprobaciones
+
+Ejecuta `pnpm test` antes de integrar cambios. Usa el runner nativo de Node y genera una compilación desde la fuente actual, no desde una salida antigua. Cubre validación de configuración y recursos, las seis rutas actuales, galerías propias, enlaces internos, canonical, Open Graph, sitemap y robots, además de contacto con transporte simulado y el ciclo de vida de las animaciones con movimiento reducido.
+
+[`.github/workflows/quality.yml`](.github/workflows/quality.yml) ejecuta instalación con lockfile congelado y `pnpm test` en cada push y pull request, con Node 24 y la versión de pnpm del manifiesto. Tener el workflow configurado o pasar las pruebas localmente **no demuestra una ejecución remota de CI**: consulta el resultado de GitHub Actions después de publicar tus cambios.
+
+Estas comprobaciones no sustituyen la matriz completa de accesibilidad y responsive, las medidas de carga, la revisión de licencias ni una entrega real a tu propia cuenta de Formspree. Revisa también navegación con teclado, móvil, escritorio, movimiento reducido y uso sin JavaScript.
 
 ## Antes de usar la plantilla
 
@@ -36,9 +50,9 @@ Sustituye identidad, biografía, redes, imágenes y proyectos siguiendo [CUSTOMI
 ## Publicación en Vercel
 
 1. Sube tu copia a GitHub e importa el repositorio en Vercel.
-2. Selecciona el preset **Astro**, una versión de Node compatible y el comando de compilación `pnpm build`. Mantén la salida que determine el preset: el proyecto ya utiliza `@astrojs/vercel`.
-3. Añade tu URL pública como `site` en [astro.config.mjs](astro.config.mjs) para generar el sitemap. Conserva el resto de la configuración.
-4. Despliega y comprueba las rutas `/`, `/portfolio`, `/contact` y `/projects/1`, además de un envío a tu propio formulario.
+2. Selecciona el preset **Astro**, Node 24 o superior, pnpm 11.5.2 y el comando de compilación `pnpm build`. Mantén la salida que determine el preset: el proyecto ya utiliza `@astrojs/vercel`.
+3. Cambia `publicUrl` en [src/data/site.ts](src/data/site.ts) por tu origen HTTPS, sin ruta, consulta ni fragmento. Es la única fuente para `site` de Astro, canonical, URLs de Open Graph, sitemap y robots: no dupliques el dominio en `astro.config.mjs` ni añadas una variable de entorno. Sustituye también `socialImage` y verifica sus permisos.
+4. Ejecuta `pnpm test` y `pnpm build` antes de desplegar. Después comprueba las seis rutas `/`, `/portfolio`, `/contact` y `/projects/1`, `/projects/2`, `/projects/3`, los metadatos y un envío a tu propio formulario.
 
 Para otro proveedor, adapta primero el adaptador y la configuración de Astro. No basta con asumir que la salida de esta configuración de Vercel es una carpeta estática intercambiable.
 
@@ -49,7 +63,7 @@ Para otro proveedor, adapta primero el adaptador y la configuración de Astro. N
 - `src/components/Collage.astro`: galería explícita por proyecto, sin colección de sustitución.
 - `src/components/ContactForm.astro`: modo demo sin envío y formulario live con POST nativo.
 - `src/scripts/contact-form.ts`: validación nativa, estados accesibles y ciclo de vida del envío entre páginas.
-- `src/data/site.ts`: identidad, textos, navegación, redes y modo de contacto.
+- `src/data/site.ts`: identidad, textos, navegación, redes, publicación y modo de contacto.
 - `src/data/projects.ts`: proyectos tipados, galerías acreditadas y contenido editorial que generan `/projects/[id]`.
 - `src/data/validation.ts`: comprobaciones de contenido y recursos locales antes de renderizar.
 - `src/scripts/artistic-motion.ts`: animaciones GSAP y su ciclo de vida entre páginas.
@@ -60,6 +74,6 @@ Para otro proveedor, adapta primero el adaptador y la configuración de Astro. N
 
 El [roadmap](ROADMAP.md) ordena las siguientes iteraciones y el [documento de diseño](docs/DESIGN.md) define la dirección del producto. El [diseño original en Figma](https://www.figma.com/design/QRa4rBb9uLO4gufnYdf8ip/Musea-Art?node-id=0-1) sirve como referencia visual.
 
-Para contribuir, describe el problema en una [issue](https://github.com/luismarrer/artistic-portfolio/issues) y valida los cambios con `pnpm build`. Si afectan al diseño, revisa móvil y escritorio, navegación con teclado y movimiento reducido.
+Para contribuir, describe el problema en una [issue](https://github.com/luismarrer/artistic-portfolio/issues) y valida los cambios con `pnpm test` y `pnpm build`. Si afectan al diseño, revisa móvil y escritorio, navegación con teclado y movimiento reducido.
 
 Código bajo [licencia MIT](LICENSE). Las imágenes y otros recursos de terceros conservan sus propias condiciones de uso.

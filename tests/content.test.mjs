@@ -28,6 +28,7 @@ const validSite = () => {
   const copy = structuredClone(site)
   copy.logo = { src: image.src, alt: 'Test identity mark', width: 1, height: 1 }
   copy.about.image = { ...copy.logo, alt: 'Sample portrait placeholder' }
+  copy.socialImage = { ...copy.logo, alt: 'Sample social preview artwork' }
   return copy
 }
 const changeProject = (mutate) => {
@@ -72,6 +73,16 @@ test('rejects missing identity, copy and malformed language', () => {
 
 test('requires configured selection and catalogue copy', () => {
   assert.throws(() => validateSite({ ...validSite(), portfolio: undefined }, options), /portfolio/)
+})
+
+test('requires a validated local raster social preview with descriptive alternative text', () => {
+  for (const socialImage of [undefined, { ...image, src: '/images/missing.png' },
+    { ...image, width: 20 }, { ...image, alt: 'image' }]) {
+    assert.throws(() => validateSite({ ...validSite(), socialImage }, options), /socialImage/)
+  }
+  writeFileSync(join(publicDirectory, 'images', 'vector.png'), '<svg viewBox="0 0 1 1"></svg>')
+  assert.throws(() => validateSite({ ...validSite(), socialImage: { ...image, src: '/images/vector.png' } }, options), /socialImage/)
+  assert.deepEqual(validateSite(validSite(), options).socialImage, validSite().socialImage)
 })
 
 test('requires a root HTTPS public URL, rejecting credentials and query strings', () => {

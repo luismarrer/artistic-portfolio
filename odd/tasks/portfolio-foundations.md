@@ -33,7 +33,7 @@ Identity is scattered across components; every project uses the same fallback co
 - Forecast: **1,300-1,950 authored additions + deletions**, generated outputs excluded. This is an estimate, not a code cap. Keep tests/docs with behavior; do not compress, omit checks or split artificial units to fit 400 lines.
 - Delivery strategy: `ask-on-risk` (default).
 - Chain strategy: **`stacked-to-main`**, explicitly selected by the user: "cambios integrables por separado hacia `main`". Each slice can land in order; later PRs use their immediate parent until it lands and can be retargeted to main. PR publication still needs separate authorization.
-- Running authored count: **2,484 committed additions + deletions**, including 123 lines of tracking changes; implementation/tests/docs subtotal 2,361. Generated outputs excluded. The original forecast was low; remaining quality/contact scope is retained.
+- Running authored count: **3,026 committed additions + deletions**, including 147 lines of tracking changes; implementation/tests/docs subtotal 2,879. Generated outputs excluded. The original forecast was low; remaining quality scope is retained.
 
 ## Tasks and acceptance
 
@@ -41,7 +41,7 @@ Identity is scattered across components; every project uses the same fallback co
 - [x] **T2 — Give cases their own evidence.** Delegated project gallery/editorial rendering and tests. All three case galleries are distinct (3 / 1 / 2 images); reference images have visible captions, creator/source links and grounded editorial notes. Configurable required disclosure retains honest demo attribution without mislabelling future original work. No fallback substitution; observed checks below, commit recorded after creation.
 - [x] **T3 — Put work first and improve readability.** Delegated home/portfolio/hero/controller changes and tests. One selected real cover precedes biography; the full catalogue has three real covers, dark hero ink is readable, controls/credits remain immediately visible, and ink follows the actual layout. Observed checks below; work-unit commit identity recorded after creation.
 - [x] **T4 — Make contact safe and reliable.** Delegated submission lifecycle/states and controlled tests. Demo mode never sends; live configuration is validated; in-flight duplicates are blocked; success, provider rejection, network failure and retry are accessible; failed input is retained; navigation reinitializes without duplicate listeners; actual live HTML preserves native configured POST. No real delivery; observed checks below, commit recorded after creation.
-- [ ] **T5 — Verify publication and document customization.** Delegate metadata/sitemap checks, critical motion lifecycle regressions, CI and accurate docs. Six routes, distinct galleries, asset/internal links and publication metadata are checked; sitemap is generated; reduced-motion and repeated page-load/swap are tested, including cancellation of queued frame/late-font setup found during verification. CI uses the verified Node/pnpm commands; README/CUSTOMIZATION and scoped roadmap status describe implemented behavior without claiming remote execution or release. RED/GREEN, final build/tests/browser checks, rollback boundary and commit: pending.
+- [x] **T5 — Verify publication and document customization.** Delegated metadata/sitemap checks, critical motion lifecycle regressions, CI and accurate docs. Six routes, distinct galleries, asset/internal links and publication metadata are checked; sitemap is generated; reduced-motion and repeated page-load/swap are tested, including cancellation of queued frame/late-font setup. CI uses verified Node/pnpm commands; README/CUSTOMIZATION and scoped roadmap status describe implemented behavior without claiming remote execution or release. Observed checks below; commit recorded after creation.
 
 ## Progress and evidence
 
@@ -53,7 +53,7 @@ Identity is scattered across components; every project uses the same fallback co
 
 ## Next step
 
-Delegate T5: publication identity/metadata/sitemap, critical reduced-motion/navigation checks, reproducible CI and accurate documentation. Retain local-only authorization and the explicit demo no-send contact default.
+All five approved implementation outcomes are locally verified. Finish commit bookkeeping, then deliver the local stacked-to-main boundaries. Push/PR/deployment and provider delivery remain separate user decisions, not incomplete local implementation.
 
 ## Planned local delivery slices
 
@@ -62,7 +62,7 @@ Delegate T5: publication identity/metadata/sitemap, critical reduced-motion/navi
 | 1 | T1 | `codex/portfolio-01-content` | branch point / main | `42fb874e67ff86173f06748b6bb5e3c11d2fef17` / 1,374 (1,293 excluding tracking) |
 | 2 | T2 | `codex/portfolio-02-cases` | slice 1 | `fb242f33d6dc61ffbf1c0acab33029caa6175f3b` / 450 (429 excluding tracking) |
 | 3 | T3 | `codex/portfolio-03-presentation` | slice 2 | `06e68846cc18b15dc6ddf932dde5e26a9cb33dd6` / 660 (639 excluding tracking) |
-| 4 | T4 | `codex/portfolio-04-contact` | slice 3 | pending |
+| 4 | T4 | `codex/portfolio-04-contact` | slice 3 | `2bd95a19008bb539e7a9f3d5637c48b59c864361` / 542 (518 excluding tracking) |
 | 5 | T5 | `codex/portfolio-05-quality` | slice 4 | pending |
 
 These are local work-unit boundaries, not published pull requests. Actual counts may justify a cohesive over-budget slice; recommend `size:exception` when publishing if a single honest slicing pass cannot keep it below 400, never reduce implementation or tests for line count.
@@ -112,4 +112,31 @@ These are local work-unit boundaries, not published pull requests. Actual counts
 - Browser: mobile native navigation to contact shows explicit demo disclosure, no action, disabled visible fields, empty polite status, documentWidth=viewportWidth=390; no console errors/warnings observed. No real send was attempted.
 - Rollback: revert src/scripts/contact-form.ts, src/components/ContactForm.astro, tests/contact-form.test.mjs, tests/content-rendering.test.mjs and the contact doc changes together to T3, preserving unrelated tooling/tracking.
 - Authored implementation/tests/docs: 518 additions + deletions; keep transport/lifecycle tests with their controller and recommend publication size exception instead of an artificial split.
-- RDD: disabled/unmanaged. Work-unit commit/end-boundary branch: pending creation; no push/PR.
+- RDD: disabled/unmanaged. Work-unit commit: `2bd95a19008bb539e7a9f3d5637c48b59c864361` — `feat(contact): add safe accessible submission lifecycle`; local end-boundary branch `codex/portfolio-04-contact` created. No push/PR.
+
+## T5 evidence
+
+- Route: delegated direct; publication writer coordinated disjoint lifecycle and CI/docs writers with one full-build test runner.
+- RED: publication/toolchain tests had 52 tests, 47 pass / 5 fail before metadata/sitemap/configuration/workflow changes. Actual motion controller had 11 tests, 7 pass / 4 fail for orphan frame/static timer, teardown and duplicate queued initialization. Two intermediate Astro numeric meta-content type errors were fixed with explicit string dimensions.
+- GREEN/refactor: parent final `pnpm test` passed 57 / 57, no skipped/cancelled tests, exit 0. Parent `pnpm build` checked 33 files, zero errors/warnings/hints, six HTML pages plus robots endpoint, and generated sitemap-index.xml, exit 0. The missing-site warning is resolved. Diff check passed.
+- Toolchain: parent `pnpm install --frozen-lockfile --offline` passed without dependency/lockfile changes using pnpm 11.5.2; local Node is 26.0.0. CI declares Node 24 and pinned pnpm, read-only contents permission and frozen install followed by the same current-source tests. Workflow API versions/order were checked against official action documentation; remote CI was not executed.
+- Publication: production tests assert exact six canonical/OG/sitemap URLs, local raster social previews and dimensions/alt, all local resources/internal routes/fragments, and robots/index origin. Parent temporarily changed only publicUrl to https://portfolio.example.org, built and asserted all six metadata/preview/sitemap/index/robots URLs switched together. Exact default config was restored in finally, then default tests/build passed.
+- Lifecycle: actual transpiled controller tests prove reduced-motion visible static early exit, one active handler pair after repeated loads, context/signal/observer/timer/trigger cleanup, cancelled queued frames, ignored late-font callbacks and safe next-page initialization. No browser media emulation or exhaustive accessibility matrix is claimed.
+- Browser: final 390x844 sweep visited all six routes with loaded case covers, correct titles/canonical, and documentWidth=viewportWidth=390. Final 1440x900 home has work before biography with cover beginning y533. Keyboard Tab sequence reaches brand/navigation/CTA with visible solid focus; Enter settles selected work at top16. Demo contact return remains disabled/no-action. No captured console errors/warnings. Screenshot: /tmp/portfolio-foundations-desktop.jpg.
+- Docs: README/CUSTOMIZATION explain current personalization/contact/publication/checks; ROADMAP distinguishes completed local foundations from licensing, final-content/accessibility/load budgets, provider delivery, remote CI, deployment and release work not authorized here.
+- Rollback: restore the 17 T5 publication/data/layout/robots/motion/test/workflow/package/doc files together to T4; retain contact/presentation and unrelated tooling. No new dependency/library, CMS, lightbox, slug migration or animation system.
+- Authored implementation/tests/docs: 688 additions + deletions. Publication and its critical regressions/CI/docs stay coherent; recommend publication size exception rather than stripping proof or artificial file-type slices.
+- RDD: disabled/unmanaged, reconfirmed off by global source. Work-unit commit/end-boundary branch: pending creation; no push/PR/deploy or actual POST.
+
+## Completion audit
+
+| Approved requirement | Authoritative current proof |
+| --- | --- |
+| Configurable validated identity/content, no invented stats or author endpoint | Content validators and current six-page rendered integration tests; safe demo config in site.ts |
+| Distinct honest reference cases and one complete editorial gallery | Exact 3/1/2 galleries, captions/credits/disclosure/editorial/navigation assertions; loaded case covers in browser |
+| Readable work-first selection, separate catalogue, preserved identity/motion hooks | Current DOM order/real-cover assertions; 390/1440 screenshots, width/keyboard checks; actual ink/reveal controller tests |
+| Safe demo and reliable configured contact/native fallback | Fourteen actual transport/lifecycle scenarios; actual live production-HTML fixture; restored demo browser/HTML |
+| Publication metadata/sitemap and reproducible checks/docs | Exact canonical/sitemap/resources assertions, successful publicUrl override fixture, 57 passing tests/build/frozen install, CI file and aligned docs |
+| Local independent delivery in order toward main | Five behavior work-unit commits and named boundary branches; main remains at original branch point; no remote operations |
+
+All required local checks pass. Remote CI, deployed URLs, Formspree ownership/delivery, third-party licensing and a full final-content responsive/accessibility/performance matrix were not run or claimed; these are outside this authorized foundation scope. RDD remains disabled/unmanaged. Over-400 publication slices need an accepted size exception before PR publication. Unrelated .atl/ and .codegraph/ remain untracked and unstaged.

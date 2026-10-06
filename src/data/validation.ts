@@ -1,6 +1,6 @@
 import { readFileSync, realpathSync, statSync } from 'node:fs'
 import { resolve, sep } from 'node:path'
-import type { Project, SiteConfig } from './types.ts'
+import type { LocalImage, Project, SiteConfig } from './types.ts'
 
 type RecordValue = Record<string, unknown>
 interface Options { publicDirectory?: string }
@@ -72,7 +72,7 @@ function dimensions(bytes: Buffer): [number, number] | undefined {
   if (viewBox) return [Number(viewBox[1]), Number(viewBox[2])]
 }
 
-function image(value: unknown, path: string, directory: string, credited = false) {
+function image(value: unknown, path: string, directory: string, credited = false, raster = false) {
   const item = record(value, path)
   text(item.src, `${path}.src`)
   text(item.alt, `${path}.alt`, 8)
@@ -89,15 +89,27 @@ function image(value: unknown, path: string, directory: string, credited = false
     asset = realpathSync(resolve(root, `.${decoded}`))
     if (!asset.startsWith(`${root}${sep}`) || !statSync(asset).isFile()) throw new Error('not a local file')
   } catch { return fail(`${path}.src`, 'local asset is missing or outside public/') }
-  const actual = dimensions(readFileSync(asset))
+  const bytes = readFileSync(asset)
+  const actual = dimensions(bytes)
   if (!actual || actual[0] !== item.width || actual[1] !== item.height) {
     fail(`${path}.dimensions`, 'width/height must match a PNG, JPEG, WebP or SVG asset')
+  }
+  if (raster && !(bytes.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]))
+    || (bytes[0] === 0xff && bytes[1] === 0xd8)
+    || (bytes.toString('ascii', 0, 4) === 'RIFF' && bytes.toString('ascii', 8, 12) === 'WEBP'))) {
+    fail(`${path}.src`, 'social previews must be PNG, JPEG or WebP assets')
   }
   if (credited) {
     for (const key of ['caption', 'authorName', 'sourceName']) text(item[key], `${path}.${key}`)
     for (const key of ['authorLink', 'sourceLink']) https(item[key], `${path}.${key}`)
     if (!['small', 'medium', 'large'].includes(String(item.size))) fail(`${path}.size`, 'unknown gallery size')
   }
+}
+
+/** Social cards need a resolvable raster preview, including per-page overrides. */
+export function validateSocialImage(value: unknown, options: Options = {}): LocalImage {
+  image(value, 'site.socialImage', options.publicDirectory ?? defaultPublicDirectory, false, true)
+  return value as LocalImage
 }
 
 export function validateSite(value: unknown, options: Options = {}): SiteConfig {
@@ -107,6 +119,7 @@ export function validateSite(value: unknown, options: Options = {}): SiteConfig 
   if (!/^[a-z]{2,3}(?:-[a-zA-Z0-9]{2,8})*$/.test(String(site.lang))) fail('site.lang', 'expected a language tag')
   const publicUrl = https(site.publicUrl, 'site.publicUrl')
   if (publicUrl.pathname !== '/' || publicUrl.search || publicUrl.hash) fail('site.publicUrl', 'expected a public origin, without path/query/hash')
+  validateSocialImage(site.socialImage, options)
   image(site.logo, 'site.logo', directory)
   const signature = record(site.signature, 'site.signature')
   text(signature.label, 'site.signature.label')

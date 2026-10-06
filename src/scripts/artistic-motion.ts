@@ -9,6 +9,8 @@ const SVG_NS = "http://www.w3.org/2000/svg"
 
 let motionCtx: gsap.Context | undefined
 let listeners: AbortController | undefined
+let motionFrame: number | undefined
+let motionGeneration = 0
 
 const prefersReducedMotion = () =>
     window.matchMedia("(prefers-reduced-motion: reduce)").matches
@@ -856,8 +858,12 @@ function initInkTrail() {
 /** Rebuild the trail once layout settles (resize, fonts, images, view swaps). */
 function scheduleTrailRebuild(delay = 160) {
     window.clearTimeout(trailTimer)
+    const signal = listeners?.signal
+    if (!signal || signal.aborted || prefersReducedMotion()) return
+    const generation = motionGeneration
     trailTimer = window.setTimeout(() => {
-        if (prefersReducedMotion()) return
+        if (generation !== motionGeneration || signal.aborted || prefersReducedMotion()) return
+        trailTimer = undefined
         initInkTrail()
         ScrollTrigger.refresh()
     }, delay)
@@ -1132,11 +1138,17 @@ function initMotion() {
 }
 
 function teardownMotion() {
+    motionGeneration += 1
+    if (motionFrame !== undefined) cancelAnimationFrame(motionFrame)
+    motionFrame = undefined
     window.clearTimeout(trailTimer)
+    trailTimer = undefined
     trailObserver?.disconnect()
     trailObserver = undefined
     listeners?.abort()
+    listeners = undefined
     motionCtx?.revert()
+    motionCtx = undefined
     killInkTrail()
     ScrollTrigger.getAll().forEach((trigger) => trigger.kill())
 }
@@ -1147,10 +1159,19 @@ export function bootArtisticMotion() {
     }
 
     document.addEventListener("astro:page-load", () => {
-        requestAnimationFrame(() => initMotion())
+        teardownMotion()
+        const generation = motionGeneration
+        motionFrame = requestAnimationFrame(() => {
+            if (generation !== motionGeneration) return
+            motionFrame = undefined
+            initMotion()
+        })
         // Web fonts and late images move things around: re-route the trail
         // once they have settled (no-op when the layout did not change).
-        document.fonts?.ready.then(() => scheduleTrailRebuild(60))
+        document.fonts?.ready.then(() => {
+            if (generation !== motionGeneration) return
+            scheduleTrailRebuild(60)
+        })
     })
 
     document.addEventListener("astro:before-swap", teardownMotion)
