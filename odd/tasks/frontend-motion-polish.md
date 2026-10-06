@@ -196,6 +196,16 @@ Observed in the local dev server at 1440x900 and 375x812, and in the delegated c
   - The motion rewrite is one cohesive controller change: timing constants, signature schedule, reveals, CTA focus and blots share `initSignatures`, `initReveals` and the harness doubles.
   - Recommend `size:exception` when publishing.
 
+- **Work-unit commit.** `412bd4a`, `feat(motion): write the hero intro within the documented budget`. Local boundary branch: `codex/frontend-02-motion`. No push and no PR.
+
 ## Next step
 
-Commit T2, then delegate T3 (motion that answers navigation).
+Paused when the session usage limit was reached. Resume with T3 (motion that answers navigation):
+
+- Matching `transition:name` on the cover print in the catalogue, the home featured cover and the case `data-project-cover`. The morphed case cover must not also run a card entrance.
+- A drawn annotation underline on hover and `:focus-visible`.
+- Decorative arrow glyphs removed.
+
+Then T4 (skip link, `aria-current`, brand not a heading) and T5 (192px header logo derivative with validated dimensions).
+
+For browser checks, use the `dist-static` preview: Python serves `dist` on port 4322. Load pages in an iframe with a rAF polyfill while the pane is hidden.
