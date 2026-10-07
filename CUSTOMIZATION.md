@@ -43,6 +43,8 @@ Las tarjetas muestran la primera imagen de su propia galería como una impresió
 
 La imagen de biografía y el logo requieren ruta local, texto alternativo y dimensiones reales. El orden de secciones sigue definido en `src/pages/index.astro`. La cabecera ya forma parte de `Layout`; el pie se incluye desde cada página.
 
+La cabecera marca con `aria-current="page"` el destino de `navigation` que coincide con la página que se está viendo; un ancla como `/#about` nunca cuenta como página actual (la regla está en `src/data/navigation.ts`). La marca es un `<span>` con la tipografía de los títulos, no un encabezado, para que el esquema de cada página empiece en su `h1`. `Layout.astro` abre el `body` con un enlace de salto («Skip to content») hacia `<main id="main" tabindex="-1">`: conserva ese `id` y ese `tabindex`, y traduce la etiqueta si cambias el idioma.
+
 ## 3. Proyectos e ilustraciones
 
 Cada registro de `src/data/projects.ts` usa `Project`:

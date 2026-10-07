@@ -90,9 +90,12 @@ const socialImageUrl = new URL(socialImage.src, site.publicUrl)
     <ClientRouter />
   </head>
   <body class="font-sans antialiased">
+    {/* First stop for a keyboard: it lets a visitor leave the brand and navigation behind. Shown only on focus (global.css). */}
+    <a class="skip-link" href="#main">Skip to content</a>
     <InkTrail />
     <Header />
-    <main class:list={["relative", className]}>
+    {/* tabindex="-1" makes <main> a programmatic focus target, so following the skip link moves focus there in every browser. */}
+    <main id="main" tabindex="-1" class:list={["relative", className]}>
       <slot />
     </main>
     <Analytics />

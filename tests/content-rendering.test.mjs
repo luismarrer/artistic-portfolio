@@ -957,3 +957,171 @@ test('standalone text links carry the annotation, credits stay plain, and decora
     assert.ok(!/class="[^"]*\bunderline\b/.test(navigation), `${route}: the annotation owns the resting underline`)
   }
 })
+
+// ── Navigation semantics: skip link, current page and the brand ─────────────
+const bodyOf = (html) => html.slice(html.indexOf('<body'))
+
+// What Tab reaches, in document order. Nothing focusable follows <main>, so the scan stops there and never reads the
+// minified analytics script. A disabled control, a hidden input and tabindex="-1" are not tab stops.
+function tabStops(html) {
+  const body = bodyOf(html)
+  return [...body.slice(0, body.indexOf('</main>')).matchAll(/<([a-z][\w-]*)\b[^>]*>/gi)]
+    .filter(([tag, name]) => {
+      const item = attributes(tag)
+      if (item.tabindex !== undefined) return Number(item.tabindex) >= 0
+      if (/\sdisabled[\s/>]/.test(tag.replace(/"[^"]*"/g, '""')) || item.type === 'hidden') return false
+      return name === 'a' ? item.href !== undefined : ['button', 'input', 'select', 'textarea', 'summary'].includes(name)
+    })
+    .map(([tag]) => tag)
+}
+
+// The declarations that keep a box out of the viewport or clip it away: the ways to hide a link without leaving the tab order.
+const movedAway = (rule) => /translate[XY]?\(\s*-|translate\(\s*[^,)]+,\s*-/.test(rule.transform ?? '')
+  || ['top', 'left', 'inset', 'margin-top', 'margin-left'].some((property) => /^-/.test(rule[property] ?? ''))
+  || !['none', undefined].includes(rule['clip-path']) || ![undefined, 'auto'].includes(rule.clip)
+const pixels = (value = '') => (value.endsWith('rem') ? parseFloat(value) * 16 : value.endsWith('px') ? parseFloat(value) : NaN)
+
+test('the skip link is the first tab stop on every route and leads to the focusable main landmark', () => {
+  for (const route of routes) {
+    const html = documentFor(route)
+    const body = bodyOf(html)
+    const [first] = tabStops(html)
+    assert.ok(first, `${route} has tab stops`)
+    assert.equal(attributes(first).href, '#main', `${route}: the first tab stop must be the skip link, not ${first}`)
+    assert.ok(classesOf(first).includes('skip-link'), `${route}: the skip link carries the .skip-link role: ${first}`)
+    const start = body.indexOf(first)
+    assert.equal(body.slice(start + first.length, body.indexOf('</a>', start)), 'Skip to content', `${route}: the link says where it goes`)
+    assert.ok(start < body.indexOf('<header'), `${route}: the skip link comes before the header it lets a visitor skip`)
+
+    const mains = [...html.matchAll(/<main\b[^>]*>/g)].map(([tag]) => attributes(tag))
+    assert.equal(mains.length, 1, `${route} has one main landmark`)
+    assert.equal(mains[0].id, 'main', `${route}: the skip link needs a target`)
+    assert.equal(mains[0].tabindex, '-1', `${route}: main takes focus when the link is followed, in every browser`)
+    assert.equal([...html.matchAll(/\bid="main"/g)].length, 1, `${route}: #main must be unique`)
+  }
+})
+
+test('the skip link rests out of the viewport yet in the tab order, and shows at once as a legible 44px target on focus', () => {
+  const { color } = rootTokens()
+  const headerTag = documentFor('/').match(/<header\b[^>]*>/)?.[0]
+  const headerLayer = Number(classesOf(headerTag).find((name) => /^z-\d+$/.test(name))?.slice(2))
+  assert.ok(headerLayer > 0, 'the header declares its stacking layer')
+  for (const route of routes) {
+    assert.ok(Object.keys(declarations(stylesheetFor(route), '.skip-link')).length > 0, `${route} ships the .skip-link rule`)
+  }
+
+  const css = stylesheetFor('/')
+  const resting = declarations(css, '.skip-link')
+  const focused = { ...resting, ...declarations(css, '.skip-link:focus') }
+  for (const [name, state] of [['at rest', resting], ['on focus', focused]]) {
+    // display: none and visibility: hidden both take a link out of the tab order, so neither may hide it.
+    assert.notEqual(state.display, 'none', `${name}: display:none would remove the link from the tab order`)
+    assert.notEqual(state.visibility, 'hidden', `${name}: visibility:hidden would remove the link from the tab order`)
+    assert.equal(state.transition, undefined, `${name}: focus never waits for an animation`)
+    assert.equal(state.animation, undefined, `${name}: focus never waits for an animation`)
+  }
+  assert.ok(['fixed', 'absolute'].includes(resting.position), 'out of flow, so showing the link cannot shift the layout')
+  assert.ok(movedAway(resting), 'at rest the link sits outside the viewport')
+  assert.ok(!movedAway(focused), 'focus brings the link into view')
+
+  assert.ok(pixels(resting['min-height']) >= 44 && pixels(resting['min-width']) >= 44, 'the target is at least 44 x 44 px')
+  assert.ok(Number(resting['z-index']) > headerLayer, 'the link shows above the header')
+  assert.ok(Number(resting['z-index']) > Number(declarations(css, '.ink-trail')['z-index']), 'and above the ink trail')
+  const tokenOf = (value = '') => value.match(/^var\((--[\w-]+)\)$/)?.[1]
+  const [ink, fill] = [tokenOf(resting.color), tokenOf(resting['background-color'] ?? resting.background)]
+  assert.ok(ink && fill, `the link is painted with palette tokens, not ${resting.color} on ${resting['background-color']}`)
+  assert.ok(contrast(color(ink), color(fill)) >= 7, 'the label reads at the ink-on-paper contrast')
+
+  // The accent ring is the global a:focus-visible rule: nothing on the link may switch it off.
+  assert.equal(declarations(css, 'a:focus-visible').outline, '3px solid var(--color-accent)')
+  for (const selector of ['.skip-link', '.skip-link:focus', '.skip-link:focus-visible']) {
+    const state = declarations(css, selector)
+    assert.ok(!/^(?:none|0)\b/.test(state.outline ?? ''), `${selector} keeps the focus ring`)
+    assert.notEqual(state['outline-style'], 'none', `${selector} keeps the focus ring`)
+  }
+})
+
+test('the header marks only the page being viewed with aria-current="page", never a section or a case page', () => {
+  assert.ok(site.navigation.some(({ href }) => routes.includes(href)), 'the shipped navigation links to at least one page')
+  for (const route of routes) {
+    const html = documentFor(route)
+    const navigation = html.match(/<nav\b[^>]*aria-label="Main navigation"[^>]*>([\s\S]*?)<\/nav>/)?.[1]
+    assert.ok(navigation, `${route} renders the main navigation`)
+    const links = [...navigation.matchAll(/<a\b[^>]*>/g)].map(([tag]) => attributes(tag))
+    assert.deepEqual(links.map(({ href }) => href), site.navigation.map(({ href }) => href), `${route}: the header keeps its destinations in order`)
+    for (const link of links) {
+      // A destination is the current page only when it is exactly this route: "/#about" is a section of "/", not a page.
+      assert.equal(link['aria-current'], link.href === route ? 'page' : undefined, `${route}: aria-current on ${link.href}`)
+    }
+    for (const [, value] of html.matchAll(/\baria-current="([^"]*)"/g)) {
+      assert.equal(value, 'page', `${route}: aria-current is "page" or absent, never "${value}"`)
+    }
+  }
+})
+
+// Whether a compound selector such as `.annotate[aria-current=page]:after` describes the element opened by `tag`.
+// Only what the built CSS uses is understood: classes, attributes and a trailing pseudo-element. Anything else is no match.
+function compoundMatches(compound, tag) {
+  const base = compound.replace(/::?(?:after|before)$/, '')
+  if (base.includes(':')) return false
+  const attributeValues = attributes(tag)
+  const classes = classesOf(tag)
+  const parts = [...base.matchAll(/\.([\w-]+)|\[([\w-]+)(?:=([^\]]*))?\]|^([a-z][\w-]*)/g)]
+  return parts.length > 0 && parts.every(([, className, attribute, value, element]) => {
+    if (className) return classes.includes(className)
+    if (attribute) return value === undefined ? attribute in attributeValues : attributeValues[attribute] === value.replace(/^["']|["']$/g, '')
+    return tag.startsWith(`<${element}`)
+  })
+}
+// A descendant selector reaches the label (its last compound) from the link (every compound before it).
+const selectorMatches = (selector, anchor, label) => {
+  if (/[>+~]/.test(selector)) return false
+  const [subject, ...ancestors] = selector.split(' ').reverse()
+  return compoundMatches(subject, label) && ancestors.every((ancestor) => compoundMatches(ancestor, anchor))
+}
+
+test('the drawn annotation rule for the current page matches the markup that carries aria-current', () => {
+  let checked = 0
+  for (const route of routes) {
+    const navigation = documentFor(route).match(/<nav\b[^>]*aria-label="Main navigation"[^>]*>([\s\S]*?)<\/nav>/)?.[1] ?? ''
+    for (const [, anchor, inner] of navigation.matchAll(/(<a\b[^>]*\baria-current="page"[^>]*>)([\s\S]*?)<\/a>/g)) {
+      const label = inner.match(/<span\b[^>]*>/)?.[0]
+      assert.ok(label && classesOf(label).includes('annotate'), `${route}: the current link keeps its .annotate label: ${inner}`)
+      const drawn = rulesMentioning(stylesheetFor(route), 'aria-current')
+        .filter(({ body }) => /(?:^|;)clip-path:\s*inset\(0(?:px)?\)\s*(?:;|$)/.test(body))
+        .flatMap(({ selectors }) => selectors)
+      assert.ok(drawn.some((selector) => selectorMatches(selector, anchor, label)),
+        `${route}: no rule that draws the stroke matches ${anchor}${label}; the rules are: ${drawn.join(' | ')}`)
+      checked++
+    }
+  }
+  assert.ok(checked >= 2, `Portfolio and Contact each show the current page (${checked} checked)`)
+})
+
+test('the brand is a name, not a heading: the header holds none and every page opens its outline with its h1', () => {
+  const css = stylesheetFor('/')
+  for (const route of routes) {
+    const html = documentFor(route)
+    // The site header precedes <main>; the selection block's own <header> sits inside it.
+    const header = html.match(/<header\b[^>]*>([\s\S]*?)<\/header>/)
+    assert.ok(header && html.indexOf(header[0]) < html.indexOf('<main'), `${route} opens with the site header`)
+    assert.deepEqual([...header[1].matchAll(/<h[1-6]\b/g)].map(([tag]) => tag), [], `${route}: the header introduces no heading`)
+
+    const home = header[1].match(/<a\b[^>]*\bhref="\/"[^>]*>([\s\S]*?)<\/a>/)
+    assert.ok(home, `${route}: the brand still links home`)
+    assert.equal(attributes(home[0])['aria-label'], `${site.name} home`, `${route}: the accessible name keeps the brand text`)
+    assert.equal(attributes(home[1].match(/<img\b[^>]*>/)?.[0] ?? '').alt, '', `${route}: the logo stays decorative`)
+    const brand = home[1].match(new RegExp(`<(\\w+)\\b[^>]*>${escapeRegExp(escape(site.name))}</\\1>`))
+    assert.ok(brand, `${route}: the brand text sits in its own element`)
+    assert.ok(!/^h[1-6]$/.test(brand[1]), `${route}: the brand is a <${brand[1]}>, not a heading`)
+    assert.ok(classesOf(brand[0]).includes('text-2xl'), `${route}: the brand keeps its size and line height`)
+    // The face of a heading without being one: some class on it sets Mansalva, and only its Regular weight ships.
+    const faces = classesOf(brand[0]).map((name) => declarations(css, `.${name}`)).filter((rule) => /Mansalva/.test(rule['font-family'] ?? ''))
+    assert.ok(faces.length > 0, `${route}: the brand is written in Mansalva`)
+    assert.ok(faces.every((rule) => rule['font-weight'] === '400'), `${route}: the brand never asks for a weight Mansalva lacks`)
+
+    const levels = [...bodyOf(html).matchAll(/<h([1-6])\b/g)].map(([, level]) => Number(level))
+    assert.equal(levels[0], 1, `${route}: the first heading is the page h1, not the brand`)
+    assert.equal(levels.filter((level) => level === 1).length, 1, `${route}: one h1 per page`)
+  }
+})

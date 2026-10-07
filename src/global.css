@@ -218,6 +218,36 @@ textarea:focus-visible {
   }
 
   /*
+   * Skip link: the first stop for a keyboard, so a visitor can leave the brand and navigation behind.
+   * At rest it is moved out of the viewport rather than hidden, because display:none and visibility:hidden
+   * would both take it out of the tab order. It is fixed, so showing it never shifts the layout, and it
+   * appears the instant it takes focus (no transition) above the header (z-50) and the ink trail
+   * (z-index 25). The accent focus ring is the global a:focus-visible rule.
+   */
+  .skip-link {
+    position: fixed;
+    top: 0.75rem;
+    left: var(--page-gutter);
+    z-index: 60;
+    display: inline-flex;
+    align-items: center;
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    padding-inline: 1.25rem;
+    border-radius: var(--radius-print);
+    background-color: var(--color-ink);
+    color: var(--color-paper);
+    font-size: var(--text-label);
+    font-weight: 600;
+    line-height: 1.4;
+    transform: translateY(-200%);
+  }
+
+  .skip-link:focus {
+    transform: none;
+  }
+
+  /*
    * Drawn annotation for a standalone text link. At rest it is an ordinary thin underline, so the link
    * stays recognisable without hover. When the link is hovered or keyboard-focused, a hand-drawn stroke
    * is drawn under the label from left to right while the straight underline fades out.
@@ -334,10 +364,15 @@ textarea:focus-visible {
   object-fit: cover;
 }
 
+/*
+ * The heading face. The header brand wears it too (.brand-name) without being a heading: a name is not a
+ * section title, so it is a span and stays out of the page outline.
+ */
 h1,
 h2,
 .md-container h1,
-.md-container h2 {
+.md-container h2,
+.brand-name {
   font-family: "Mansalva", sans-serif, system-ui, "Josefin Sans";
   /* Only the Regular face ships: never let a utility (font-bold) synthesize a faux bold. */
   font-weight: 400;

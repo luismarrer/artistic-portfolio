@@ -1,5 +1,8 @@
 ---
 import { site } from "@/data/site"
+import { isCurrentPage } from "@/data/navigation"
+
+const { pathname } = Astro.url
 ---
 
 <header
@@ -7,14 +10,19 @@ import { site } from "@/data/site"
 >
     <a href="/" class="flex min-h-11 shrink-0 items-center gap-2" aria-label={`${site.name} home`}>
         <img src={site.logo.src} alt="" width="45" height="45" />
-        <h2 class="text-2xl">{site.name}</h2>
+        {/* A name, not a section title: a span in the heading face keeps the brand out of the page outline. */}
+        <span class="brand-name text-2xl">{site.name}</span>
     </a>
     <nav aria-label="Main navigation">
         <ul class="flex flex-wrap justify-center gap-x-2 sm:gap-x-4 md:gap-x-6">
             {site.navigation.map((link) => (
                 <li>
                     {/* Quiet variant: no resting underline, only the drawn stroke. aria-current="page" on the link keeps it drawn. */}
-                    <a href={link.href} class="flex min-h-11 items-center px-2 hover:text-(--color-accent)">
+                    <a
+                        href={link.href}
+                        aria-current={isCurrentPage(link.href, pathname) ? "page" : undefined}
+                        class="flex min-h-11 items-center px-2 hover:text-(--color-accent)"
+                    >
                         <span class="annotate annotate-quiet">{link.label}</span>
                     </a>
                 </li>

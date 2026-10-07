@@ -119,7 +119,7 @@ Observed in the local dev server at 1440x900 and 375x812, and in the delegated c
   - Each catalogue or featured cover morphs into its case cover through a matching `transition:name`. Animation is disabled under reduced motion.
   - Text links get a drawn annotation underline on hover and `:focus-visible`, while the resting underline and focus outline stay visible.
   - Appended arrow glyphs are removed where the underline carries the affordance.
-- [ ] **T4 — Navigation semantics.**
+- [x] **T4 — Navigation semantics.**
   - Add a skip link to `#main`.
   - Add `aria-current="page"` on the current destination.
   - The brand is no longer a heading, and its look is unchanged.
@@ -219,9 +219,29 @@ Observed in the local dev server at 1440x900 and 375x812, and in the delegated c
 - **Native assessment.** Risk `medium` (`executable_change`), RDD off: writer self-verification plus parent spot check. No review was started.
 - **Size.** 453 authored lines (+414 / -39; tests about 230). This is a cohesive behaviour with its tests, slightly over the planning heuristic.
 
+- **Work-unit commit.** `711e3a7`, `feat(navigation): morph covers between pages and draw link annotations`. Local boundary branch: `codex/frontend-03-navigation`.
+
+## T4 evidence
+
+- **Route.** Delegated direct to one bounded writer. Trigger: layout, header, CSS, a new navigation helper and rendered plus unit tests.
+- **RED.** 105 tests, 97 pass / 8 fail. The 8 failures are exactly the new tests. The writer's mutation pass of 29 single-point mutations killed every one, and the files were restored.
+- **GREEN.** 105 / 105. The parent re-ran `pnpm test`: 105 pass / 0 fail.
+- **Functional checks.** Writer `pnpm build`: astro check over 34 files with 0 errors, warnings or hints; 6 pages. `git diff --check`: clean.
+- **Production-build browser check (parent, `dist-static`, real key presses).**
+  - The first Tab focuses "Skip to content": an ink chip at the top-left with the accent outline, `:focus-visible`.
+  - Enter moves to `#main`, and the next Tab lands on the first project card, skipping the brand and nav.
+  - `/portfolio` marks only Portfolio with `aria-current="page"` and its permanently drawn stroke.
+  - The header contains no headings. The brand renders as Mansalva 24px, weight 400.
+- **Decisions.**
+  - The skip-link label stays in the layout, like the other landmark names, instead of becoming a new required `site` key.
+  - The pure `isCurrentPage(href, pathname)` in `src/data/navigation.ts` normalizes trailing slashes and is unit-tested.
+  - ClientRouter's same-page hash path ends in native fragment navigation, so there is no `data-astro-reload`.
+- **Native assessment.** Risk `medium` (`executable_change`), RDD off: writer self-verification plus parent spot and runtime checks. No review was started.
+- **Size.** 268 authored lines (+264 / -4; tests about 200).
+
 ## Next step
 
-Commit T3, then T4 (navigation semantics) and T5 (header logo derivative).
+Commit T4, then T5 (header logo derivative) inline.
 
 ## Resume notes (from the earlier pause)
 
