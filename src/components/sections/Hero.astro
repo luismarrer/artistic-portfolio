@@ -6,9 +6,11 @@ import { site } from "@/data/site"
 const heroTitle = site.hero.title
 ---
 
+{/* Owner-pinned rule (AGENTS.md): on entry the grid fills the visitor's whole screen. Keep min-h-svh; never size the hero to its content. */}
 <section
     data-hero
     class="relative
+            min-h-svh
             hero
             flex
             flex-col

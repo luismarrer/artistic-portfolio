@@ -126,6 +126,10 @@ Observed in the local dev server at 1440x900 and 375x812, and in the delegated c
 - [x] **T5 — Lighter first view.**
   - The header mark uses a correctly sized local derivative instead of the 1.0 MB, 1024px PNG.
   - Validated dimensions and the configuration remain coherent.
+- [x] **T6 — Full-screen hero on entry (owner-pinned rule).** Added on 2026-10-07 at the owner's request. It supersedes the content-height hero from portfolio-foundations `06e6884`, which T1 kept and pinned.
+  - On entry the hero grid fills the visitor's whole screen, edge to edge and top to bottom, as in production: `min-h-svh` on the hero, with the header floating over it.
+  - The rule is recorded for every agent (`AGENTS.md`, `CLAUDE.md`, `docs/DESIGN.md`, `CUSTOMIZATION.md`) and guarded by a dedicated test.
+  - The two assertions that pinned the opposite are removed. The grid tail below the first screen stays.
 
 ## Progress and evidence
 
@@ -255,9 +259,31 @@ Observed in the local dev server at 1440x900 and 375x812, and in the delegated c
 - **Docs.** `CUSTOMIZATION.md` now recommends a header mark of about 192px (135-256px, at most 48 KiB), checked by `pnpm test`.
 - **Native assessment.** Risk `medium` (`executable_change`), 15 changed text lines plus the binary. RDD is off.
 
+## T6 evidence
+
+- **Trigger.** On 2026-10-07 the owner pinned a design rule: on entry the grid must take the visitor's whole screen, as in production, and no agent may change it again.
+  - Production (`main`) has `min-h-svh` on the hero. Portfolio-foundations `06e6884` removed it.
+  - Two tests pinned the content-height hero: one from that slice ("the introduction must not reserve a screen before artwork") and one from T1.
+- **Route.** Direct inline: one class on the hero, one new test with two obsolete assertions removed, and documentation of a rule the owner already decided. No research and no open design decision.
+- **RED.** `pnpm test`: 107 tests, 106 pass / 1 fail. The new test failed with "the hero is at least one full screen tall, never just its content".
+- **GREEN.**
+  - `min-h-svh` is restored on the hero section, with a source comment pointing to `AGENTS.md`.
+  - `pnpm test`: 107 pass / 0 fail.
+  - `pnpm build`: astro check over 34 files with 0 errors, warnings or hints; 6 pages.
+  - `git diff --check`: clean.
+- **Runtime (dist-static).**
+  - At 1440x900 the hero box is 1440x900 at the origin. At 375x812 it is 375x812, with no horizontal overflow.
+  - Points at both bottom corners, the bottom centre and the left edge resolve inside the hero.
+  - A zoomed readback shows the ruled grid reaching the bottom edge.
+- **Rule recorded.**
+  - `AGENTS.md` holds the pinned design rules, read by Codex and other agents. `CLAUDE.md` imports it for Claude Code.
+  - Also in `docs/DESIGN.md`, `CUSTOMIZATION.md` and a supersession note in `odd/tasks/portfolio-foundations.md`.
+  - Saved to Claude project memory and Engram.
+- **Delivery caveat.** The fix sits at the tip as slice 6. Slices `codex/portfolio-03-presentation` through `codex/frontend-05-weight` still carry the content-height hero, so merging them to `main` without slice 6 would deploy that regression. Publish slice 6 in the same deploy window, or restack the fix right after `06e6884` before publishing.
+
 ## Outcome
 
-All five accepted tasks are implemented, verified and committed as local, stacked work units. Commit and branch details are in the slice table below.
+All six accepted tasks are implemented, verified and committed as local, stacked work units. The owner added T6 on 2026-10-07. Commit and branch details are in the slice table below.
 
 | Slice | Task | Local boundary branch | Commit | Authored lines |
 | --- | --- | --- | --- | --- |
@@ -265,7 +291,8 @@ All five accepted tasks are implemented, verified and committed as local, stacke
 | 2 | T2 written intro within budget | `codex/frontend-02-motion` | `412bd4a` | 883 (tests 422) |
 | 3 | T3 motion that answers navigation | `codex/frontend-03-navigation` | `711e3a7` | 453 (tests about 230) |
 | 4 | T4 navigation semantics | `codex/frontend-04-a11y` | `232005b` | 268 (tests about 200) |
-| 5 | T5 lighter first view | `codex/frontend-05-weight` | recorded in the slice branch | 15 plus binary |
+| 5 | T5 lighter first view | `codex/frontend-05-weight` | `51f1906` | 15 plus binary |
+| 6 | T6 full-screen hero on entry | `codex/frontend-06-hero-screen` | recorded in the slice branch | 41 (tests 25) |
 
 - **Size and delivery.** About 2,400 authored lines plus tracking, against a 900-1,300 forecast. The forecast was low, mostly because strict TDD tests are about half of every slice; it was never a cap.
   - Slices 1-3 exceed 400 lines as cohesive behaviours with their tests. Recommend `size:exception` for those when publishing.
@@ -279,7 +306,7 @@ All five accepted tasks are implemented, verified and committed as local, stacke
 
 ## Next step
 
-Watch the cover morph and the drawn underline in a visible browser, including Safari, and review the slices. Publishing pull requests, in order toward `main` after the portfolio-foundations slices, needs explicit authorization.
+Watch the cover morph and the drawn underline in a visible browser, including Safari, and review the slices. Publishing pull requests, in order toward `main` after the portfolio-foundations slices, needs explicit authorization. Slice 6 must ship with them (see the T6 delivery caveat).
 
 ## Verification method note
 

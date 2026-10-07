@@ -6,7 +6,9 @@ Implement the accepted assessment priorities: a convincing, honestly labelled ar
 
 ## Problem and why
 
-Identity is scattered across components; every project uses the same fallback collage; work appears after a full-screen introduction and biography. The hero heading has weak contrast. Contact sends to a demo owner's endpoint without pending/error states. A passing build currently skips the sitemap, and there are no automated regression tests or CI workflows.
+Identity is scattered across components; every project uses the same fallback collage; work appears after a full-screen introduction and biography. The hero heading has weak contrast.
+
+> **Superseded on 2026-10-07 by the owner.** The full-screen introduction is not a problem: on entry the hero grid must fill the whole screen, as in production. This feature's content-height hero (`06e6884`) was reverted in `frontend-motion-polish` T6. See `AGENTS.md`. Contact sends to a demo owner's endpoint without pending/error states. A passing build currently skips the sitemap, and there are no automated regression tests or CI workflows.
 
 ## Scope and constraints
 

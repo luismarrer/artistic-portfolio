@@ -33,7 +33,7 @@ Actualiza además los archivos de iconos de `public/` y el nombre y los iconos d
 
 ## 2. Inicio y biografía
 
-Los textos iniciales viven en `site.hero`. La introducción tiene altura determinada por su contenido, texto oscuro sobre la cuadrícula cálida y una firma compacta; no reserva una pantalla completa antes de mostrar obra. Conserva `data-hero`, `.js-hero-title`, `.js-scroll-hint`, `data-magnetic` y `start` al modificar los componentes: las animaciones de `src/scripts/artistic-motion.ts` usan esos selectores. El botón inicial apunta a `#projects`; si configuras una ruta en lugar de un ancla, mantiene la navegación HTML normal.
+Los textos iniciales viven en `site.hero`. Al entrar, la cuadrícula cálida de la introducción ocupa toda la pantalla (`min-h-svh` en `Hero.astro`), con texto oscuro y una firma compacta; es una regla de diseño fijada (ver `AGENTS.md`) y `pnpm test` la comprueba. Conserva `data-hero`, `.js-hero-title`, `.js-scroll-hint`, `data-magnetic` y `start` al modificar los componentes: las animaciones de `src/scripts/artistic-motion.ts` usan esos selectores. El botón inicial apunta a `#projects`; si configuras una ruta en lugar de un ancla, mantiene la navegación HTML normal.
 
 El inicio muestra una sola colección antes de la biografía: la primera con `featured: true`, o la primera del archivo si ninguna está destacada. `/portfolio` muestra el catálogo completo. Los títulos, descripciones y etiquetas de estos dos recorridos se editan en `site.portfolio`; cambia el orden de los registros para elegir la primera selección.
 

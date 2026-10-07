@@ -275,11 +275,10 @@ test('catalogue cards display the case covers and keep essential credits outside
   assert.ok(!html.includes('Portfolio Page'))
 })
 
-test('the compact hero retains readable anchor controls and its dark-ink visual contract', () => {
+test('the hero retains readable anchor controls and its dark-ink visual contract', () => {
   const html = page('.')
   const hero = html.match(/<section\b[^>]*data-hero[^>]*>([\s\S]*?)<\/section>/)
   assert.ok(hero)
-  assert.ok(!hero[0].includes('min-h-svh'), 'the introduction must not reserve a screen before artwork')
   const cta = hero[1].match(/<a\b[^>]*id="start"[^>]*>/)?.[0]
   assert.ok(cta?.includes(`href="${site.hero.buttonHref}"`), 'keep a native anchor fallback')
   assert.ok(!cta.includes('data-reveal'))
@@ -482,7 +481,27 @@ test('the hero grid continues behind the first work as an inert layer that fades
   assert.equal(selection.position, 'relative')
   assert.ok(Number(selection['z-index']) >= 1, 'the featured print and its text paint above the grid tail')
   assert.ok(Number(selection['z-index']) < Number(declarations(css, '.ink-trail')['z-index']), 'the ink trail stays above')
-  assert.ok(hero.includes('data-hero') && !hero.includes('min-h-svh'))
+})
+
+// Owner-pinned design rule (AGENTS.md): on entry the hero grid covers the visitor's whole screen, as the production
+// site always has. Do not weaken, invert or delete this test to fit a redesign; only the owner can lift the rule.
+test('on entry the hero grid fills the whole screen, top to bottom and edge to edge', () => {
+  const html = documentFor('/')
+  const css = stylesheetFor('/')
+  const hero = html.match(/<section\b[^>]*data-hero[^>]*>/)?.[0]
+  assert.ok(hero)
+  const heroClasses = classesOf(hero)
+  assert.ok(heroClasses.includes('grid-background'), 'the hero itself paints the grid')
+  assert.ok(heroClasses.includes('min-h-svh'), 'the hero is at least one full screen tall, never just its content')
+  assert.equal(declarations(css, '.min-h-svh')['min-height'], '100svh')
+  assert.ok(!heroClasses.some((name) => /^(?:max-[wh]-|h-|container$|m[trblxyse]?-)/.test(name)),
+    `nothing may cap, offset or narrow the hero: ${heroClasses.join(' ')}`)
+  const heroRule = declarations(css, '.hero')
+  assert.ok(!Object.keys(heroRule).some((property) => /^(?:max-|height$|min-height$|margin)/.test(property)),
+    'the hero rule may not override the full-screen height or add margins')
+  // Nothing in flow sits above the grid: the header floats over it and the hero opens <main>.
+  assert.match(html, /<main\b[^>]*>\s*<section\b[^>]*data-hero/)
+  assert.ok(classesOf(html.match(/<header\b[^>]*>/)?.[0]).includes('absolute'), 'the header floats over the grid')
 })
 
 test('artwork is mounted as a print on the home, catalogue and case pages', () => {

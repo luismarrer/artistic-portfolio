@@ -15,7 +15,7 @@ La base inspeccionada contiene seis páginas generadas, Astro 7, Tailwind CSS 4,
 | Decisión | Estado actual | Propuesta |
 | --- | --- | --- |
 | Identidad | Mansalva, Josefin Sans, cuadrícula y colores cálidos | Conservarlos y asignarles funciones estables |
-| Inicio | Hero de altura mínima de pantalla, biografía y proyectos | Presentación breve, obra seleccionada, biografía y contacto |
+| Inicio | Hero de altura mínima de pantalla, biografía y proyectos | Hero que ocupa toda la pantalla al entrar (regla fijada), obra seleccionada, biografía y contacto |
 | Portfolio | Introducción ilustrada, mismas tarjetas y collage genérico | Índice visual de proyectos con su propia portada |
 | Fichas | SVG, descripción y collage compartido | Caso con contexto, proceso, resultado y galería propia |
 | Movimiento | GSAP centralizado: entrada por palabras, firma, trazo ligado al scroll y apariciones de secciones; limpieza entre rutas | Conservar firma y trazo, ajustar su intensidad y garantizar navegación sin animación |
@@ -69,7 +69,7 @@ El pie muestra nombre, una frase corta, enlace a contacto, redes configuradas y 
 
 Reordenar a presentación → obra seleccionada → más proyectos → biografía breve → contacto. El título explica la práctica artística en una frase específica. Sustituir la promesa genérica por contenido configurable; no escribir afirmaciones nuevas en nombre de una persona real.
 
-La altura del hero la decide su contenido. La cuadrícula puede extenderse detrás de la primera obra, uniendo presentación y trabajo. El primer CTA, “Ver proyectos” en una instalación en español, enlaza al índice o a la selección con un destino estable.
+**Regla fijada por el propietario, que ningún agente debe cambiar:** al entrar, la cuadrícula del hero ocupa toda la pantalla del visitante, de borde a borde y de arriba abajo, como en producción. El hero conserva `min-h-svh` y nunca se ajusta a la altura de su contenido (ver `AGENTS.md`). Por debajo de esa primera pantalla, la cuadrícula puede extenderse detrás de la primera obra, uniendo presentación y trabajo. El primer CTA, “Ver proyectos” en una instalación en español, enlaza al índice o a la selección con un destino estable.
 
 ```text
 Escritorio
