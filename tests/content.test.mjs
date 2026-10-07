@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs'
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync, statSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { after, test } from 'node:test'
@@ -208,4 +208,13 @@ test('requires project disclosure so original work can replace the demo without 
   assert.throws(() => validateProjects(changeProject((p) => { p.disclosure = ' ' }), options), /disclosure/)
   const original = changeProject((p) => { p.disclosure = 'Original personal work by the portfolio owner.' })
   assert.equal(validateProjects(original, options)[0].disclosure, original[0].disclosure)
+})
+
+test('ships a header mark sized for its 45px display instead of a full-resolution master', () => {
+  // The header renders the mark at 45x45 CSS pixels on every page; 135px covers 3x screens.
+  const { width, height, src } = site.logo
+  assert.ok(width >= 135 && height >= 135, `logo ${width}x${height} is too small for 3x screens`)
+  assert.ok(width <= 256 && height <= 256, `logo ${width}x${height} is larger than any header display needs`)
+  const bytes = statSync(join('public', decodeURIComponent(src))).size
+  assert.ok(bytes <= 48 * 1024, `logo weighs ${bytes} bytes; keep the header mark under 48 KiB`)
 })

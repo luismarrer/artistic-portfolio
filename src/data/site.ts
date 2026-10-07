@@ -12,7 +12,7 @@ export const site = validateSite({
     alt: 'Misty forested hills layered beneath a pale sky',
     width: 1280, height: 853,
   },
-  logo: { src: '/logo.png', alt: 'Musea Art identity mark', width: 1024, height: 1024 },
+  logo: { src: '/logo.png', alt: 'Musea Art identity mark', width: 192, height: 192 },
   signature: { label: 'Musea', useDemoArtwork: true },
   hero: { title: 'Turn Your Ideas Into Art', buttonLabel: 'Explore the collections', buttonHref: '#projects' },
   portfolio: {

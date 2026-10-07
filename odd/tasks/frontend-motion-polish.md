@@ -123,7 +123,7 @@ Observed in the local dev server at 1440x900 and 375x812, and in the delegated c
   - Add a skip link to `#main`.
   - Add `aria-current="page"` on the current destination.
   - The brand is no longer a heading, and its look is unchanged.
-- [ ] **T5 — Lighter first view.**
+- [x] **T5 — Lighter first view.**
   - The header mark uses a correctly sized local derivative instead of the 1.0 MB, 1024px PNG.
   - Validated dimensions and the configuration remain coherent.
 
@@ -239,18 +239,52 @@ Observed in the local dev server at 1440x900 and 375x812, and in the delegated c
 - **Native assessment.** Risk `medium` (`executable_change`), RDD off: writer self-verification plus parent spot and runtime checks. No review was started.
 - **Size.** 268 authored lines (+264 / -4; tests about 200).
 
+- **Work-unit commit.** `232005b`, `feat(a11y): add skip link, current-page state and non-heading brand`. Local boundary branch: `codex/frontend-04-a11y`.
+
+## T5 evidence
+
+- **Route.** Direct inline: one mechanical asset change plus one data line, one test and one doc sentence. No design decision was left open.
+- **RED.** `node --test tests/content.test.mjs`: 21 tests, 20 pass / 1 fail. The new budget test failed with "logo 1024x1024 is larger than any header display needs".
+- **GREEN.**
+  - `public/logo.png` was resized in place with `sips -Z 192` to 192x192 with alpha. It went from 1.0 MB to 16 KB, and a visual readback was crisp.
+  - `site.logo` was updated to 192x192.
+  - `pnpm test`: 106 pass / 0 fail.
+  - `pnpm build`: 0 errors, warnings or hints; 6 pages.
+  - `git diff --check`: clean.
+- **Runtime (dist-static).** The header logo is natural 192x192, rendered 45x45, with a transfer size of 16 KB.
+- **Docs.** `CUSTOMIZATION.md` now recommends a header mark of about 192px (135-256px, at most 48 KiB), checked by `pnpm test`.
+- **Native assessment.** Risk `medium` (`executable_change`), 15 changed text lines plus the binary. RDD is off.
+
+## Outcome
+
+All five accepted tasks are implemented, verified and committed as local, stacked work units. Commit and branch details are in the slice table below.
+
+| Slice | Task | Local boundary branch | Commit | Authored lines |
+| --- | --- | --- | --- | --- |
+| 1 | T1 paper and print system | `codex/frontend-01-paper` | `f2ec28d` | 783 (tests 415) |
+| 2 | T2 written intro within budget | `codex/frontend-02-motion` | `412bd4a` | 883 (tests 422) |
+| 3 | T3 motion that answers navigation | `codex/frontend-03-navigation` | `711e3a7` | 453 (tests about 230) |
+| 4 | T4 navigation semantics | `codex/frontend-04-a11y` | `232005b` | 268 (tests about 200) |
+| 5 | T5 lighter first view | `codex/frontend-05-weight` | recorded in the slice branch | 15 plus binary |
+
+- **Size and delivery.** About 2,400 authored lines plus tracking, against a 900-1,300 forecast. The forecast was low, mostly because strict TDD tests are about half of every slice; it was never a cap.
+  - Slices 1-3 exceed 400 lines as cohesive behaviours with their tests. Recommend `size:exception` for those when publishing.
+  - The chain stacks on `f6ce18a` (the `codex/portfolio-foundations` tip), whose slices are not on `main` yet.
+- **Checks not performed or not conclusive.**
+  - The cover morph animation was not watched. The hidden Browser pane skips view transitions; pairing, classes and timing are covered by tests and structural checks.
+  - WebKit/Safari was not tested.
+  - The full DESIGN width matrix was not run. Checked widths: 375 and 1440.
+  - Reduced motion was verified by unit tests and CSS assertions, not by browser emulation.
+- **Out of band.** A separate session is removing unreferenced assets on `claude/remove-dead-assets`. It was told to skip `Drawing.astro`, which T2 already deleted.
+
 ## Next step
 
-Commit T4, then T5 (header logo derivative) inline.
+Watch the cover morph and the drawn underline in a visible browser, including Safari, and review the slices. Publishing pull requests, in order toward `main` after the portfolio-foundations slices, needs explicit authorization.
 
-## Resume notes (from the earlier pause)
+## Verification method note
 
-Paused when the session usage limit was reached. Resume with T3 (motion that answers navigation):
+The session paused once at a usage limit after T2 and resumed without loss.
 
-- Matching `transition:name` on the cover print in the catalogue, the home featured cover and the case `data-project-cover`. The morphed case cover must not also run a card entrance.
-- A drawn annotation underline on hover and `:focus-visible`.
-- Decorative arrow glyphs removed.
-
-Then T4 (skip link, `aria-current`, brand not a heading) and T5 (192px header logo derivative with validated dimensions).
-
-For browser checks, use the `dist-static` preview: Python serves `dist` on port 4322. Load pages in an iframe with a rAF polyfill while the pane is hidden.
+For agent-driven browser checks:
+- Use the local `dist-static` preview (Python serving `dist` on port 4322) rather than the dev server.
+- While the Browser pane is hidden, native `requestAnimationFrame` never fires and view transitions are skipped. Load pages in an iframe with a setTimeout-based rAF polyfill to measure GSAP timing.
