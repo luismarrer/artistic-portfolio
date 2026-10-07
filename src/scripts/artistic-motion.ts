@@ -511,10 +511,11 @@ function buildTrailRoute(L: TrailLayout): Anchor[] {
 // ─── Intro: one written moment ──────────────────────────────────────────────
 //
 // The page-load intro is the only orchestrated motion, and it is over by about
-// 1.2 s: the headline is written word by word, the signature starts as its last
-// words land (the pen and a clip wipe write it together, then the pen underlines
-// it and lifts), and the scroll hint arrives last, once. Nothing flies, spins or
-// loops. Every time below is in seconds.
+// 1.2 s: the headline is written word by word, and the signature starts as its
+// last words land (the pen and a clip wipe write it together, then the pen
+// underlines it and lifts). Nothing flies, spins or loops. The one exception is
+// the arrow under the hero, which keeps its production animation outside this
+// budget (see PINNED_SCROLL_HINT). Every time below is in seconds.
 
 /** Headline words are revealed left to right by a clip wipe, in reading order. */
 const WORD_WIPE = {
@@ -539,8 +540,17 @@ const SIGNATURE_TIMING = {
 /** The pen starts lifting this long before the underline ends, as the stroke closes. */
 const PEN_LIFT_OVERLAP = 0.05
 
-/** The scroll hint fades in once, as the intro finishes, and then stays still. */
-const SCROLL_HINT = { delay: 0.9, duration: 0.3 }
+/**
+ * The arrow under the hero: it enters, then bounces without end, as on the production site. The
+ * owner pinned these exact values (see AGENTS.md), so they must not be tuned.
+ */
+const PINNED_SCROLL_HINT = {
+    enter: {
+        from: { autoAlpha: 0, y: -6 },
+        to: { autoAlpha: 1, y: 0, duration: 0.6, delay: 1.4 },
+    },
+    bounce: { y: 8, duration: 1.1, repeat: -1, yoyo: true, ease: "sine.inOut", delay: 1.8 },
+}
 
 /** Secondary reveals and cards settle from at most this many pixels below: a hint, not an entrance. */
 const REVEAL_RISE = 12
@@ -965,13 +975,13 @@ function initReveals() {
 
     // The CTA has no entrance: the primary action is simply there. Its only motion answers the pointer.
 
+    // Both tweens are made here, inside the controller's gsap context, so reverting that context on
+    // teardown is what stops the endless bounce. They get copies: GSAP writes onto the vars it is given.
     const hint = document.querySelector<HTMLElement>(".js-scroll-hint")
     if (hint) {
-        gsap.fromTo(
-            hint,
-            { autoAlpha: 0 },
-            { autoAlpha: 1, ...SCROLL_HINT },
-        )
+        const { enter, bounce } = PINNED_SCROLL_HINT
+        gsap.fromTo(hint, { ...enter.from }, { ...enter.to })
+        gsap.to(hint, { ...bounce })
     }
 
     // Secondary reveals are short fades with a small rise: no lateral entrance, no tilt.

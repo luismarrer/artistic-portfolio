@@ -504,6 +504,16 @@ test('on entry the hero grid fills the whole screen, top to bottom and edge to e
   assert.ok(classesOf(html.match(/<header\b[^>]*>/)?.[0]).includes('absolute'), 'the header floats over the grid')
 })
 
+// Part of the owner-pinned arrow rule (AGENTS.md): the 8px bounce keeps the room it has on the production site.
+test('the scroll hint sits in the hero at bottom-6, the same room as on production', () => {
+  const html = documentFor('/')
+  const wrapper = html.match(/<div\b[^>]*>(?=\s*<svg\b[^>]*\bjs-scroll-hint\b)/)?.[0]
+  assert.ok(wrapper, 'the hero renders the scroll hint arrow inside its own wrapper')
+  const classes = classesOf(wrapper)
+  assert.ok(classes.includes('absolute'), 'the wrapper is positioned against the bottom of the hero')
+  assert.ok(classes.includes('bottom-6'), 'production room for the 8px bounce')
+})
+
 test('artwork is mounted as a print on the home, catalogue and case pages', () => {
   const css = stylesheetFor('/')
   const print = declarations(css, '.print')

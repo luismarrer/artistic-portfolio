@@ -130,6 +130,14 @@ Observed in the local dev server at 1440x900 and 375x812, and in the delegated c
   - On entry the hero grid fills the visitor's whole screen, edge to edge and top to bottom, as in production: `min-h-svh` on the hero, with the header floating over it.
   - The rule is recorded for every agent (`AGENTS.md`, `CLAUDE.md`, `docs/DESIGN.md`, `CUSTOMIZATION.md`) and guarded by a dedicated test.
   - The two assertions that pinned the opposite are removed. The grid tail below the first screen stays.
+- [x] **T7 — Production scroll-hint animation (owner-pinned rule).** Added on 2026-10-07 at the owner's request. It reverts T2's single fade-in for the arrow under the hero (`412bd4a`).
+  - The arrow enters and bounces exactly as on production (`main`):
+    - Entrance: from `autoAlpha: 0, y: -6` to `autoAlpha: 1, y: 0`, over 0.6s after 1.4s.
+    - Bounce: `y: 8` over 1.1s, yoyo, endless, `sine.inOut`, from 1.8s.
+  - Reduced motion keeps it still and visible. Teardown stops the bounce, so navigation never leaves it running or stacked.
+  - The arrow sits outside the 1.2s intro budget and DESIGN.md's no-loops guideline. Its wrapper returns to production's `bottom-6`, giving the 8px bounce the same room.
+  - The rule is recorded in `AGENTS.md` and guarded by a dedicated test.
+  - Route: delegated writer. The writer trigger fired: `artistic-motion.ts` and the vm motion harness are two non-trivial files.
 
 ## Progress and evidence
 
@@ -281,9 +289,30 @@ Observed in the local dev server at 1440x900 and 375x812, and in the delegated c
   - Saved to Claude project memory and Engram.
 - **Delivery caveat.** The fix sits at the tip as slice 6. Slices `codex/portfolio-03-presentation` through `codex/frontend-05-weight` still carry the content-height hero, so merging them to `main` without slice 6 would deploy that regression. Publish slice 6 in the same deploy window, or restack the fix right after `06e6884` before publishing.
 
+## T7 evidence
+
+- **Trigger.** On 2026-10-07 the owner pinned the arrow rule ("Ningún agente va a tocar mi animación de la flecha de abajo del hero"). T2 (`412bd4a`) had replaced the production bounce with a single fade-in, following DESIGN.md's no-loops guideline, without asking the owner.
+- **Route.** Delegated writer (sonnet); the writer trigger fired on two non-trivial files.
+  - Native assessment: risk `medium`.
+  - RDD is off, so verification is the writer's self-verification plus a parent spot check.
+- **RED (writer).** `pnpm test`: 109 tests, 105 pass / 4 fail. The four failures were the `bottom-6` room, the intro budget without the arrow, the single endless tween, and the production guard.
+- **GREEN.**
+  - `PINNED_SCROLL_HINT` holds production's exact entrance and bounce vars.
+  - Both tweens are created inside the controller's `gsap.context`, so teardown reverts the endless bounce. One bounce runs after navigating away and back.
+  - The hint wrapper returns to `bottom-6`.
+  - Writer: `pnpm test` 109 pass / 0 fail; `pnpm build` 0 errors, warnings or hints, 6 pages; `git diff --check` clean. The guard tests caught all 18 temporary controller mutations the writer tried.
+  - Parent spot check: `pnpm test` 109 pass / 0 fail on Node 24.16.0.
+- **Environment.** A concurrent `brew upgrade` on the host installed simdjson 5.0.2, which ships no `libsimdjson.33.dylib`, and that broke Homebrew's Node 26. The spot check therefore ran on a Node 24 binary already installed with CodeGraph (CI also uses Node 24). Brew was not touched.
+- **Runtime (dist-static, timer-based rAF, 1440x900).**
+  - The arrow stays hidden at y -6 until about 1.4s and is fully in at 2.0s.
+  - It then bounces steadily between about 0 and 8px every 2.2s.
+  - Its bottom sits 24px above the screen edge.
+- **Left as on production.** `src/assets/keep-scrolling.svg` carries GSAP inline styles baked into the asset (opacity 0.9872 and a slight scale), so the arrow shows for an instant before motion starts. It is the owner's call.
+- **Accessibility note.** An endless bounce has no pause control (WCAG 2.2.2). Reduced motion keeps it still.
+
 ## Outcome
 
-All six accepted tasks are implemented, verified and committed as local, stacked work units. The owner added T6 on 2026-10-07. Commit and branch details are in the slice table below.
+All seven accepted tasks are implemented, verified and committed as local, stacked work units. The owner added T6 and T7 on 2026-10-07. Commit and branch details are in the slice table below.
 
 | Slice | Task | Local boundary branch | Commit | Authored lines |
 | --- | --- | --- | --- | --- |
@@ -292,7 +321,8 @@ All six accepted tasks are implemented, verified and committed as local, stacked
 | 3 | T3 motion that answers navigation | `codex/frontend-03-navigation` | `711e3a7` | 453 (tests about 230) |
 | 4 | T4 navigation semantics | `codex/frontend-04-a11y` | `232005b` | 268 (tests about 200) |
 | 5 | T5 lighter first view | `codex/frontend-05-weight` | `51f1906` | 15 plus binary |
-| 6 | T6 full-screen hero on entry | `codex/frontend-06-hero-screen` | recorded in the slice branch | 41 (tests 25) |
+| 6 | T6 full-screen hero on entry | `codex/frontend-06-hero-screen` | `e03b4e9` | 41 (tests 25) |
+| 7 | T7 production scroll-hint animation | `codex/frontend-07-scroll-hint` | recorded in the slice branch | 157 (tests 112) |
 
 - **Size and delivery.** About 2,400 authored lines plus tracking, against a 900-1,300 forecast. The forecast was low, mostly because strict TDD tests are about half of every slice; it was never a cap.
   - Slices 1-3 exceed 400 lines as cohesive behaviours with their tests. Recommend `size:exception` for those when publishing.
@@ -306,7 +336,7 @@ All six accepted tasks are implemented, verified and committed as local, stacked
 
 ## Next step
 
-Watch the cover morph and the drawn underline in a visible browser, including Safari, and review the slices. Publishing pull requests, in order toward `main` after the portfolio-foundations slices, needs explicit authorization. Slice 6 must ship with them (see the T6 delivery caveat).
+Watch the cover morph and the drawn underline in a visible browser, including Safari, and review the slices. Publishing pull requests, in order toward `main` after the portfolio-foundations slices, needs explicit authorization. Slices 6 and 7 must ship with them: slices before 6 lack the full-screen hero, and slices 2-6 lack the production arrow bounce (see the T6 delivery caveat).
 
 ## Verification method note
 

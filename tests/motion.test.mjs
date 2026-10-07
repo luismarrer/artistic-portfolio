@@ -34,20 +34,25 @@ function controller(document, overrides = {}) {
     context(callback) {
       const firstTimeline = timelines.length
       const firstTrigger = triggers.length
+      const firstCall = calls.length
       let ownedTimelines = []
       let ownedTriggers = []
+      let ownedCalls = []
       const context = {
         reverted: false,
         revert() {
           this.reverted = true
           ownedTimelines.forEach((timeline) => timeline.kill())
           ownedTriggers.forEach((trigger) => trigger.kill())
+          // A real context also kills the tweens made while it was collecting: that is what stops an endless one.
+          ownedCalls.forEach((call) => { call.killed = true })
         },
       }
       contexts.push(context)
       callback()
       ownedTimelines = timelines.slice(firstTimeline)
       ownedTriggers = triggers.slice(firstTrigger)
+      ownedCalls = calls.slice(firstCall).filter(({ kind }) => ['fromTo', 'to', 'set'].includes(kind))
       return context
     },
     // Timelines record what is scheduled (`entries`, with the position each tween was placed at) so a test can
@@ -354,7 +359,7 @@ test('a long headline tightens its stagger so it is still written by 0.85 s', ()
   }
 })
 
-test('the whole hero intro (words, signature, underline, pen lift, scroll hint) ends within 1.25 s', () => {
+test('the 1.25 s intro budget covers words, signature, underline and pen lift; the arrow follows its own pinned timing', () => {
   const page = heroPage()
   const [timeline] = page.timelines
   assert.ok(timeline.entries.length > 0 && timeline.entries.every(({ at }) => typeof at === 'number'),
@@ -364,12 +369,14 @@ test('the whole hero intro (words, signature, underline, pen lift, scroll hint) 
   const wordsEnd = lastWordStart + words.duration
   const signatureStart = Math.min(...timeline.entries.map(({ at }) => at))
   const signatureEnd = Math.max(...timeline.entries.map(entryEnd))
-  const hint = page.calls.find(({ kind, target }) => kind === 'fromTo' && target === page.hint)
-  const end = Math.max(wordsEnd, signatureEnd, (hint.to.delay ?? 0) + hint.to.duration)
+  // The arrow under the hero is outside this budget: it keeps its production timing, pinned by its own guard test below.
+  const end = Math.max(wordsEnd, signatureEnd)
   assert.ok(end <= 1.25, `the intro ends at ${end.toFixed(2)} s`)
   assert.ok(end >= 1.1, `the intro really uses its budget (ends at ${end.toFixed(2)} s)`)
   assert.ok(signatureStart >= lastWordStart && signatureStart < wordsEnd,
     'the signature starts while the last words are still being written')
+  const arrow = page.calls.find(({ kind, target }) => kind === 'fromTo' && target === page.hint)
+  assert.ok(arrow.to.delay > end, 'the arrow enters after the written intro is over, on its own timing')
 })
 
 test('the signature clip starts closed and wipes open in step with the pen along the writing path', () => {
@@ -429,25 +436,70 @@ test('the footer signature keeps the hero character, a little slower, and waits 
   assert.equal(footerWrite.vars.ease, heroWrite.vars.ease, 'the same character')
 })
 
-test('nothing loops forever, and the scroll hint fades in once and then stays still', () => {
+test('the only endless tween is the arrow bounce, and everything else stays finite', () => {
   const page = heroPage()
-  const scheduled = [
-    ...page.calls.flatMap(({ from, to }) => [from, to]),
-    ...page.timelines.flatMap(({ vars, entries }) => [vars, ...entries.flatMap(({ from, vars: props }) => [from, props])]),
-  ].filter(Boolean)
-  assert.ok(scheduled.length > 10, 'the intro schedules real tweens')
-  for (const vars of scheduled) {
-    assert.ok(!(vars.repeat < 0 || vars.repeat === Infinity), 'no tween repeats forever')
-    assert.notEqual(vars.yoyo, true, 'no tween bounces back and forth')
+  // Every tween the controller schedules, with the target it moves: direct tweens, then each timeline and its entries.
+  const withTarget = (target, sides) => sides.filter(Boolean).map((vars) => ({ target, vars }))
+  const tweens = [
+    ...page.calls.flatMap(({ target, from, to }) => withTarget(target, [from, to])),
+    ...page.timelines.flatMap(({ vars, entries }) => [
+      ...withTarget(undefined, [vars]),
+      ...entries.flatMap(({ target, from, vars: props }) => withTarget(target, [from, props])),
+    ]),
+  ]
+  assert.ok(tweens.length > 10, 'the intro schedules real tweens')
+  const endless = ({ vars }) => vars.repeat < 0 || vars.repeat === Infinity
+  const loops = tweens.filter(endless)
+  assert.equal(loops.length, 1, 'exactly one tween never ends')
+  assert.equal(loops[0].target, page.hint, 'and it is the arrow bounce')
+  assert.equal(loops[0].vars.yoyo, true)
+  for (const tween of tweens.filter(({ target }) => target !== page.hint)) {
+    assert.ok(!endless(tween), 'no other tween repeats forever')
+    assert.notEqual(tween.vars.yoyo, true, 'no other tween bounces back and forth')
   }
-  const hint = page.calls.filter(({ target }) => target === page.hint)
-  assert.equal(hint.length, 1, 'one fade-in, and nothing that keeps moving the hint')
-  assert.equal(hint[0].kind, 'fromTo')
-  assert.equal(hint[0].from.autoAlpha, 0)
-  assert.equal(hint[0].to.autoAlpha, 1)
-  for (const side of [hint[0].from, hint[0].to]) assert.ok(!('y' in side) && !('x' in side), 'the hint does not drift')
-  assert.ok(hint[0].to.duration >= 0.25 && hint[0].to.duration <= 0.35, 'about 0.3 s')
-  assert.ok(hint[0].to.delay >= 0.85 && hint[0].to.delay <= 1.15, 'around 1 s, once the signature is being written')
+})
+
+// Owner-pinned design rule (AGENTS.md): the arrow under the hero keeps its production animation. Do not weaken,
+// invert or delete this test to fit a redesign; only the owner can lift the rule.
+test('the scroll hint enters and bounces exactly as on production', () => {
+  // The vars are built inside the vm realm: a JSON round trip lets deepEqual compare every key, not only the ones named.
+  const plain = (vars) => JSON.parse(JSON.stringify(vars))
+  const page = heroPage()
+  const arrow = page.calls.filter(({ target }) => target === page.hint)
+  assert.equal(arrow.length, 2, 'an entrance and a bounce, and nothing else moves the arrow')
+  const [entrance, bounce] = arrow
+  assert.equal(entrance.kind, 'fromTo', 'the entrance is created first, as on production')
+  assert.deepEqual(plain(entrance.from), { autoAlpha: 0, y: -6 })
+  assert.deepEqual(plain(entrance.to), { autoAlpha: 1, y: 0, duration: 0.6, delay: 1.4 })
+  assert.equal(bounce.kind, 'to')
+  assert.deepEqual(plain(bounce.to), { y: 8, duration: 1.1, repeat: -1, yoyo: true, ease: 'sine.inOut', delay: 1.8 })
+
+  // Teardown: both tweens belong to the controller's gsap context, so reverting it is what stops the endless bounce.
+  const state = lifecycle()
+  const bounces = () => state.calls.filter(({ target, to }) => target === state.hint && to?.repeat < 0)
+  const running = () => bounces().filter((call) => !call.killed)
+  state.document.dispatch('astro:page-load')
+  state.frames.flush()
+  assert.equal(running().length, 1, 'one bounce runs once the page has loaded')
+  state.document.dispatch('astro:before-swap')
+  assert.equal(bounces().length, 1)
+  assert.equal(running().length, 0, 'leaving the page stops the endless bounce')
+  state.document.dispatch('astro:page-load')
+  state.frames.flush()
+  assert.equal(bounces().length, 2, 'coming back starts a new bounce')
+  assert.equal(running().length, 1, 'exactly one runs: none is left running on the node that was swapped out')
+  state.document.dispatch('astro:page-load')
+  state.frames.flush()
+  assert.equal(bounces().length, 3)
+  assert.equal(running().length, 1, 'a repeated page load stops the old bounce before it starts its own')
+
+  // Reduced motion never moves the arrow: it is simply there, visible and still.
+  const still = lifecycle({ reduced: true })
+  still.document.dispatch('astro:page-load')
+  still.frames.flush()
+  assert.ok(!still.calls.some(({ target }) => target === still.hint), 'no tween ever runs on the arrow')
+  assert.equal(still.hint.style.opacity, '1')
+  assert.equal(still.hint.style.transform, 'none')
 })
 
 test('secondary reveals are short fades with a small rise, never lateral or rotated', () => {
@@ -697,7 +749,7 @@ function lifecycle({ reduced = false } = {}) {
   paths.forEach((element) => Object.assign(element.style, { strokeDashoffset: '100', strokeDasharray: '100' }))
   // Nothing but JavaScript hides the pen in this state: an unstyled pen is fully visible.
   signaturePen.style.opacity = '1'
-  const singles = { '#start': cta, '#ink-trail': root, '#ink-pen': pen }
+  const singles = { '#start': cta, '#ink-trail': root, '#ink-pen': pen, '.js-scroll-hint': hint }
   const collections = {
     '.js-signature': [signature], '.js-hero-title span': [word], '[data-reveal]': [copy],
     '[data-magnetic]': [cta], '.signature-clip': [clip], '.js-signature .signature-pen': [signaturePen],
@@ -721,7 +773,7 @@ function lifecycle({ reduced = false } = {}) {
   })
   runtime.boot()
   return { ...runtime, document, window, frames, timers, fonts, observers, classes,
-    cta, destination, visibleContent, paths, clip, pen, signaturePen }
+    cta, destination, hint, visibleContent, paths, clip, pen, signaturePen }
 }
 
 test('reduced motion takes the visible static early exit without animations or enhanced CTA handlers', async () => {
@@ -738,6 +790,10 @@ test('reduced motion takes the visible static early exit without animations or e
     assert.equal(element.style.transform, 'none')
     assert.ok([undefined, '', 'none'].includes(element.style.clipPath), 'a finished headline is never left clipped')
   }
+  // The arrow under the hero is owner-pinned (AGENTS.md): with reduced motion it is visible and still, and nothing moves it.
+  assert.equal(state.hint.style.opacity, '1', 'the arrow stays visible')
+  assert.equal(state.hint.style.transform, 'none', 'and still')
+  assert.ok(!state.calls.some(({ target }) => target === state.hint), 'no tween ever runs on the arrow')
   assert.equal(state.pen.style.opacity, '0')
   assert.equal(state.signaturePen.style.opacity, '0', 'the signature pen is a motion-only prop: static mode must not show it')
   assert.equal(state.classes.has('has-motion'), false)
