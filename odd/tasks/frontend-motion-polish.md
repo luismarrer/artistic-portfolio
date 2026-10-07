@@ -115,7 +115,7 @@ Observed in the local dev server at 1440x900 and 375x812, and in the delegated c
   - Ink blots sit on the stroke or are removed.
   - The legacy `initSketch` is removed with its orphan `Drawing.astro`.
   - Reduced motion and lifecycle guarantees are unchanged.
-- [ ] **T3 — Motion that answers navigation.**
+- [x] **T3 — Motion that answers navigation.**
   - Each catalogue or featured cover morphs into its case cover through a matching `transition:name`. Animation is disabled under reduced motion.
   - Text links get a drawn annotation underline on hover and `:focus-visible`, while the resting underline and focus outline stay visible.
   - Appended arrow glyphs are removed where the underline carries the affordance.
@@ -198,7 +198,32 @@ Observed in the local dev server at 1440x900 and 375x812, and in the delegated c
 
 - **Work-unit commit.** `412bd4a`, `feat(motion): write the hero intro within the documented budget`. Local boundary branch: `codex/frontend-02-motion`. No push and no PR.
 
+## T3 evidence
+
+- **Route.** Delegated direct to one bounded writer. Trigger: card, collage, case-page, header and CSS changes, plus rendered tests.
+- **RED.** 97 tests, 89 pass / 8 fail, each failing for the intended reason. The writer also ran 21 temporary single-point mutations; each failed on its intended assertion, and the files were restored.
+- **GREEN.** 97 / 97. The parent re-ran `pnpm test`: 97 pass / 0 fail.
+- **Functional checks.** Writer `pnpm build`: astro check over 32 files with 0 errors, warnings or hints; 6 pages. `git diff --check`: clean.
+- **Production-build browser check (parent, `dist-static`).**
+  - The catalogue prints carry `project-cover-1..3`.
+  - Case page 2's cover print carries `project-cover-2` with `view-transition-class: project-cover`. It has no `data-reveal`, so it gets no entrance.
+  - With the drawn state forced, the annotation stroke sits under "View collection", the project navigation and the footer-adjacent links in both accent and ink colours. There is no overflow at 375px.
+  - When "Next collection: <title>" wraps at 375px, the stroke spans the label box under its last line. That is an accepted corner case: on touch devices hover drawing is disabled, so it only shows on keyboard focus.
+- **Not visually verified.** The morph animation itself. The Browser pane is hidden, so `document.startViewTransition` is skipped (`InvalidStateError`). Pairing, classes and timing are verified structurally and by tests. The morph quality is pending a visible-browser check.
+- **Decisions.**
+  - The named prints use `transition:animate="initial"`, because Astro's default 180ms fade would end before the .42s group morph.
+  - Astro inlines its reduced-motion view-transition rule only on pages that declare a name, so the global reduced-motion rule is the guard on `/contact`.
+  - `.annotate` sits on a `<span>` inside each link, so the link keeps its focus ring and 44px target.
+  - Hover drawing is gated by `(hover: hover) and (pointer: fine)`.
+  - The directional arrows in the case navigation stay, as `aria-hidden` spans. The decorative arrows were removed.
+- **Native assessment.** Risk `medium` (`executable_change`), RDD off: writer self-verification plus parent spot check. No review was started.
+- **Size.** 453 authored lines (+414 / -39; tests about 230). This is a cohesive behaviour with its tests, slightly over the planning heuristic.
+
 ## Next step
+
+Commit T3, then T4 (navigation semantics) and T5 (header logo derivative).
+
+## Resume notes (from the earlier pause)
 
 Paused when the session usage limit was reached. Resume with T3 (motion that answers navigation):
 

@@ -84,6 +84,14 @@
   --radius-print: 2px;
   --print-mount: clamp(6px, 0.9vw, 12px);
 
+  /*
+   * Motion that answers navigation shares one calm deceleration: the cover morph between pages and the
+   * drawn link stroke. --annotate-stroke is the stroke's shape, a hand-drawn line in an inline SVG used only
+   * as a mask: its alpha is the shape, and the colour always comes from the link text (see .annotate).
+   */
+  --ease-out-calm: cubic-bezier(0.22, 0.8, 0.3, 1);
+  --annotate-stroke: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='12' viewBox='0 0 200 12' preserveAspectRatio='none'%3E%3Cpath d='M2 8.5C20 6 44 9.8 78 7S136 4.6 168 7.4S188 8.2 198 5.2' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E");
+
   /* Type scale: body copy, compact copy, labels and captions, plus the reading measure. */
   --text-body: 1.125rem;
   --leading-body: 1.6;
@@ -208,6 +216,76 @@ textarea:focus-visible {
     cursor: not-allowed;
     opacity: 0.7;
   }
+
+  /*
+   * Drawn annotation for a standalone text link. At rest it is an ordinary thin underline, so the link
+   * stays recognisable without hover. When the link is hovered or keyboard-focused, a hand-drawn stroke
+   * is drawn under the label from left to right while the straight underline fades out.
+   *
+   * Put it on a <span> around the label, inside the link (a card link, a nav link): the link keeps its
+   * own focus ring and hit area, and links are never nested. The stroke is a pseudo-element, so it adds
+   * no layout and stays inside the label's box (no overflow). Small inline credits stay plain underlines.
+   */
+  .annotate {
+    position: relative;
+    display: inline-block;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.3em;
+    transition: text-decoration-color 0.2s ease;
+  }
+
+  /* The colour is the text colour; --annotate-stroke only supplies the shape. */
+  .annotate::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    bottom: -0.05em;
+    height: 0.5em;
+    background-color: currentColor;
+    mask-image: var(--annotate-stroke);
+    mask-size: 100% 100%;
+    mask-repeat: no-repeat;
+    clip-path: inset(0 100% 0 0);
+    pointer-events: none;
+    transition: clip-path 0.38s var(--ease-out-calm);
+  }
+
+  /* Navigation links are identified by their position, so they carry no resting underline. */
+  .annotate-quiet {
+    text-decoration: none;
+  }
+
+  /*
+   * Drawn: always on keyboard focus, on hover only for a precise hovering pointer (no sticky hover on
+   * touch), and while the link marks the current page, so aria-current="page" can keep a destination drawn.
+   * A card or nav link drives the .annotate label inside it; the label also works as a link of its own.
+   */
+  .annotate:focus-visible,
+  a:focus-visible .annotate,
+  .annotate[aria-current="page"],
+  [aria-current="page"] .annotate {
+    text-decoration-color: transparent;
+  }
+
+  .annotate:focus-visible::after,
+  a:focus-visible .annotate::after,
+  .annotate[aria-current="page"]::after,
+  [aria-current="page"] .annotate::after {
+    clip-path: inset(0);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .annotate:hover,
+    a:hover .annotate {
+      text-decoration-color: transparent;
+    }
+
+    .annotate:hover::after,
+    a:hover .annotate::after {
+      clip-path: inset(0);
+    }
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -217,6 +295,43 @@ textarea:focus-visible {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+
+  /*
+   * A page change is instant: no morph and no crossfade. The router ships a similar rule, but only with
+   * the pages that declare a transition name, and the destination's styles are the ones in force while
+   * the animation would run. The drawn link stroke is a transition, so the zero duration above already
+   * makes it appear and vanish at once.
+   */
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
+/*
+ * Cover morph between pages. The print around a project's cover (home selection, catalogue card and case
+ * cover) carries the same view-transition name, so the router morphs one into the other. Where
+ * view-transition-class is supported they share a class and are styled together; elsewhere the browser's
+ * own morph runs unstyled.
+ *
+ * A 4:3 card and a natural-ratio case cover differ in shape: both snapshots fill the moving group and
+ * crop, so neither stretches nor spills out of it. Kept outside any layer so no router rule can win.
+ */
+.project-artwork,
+[data-project-cover] > .print {
+  view-transition-class: project-cover;
+}
+
+::view-transition-group(*.project-cover) {
+  animation-duration: 0.42s;
+  animation-timing-function: var(--ease-out-calm);
+}
+
+::view-transition-old(*.project-cover),
+::view-transition-new(*.project-cover) {
+  height: 100%;
+  object-fit: cover;
 }
 
 h1,

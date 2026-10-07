@@ -13,8 +13,9 @@ import { site } from "@/data/site"
         <ul class="flex flex-wrap justify-center gap-x-2 sm:gap-x-4 md:gap-x-6">
             {site.navigation.map((link) => (
                 <li>
+                    {/* Quiet variant: no resting underline, only the drawn stroke. aria-current="page" on the link keeps it drawn. */}
                     <a href={link.href} class="flex min-h-11 items-center px-2 hover:text-(--color-accent)">
-                        {link.label}
+                        <span class="annotate annotate-quiet">{link.label}</span>
                     </a>
                 </li>
             ))}

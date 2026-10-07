@@ -45,7 +45,12 @@ const notes = [
         </p>
     </section>
 
-    <Collage images={gallery} label={`${title} — credited artwork gallery`} />
+    {/* The cover print shares its name with this project's card (PortfolioComponent.astro), so the router morphs one into the other. */}
+    <Collage
+        images={gallery}
+        label={`${title} — credited artwork gallery`}
+        coverTransitionName={`project-cover-${project.id}`}
+    />
 
     <section
         class="mx-auto max-w-6xl px-[var(--page-gutter)] py-10 sm:py-14"
@@ -69,16 +74,19 @@ const notes = [
         class="mx-auto grid max-w-6xl gap-4 border-t border-(--color-ink)/20 px-[var(--page-gutter)] py-10 sm:grid-cols-2 sm:gap-6"
         aria-label="Project navigation"
     >
-        <a class="flex min-h-11 items-center text-(--color-accent) underline underline-offset-4" href="/portfolio">
-            ← Back to all collections
+        {/* The underline and the drawn stroke belong to the .annotate label. The arrows only encode direction, so they are hidden from assistive technology. */}
+        <a class="flex min-h-11 items-center gap-2 text-(--color-accent)" href="/portfolio">
+            <span aria-hidden="true">←</span>
+            <span class="annotate">Back to all collections</span>
         </a>
         {nextProject && (
-            <a class="flex min-h-11 items-center text-(--color-accent) underline underline-offset-4" href={`/projects/${nextProject.id}`} rel="next">
-                Next collection: {nextProject.title} →
+            <a class="flex min-h-11 items-center gap-2 text-(--color-accent)" href={`/projects/${nextProject.id}`} rel="next">
+                <span class="annotate">Next collection: {nextProject.title}</span>
+                <span aria-hidden="true">→</span>
             </a>
         )}
-        <a class="flex min-h-11 items-center underline underline-offset-4" href="/">Home</a>
-        <a class="flex min-h-11 items-center underline underline-offset-4" href="/contact">Contact</a>
+        <a class="flex min-h-11 items-center" href="/"><span class="annotate">Home</span></a>
+        <a class="flex min-h-11 items-center" href="/contact"><span class="annotate">Contact</span></a>
     </nav>
     <Footer />
 </Layout>

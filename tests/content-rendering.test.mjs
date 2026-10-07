@@ -727,3 +727,233 @@ test('the start button can hand focus to the work section without a ring around 
     }
   }
 })
+
+// ── Motion that answers navigation: cover morph and drawn annotation ─────────
+// Astro compiles `transition:name` into a scope attribute on the element plus one inline rule that names it:
+//   <div data-astro-transition-scope="astro-<hash>-<n>"> … [data-astro-transition-scope="astro-<hash>-<n>"] { view-transition-name: <name>; }
+// so a name is read back by joining the two. The attribute alone never carries it.
+const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
+function namedElements(html) {
+  const declared = new Map([...html.matchAll(/\[data-astro-transition-scope="([^"]+)"\]\s*\{\s*view-transition-name:\s*([^;}\s]+)/g)]
+    .map(([, scope, name]) => [scope, name]))
+  return [...html.matchAll(/<\w+\b[^>]*\bdata-astro-transition-scope="([^"]+)"[^>]*>/g)]
+    .map(([tag, scope]) => ({ tag, scope, name: declared.get(scope) }))
+}
+
+// The opening tag of the mounted print that wraps a cover image, or undefined when that cover is not rendered.
+const coverPrint = (html, cover) =>
+  html.match(new RegExp(`(<div\\b[^>]*>)<img\\b[^>]*\\bsrc="${escapeRegExp(cover.src)}"[^>]*></div>`))?.[1]
+
+// The inner text of every `@media` block whose query mentions `needle`, with nested braces balanced.
+function mediaBodies(css, needle) {
+  const bodies = []
+  for (const match of css.matchAll(/@media[^{]*\{/g)) {
+    if (!match[0].includes(needle)) continue
+    const start = match.index + match[0].length
+    let depth = 1
+    let end = start
+    while (depth > 0 && end < css.length) {
+      const character = css[end++]
+      if (character === '{') depth++
+      else if (character === '}') depth--
+    }
+    bodies.push(css.slice(start, end - 1))
+  }
+  return bodies
+}
+
+const seconds = (value = '') => (value.endsWith('ms') ? parseFloat(value) / 1000 : parseFloat(value))
+// A deceleration leaves fast and arrives slowly: both control points sit above the diagonal.
+function decelerates(easing) {
+  if (easing === 'ease-out') return true
+  const curve = easing.match(/^cubic-bezier\(([^)]*)\)$/)?.[1].split(',').map(Number)
+  if (curve?.length !== 4) return false
+  const [x1, y1, x2, y2] = curve
+  return y1 > x1 && y2 > x2
+}
+// Resolve `var(--token)` against the :root tokens a visitor receives.
+const resolveTokens = (value = '') => value.replace(/var\((--[\w-]+)\)/g, (match, name) => rootTokens().tokens[name] ?? match)
+
+test('each cover print has one view-transition name, shared by its catalogue card, the home selection and its case page', () => {
+  const featured = projects.find(({ featured }) => featured) ?? projects[0]
+  const owners = new Map()
+  for (const project of projects) {
+    const cover = project.gallery[0]
+    const found = {}
+    for (const route of ['/portfolio', `/projects/${project.id}`, ...(project === featured ? ['/'] : [])]) {
+      const html = documentFor(route)
+      const print = coverPrint(html, cover)
+      assert.ok(print, `${route} renders the ${project.title} cover inside a wrapper`)
+      assert.ok(classesOf(print).includes('print'), `${route}: the name sits on the mounted print, so the mount travels with the image`)
+      const scope = attributes(print)['data-astro-transition-scope']
+      assert.ok(scope, `${route}: the ${project.title} cover print is a view-transition element`)
+      found[route] = namedElements(html).find((element) => element.scope === scope)?.name
+      assert.ok(found[route], `${route}: the scope ${scope} resolves to a view-transition-name`)
+    }
+    const [name, ...others] = Object.values(found)
+    assert.ok(others.every((other) => other === name), `${project.title} must keep one name across pages: ${JSON.stringify(found)}`)
+    assert.ok(!owners.has(name), `${project.title} reuses ${name}, already the name of project ${owners.get(name)}`)
+    owners.set(name, project.id)
+  }
+})
+
+test('view-transition names are unique on every page, and only cover prints take part in the morph', () => {
+  const expected = { '/': 1, '/portfolio': projects.length, '/contact': 0, ...Object.fromEntries(caseRoutes.map((route) => [route, 1])) }
+  for (const route of routes) {
+    const named = namedElements(documentFor(route))
+    assert.equal(named.length, expected[route], `${route} should name ${expected[route]} element(s), not ${named.length}`)
+    assert.ok(named.every(({ name }) => name), `${route}: every scope needs a view-transition-name rule`)
+    assert.equal(new Set(named.map(({ name }) => name)).size, named.length, `${route} repeats a view-transition name`)
+    for (const { tag } of named) assert.ok(classesOf(tag).includes('print'), `${route}: only mounted prints are named: ${tag}`)
+  }
+})
+
+test('the case cover morphs in from its card instead of running its own entrance, while other prints still settle', () => {
+  for (const route of caseRoutes) {
+    const project = projects.find(({ id }) => route === `/projects/${id}`)
+    // The footer signature is a <figure> too: only the gallery section counts.
+    const gallery = documentFor(route).match(/<section\b[^>]*\bdata-project-gallery\b[^>]*>([\s\S]*?)<\/section>/)?.[1]
+    assert.ok(gallery, `${route} renders its gallery`)
+    const figures = [...gallery.matchAll(/<figure\b[^>]*>/g)].map(([tag]) => tag)
+    assert.equal(figures.length, project.gallery.length)
+    const [cover, ...rest] = figures
+    assert.ok(cover.includes('data-project-cover'), `${route}: the first figure is the case cover`)
+    assert.ok(!cover.includes('data-reveal'), `${route}: an entrance would offset the cover while it morphs: ${cover}`)
+    for (const tag of rest) {
+      assert.ok(!tag.includes('data-project-cover'))
+      assert.equal(attributes(tag)['data-reveal'], 'card', `${route}: the other gallery prints keep their calm settle`)
+    }
+  }
+})
+
+test('the cover morph shares one view-transition class, fits both snapshots to the moving group and settles calmly', () => {
+  for (const route of ['/', '/portfolio', ...caseRoutes]) {
+    // transition:animate="initial" keeps the browser's own morph. The router's default fade is 180 ms, which would
+    // finish long before the group does and leave the new snapshot alone for the rest of the move.
+    assert.ok(!/::view-transition-(?:old|new)\(project-cover-/.test(documentFor(route)), `${route}: a per-name fade overrides the shared timing`)
+    const css = stylesheetFor(route)
+    const carriers = [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+      .filter(([, , body]) => /(?:^|;)view-transition-class:\s*project-cover\s*(?:;|$)/.test(body))
+      .flatMap(([, selectors]) => topLevelItems(selectors).map(simplify))
+    assert.ok(carriers.includes('.project-artwork'), `${route}: the card and selection prints share the class`)
+    assert.ok(carriers.includes('[data-project-cover]>.print'), `${route}: the case cover print shares it too`)
+    // A 4:3 card and a natural-ratio case cover differ in shape: both snapshots fill the group and crop, never stretch.
+    for (const image of ['old', 'new']) {
+      const snapshot = declarations(css, `::view-transition-${image}(*.project-cover)`)
+      assert.equal(snapshot.height, '100%', `${route}: the ${image} snapshot fills the group`)
+      assert.equal(snapshot['object-fit'], 'cover', `${route}: the ${image} snapshot crops instead of stretching`)
+    }
+    const group = declarations(css, '::view-transition-group(*.project-cover)')
+    const duration = seconds(group['animation-duration'])
+    assert.ok(duration >= 0.4 && duration <= 0.45, `${route}: the group takes a calm .4 to .45 s, not ${group['animation-duration']}`)
+    assert.ok(decelerates(resolveTokens(group['animation-timing-function'])), `${route}: the group decelerates into place`)
+  }
+})
+
+test('reduced motion removes every page-transition animation on every route, and the drawn annotation with it', () => {
+  for (const route of routes) {
+    const reduced = mediaBodies(stylesheetFor(route), 'prefers-reduced-motion').join('\n')
+    for (const part of ['group', 'old', 'new']) {
+      const rule = declarations(reduced, `::view-transition-${part}(*)`)
+      assert.equal(rule.animation?.replace(/\s+/g, ''), 'none!important', `${route}: ::view-transition-${part}(*) must not animate`)
+    }
+    // The annotation is a transition, so the blanket zero-duration rule on every pseudo-element makes it instant.
+    const blanket = rulesMentioning(reduced, ':after').find(({ body }) => /(?:^|;)transition-duration:\s*\.01ms\s*!important/.test(body))
+    assert.ok(blanket, `${route}: ::after must lose its transition duration under reduced motion`)
+  }
+})
+
+test('.annotate rests as a straight underline and is drawn as a hand-made stroke on hover and keyboard focus', () => {
+  const css = stylesheetFor('/')
+  const text = declarations(css, '.annotate')
+  assert.match(text['text-decoration'] ?? text['text-decoration-line'] ?? '', /\bunderline\b/, 'a conventional underline stays at rest')
+  assert.ok(text['text-underline-offset'], 'the underline sits clear of the text')
+  assert.equal(text.position, 'relative', 'the stroke is positioned against the label')
+  assert.match(text.transition ?? '', /text-decoration-color/, 'the straight underline fades out instead of snapping off')
+
+  const stroke = declarations(css, '.annotate::after')
+  assert.equal(stroke.content, '""', 'a pseudo-element without generated content never renders')
+  assert.equal(stroke.position, 'absolute', 'out of flow: the stroke cannot shift layout')
+  assert.equal(stroke['pointer-events'], 'none')
+  assert.ok(stroke['inset-inline'] === '0' || (stroke.left === '0' && stroke.right === '0'),
+    'the stroke stays inside the label box, so it cannot add horizontal overflow')
+  assert.match(stroke['clip-path'] ?? '', /^inset\(0(?:px)? 100% 0(?:px)? 0(?:px)?\)$/, 'closed at rest: drawing means opening it left to right')
+  assert.ok(['currentcolor', 'var(--color-accent)'].includes((stroke['background-color'] ?? stroke.background ?? '').toLowerCase()),
+    'the stroke takes its colour from CSS')
+  const mask = resolveTokens(stroke['mask-image'])
+  const shape = mask.match(/^url\(["']?(data:image\/svg\+xml,.*?)["']?\)$/)?.[1]
+  assert.ok(shape, `the stroke shape is an inline SVG mask, not ${mask}`)
+  assert.ok(!/#[0-9a-f]{3,8}\b|%23[0-9a-f]{3,8}|\b(?:rgb|hsl)a?\(/i.test(decodeURIComponent(shape)), 'no colour is baked into the mask')
+  assert.ok(stroke['-webkit-mask-image'], 'older Chromium and Safari read the prefixed mask')
+
+  const draw = /clip-path\s+([\d.]+m?s)\s+(.+)$/.exec(stroke.transition ?? '')
+  assert.ok(draw, `the stroke is drawn by a clip-path transition, not ${stroke.transition}`)
+  assert.ok(seconds(draw[1]) >= 0.35 && seconds(draw[1]) <= 0.4, `drawing takes about .35 to .4 s, not ${draw[1]}`)
+  assert.ok(decelerates(resolveTokens(draw[2])), 'the stroke decelerates as it is drawn')
+  assert.equal(stroke.animation, undefined, 'no keyframes: reduced motion zeroes transitions')
+  assert.equal(stroke['transition-delay'], undefined, 'a delay would survive the reduced-motion zero duration')
+  assert.equal(text['transition-delay'], undefined, 'neither would a delay on the underline fade')
+
+  const rules = rulesMentioning(css, '.annotate')
+  const selectorsOf = (matching) => matching.flatMap(({ selectors }) => selectors).join(' ')
+  const drawn = rules.filter(({ body }) => /(?:^|;)clip-path:\s*inset\(0(?:px)?\)\s*(?:;|$)/.test(body))
+  // The minifier writes `transparent` as #0000.
+  const faded = rules.filter(({ body }) => /(?:^|;)text-decoration-color:\s*(?:transparent|#0{4}|#0{8})\s*(?:;|$)/.test(body))
+  for (const state of [':hover', ':focus-visible']) {
+    assert.ok(selectorsOf(drawn).includes(state), `the stroke is drawn on ${state}`)
+    assert.ok(selectorsOf(faded).includes(state), `the straight underline fades out on ${state}`)
+  }
+  assert.ok(/aria-current/.test(selectorsOf(drawn)), 'aria-current can force the stroke on for the current destination')
+
+  const quiet = declarations(css, '.annotate-quiet')
+  assert.equal(quiet['text-decoration'] ?? quiet['text-decoration-line'], 'none', 'the navigation variant has no resting underline')
+})
+
+test('scoped link styles never override the layered annotation, and credits keep a plain underline', () => {
+  for (const [route, selector] of [['/portfolio', '.case-link'], ['/', '.catalogue-link a']]) {
+    const own = Object.keys(declarations(stylesheetFor(route), selector))
+    assert.deepEqual(own.filter((property) => /^text-(?:decoration|underline)/.test(property)), [],
+      `${selector} is unlayered, so any decoration it sets would beat the layered .annotate states`)
+  }
+  assert.match(declarations(stylesheetFor('/portfolio'), '.cover-credit a')['text-decoration'] ?? '', /\bunderline\b/)
+})
+
+test('standalone text links carry the annotation, credits stay plain, and decorative arrows are gone', () => {
+  const caseLabel = new RegExp(`<span\\b([^>]*)>${escapeRegExp(escape(site.portfolio.caseLinkLabel))}</span>`, 'g')
+  for (const [route, count] of [['/', 1], ['/portfolio', projects.length]]) {
+    const labels = [...documentFor(route).matchAll(caseLabel)]
+    assert.equal(labels.length, count, `${route}: each card ends in a bare "${site.portfolio.caseLinkLabel}" label`)
+    for (const [, tag] of labels) assert.ok(classesOf(tag).includes('annotate'), `${route}: the label draws on hover`)
+  }
+  const home = documentFor('/')
+  const explore = tagBefore(home, site.portfolio.catalogueLinkLabel)
+  assert.ok(explore.startsWith('<span') && classesOf(explore).includes('annotate'), 'the catalogue link label draws on hover')
+  assert.ok(home.includes(`${escape(site.portfolio.catalogueLinkLabel)}</span></a>`), 'the label is the whole link text: no arrow')
+
+  for (const route of routes) {
+    const html = documentFor(route)
+    const navigation = html.match(/<nav\b[^>]*aria-label="Main navigation"[^>]*>([\s\S]*?)<\/nav>/)?.[1]
+    const links = [...(navigation ?? '').matchAll(/<a\b[^>]*>([\s\S]*?)<\/a>/g)]
+    assert.equal(links.length, site.navigation.length, `${route}: the header keeps its destinations`)
+    for (const [, inner] of links) {
+      const classes = classesOf(inner.match(/<span\b[^>]*>/)?.[0])
+      assert.ok(classes.includes('annotate') && classes.includes('annotate-quiet'), `${route}: header links use the quiet variant`)
+    }
+    for (const [credit] of html.matchAll(/<p\b[^>]*\bcover-credit\b[^>]*>[\s\S]*?<\/p>/g)) assert.ok(!credit.includes('annotate'), `${route}: credits stay plain`)
+    for (const [caption] of html.matchAll(/<figcaption\b[\s\S]*?<\/figcaption>/g)) assert.ok(!caption.includes('annotate'), `${route}: captions stay plain`)
+    // Arrows survive only where they encode direction, hidden from assistive technology.
+    const bare = html.replace(/<span\b[^>]*\baria-hidden="true"[^>]*>[←→]<\/span>/g, '')
+    assert.ok(!/[←→]/.test(bare), `${route} still has an arrow glyph that is read as text`)
+  }
+  for (const route of caseRoutes) {
+    const html = documentFor(route)
+    const navigation = html.match(/<nav\b[^>]*aria-label="Project navigation"[^>]*>([\s\S]*?)<\/nav>/)?.[1]
+    assert.ok(navigation.includes('<span aria-hidden="true">←</span>'), `${route}: "Back" keeps its direction arrow, hidden from screen readers`)
+    assert.ok(navigation.includes('<span aria-hidden="true">→</span>'), `${route}: "Next" keeps its direction arrow, hidden from screen readers`)
+    const links = [...navigation.matchAll(/<a\b[^>]*>([\s\S]*?)<\/a>/g)]
+    assert.equal(links.length, 4, `${route}: back, next, home and contact`)
+    for (const [, inner] of links) assert.ok(/<span\b[^>]*class="[^"]*\bannotate\b/.test(inner), `${route}: every project link draws on hover`)
+    assert.ok(!/class="[^"]*\bunderline\b/.test(navigation), `${route}: the annotation owns the resting underline`)
+  }
+})

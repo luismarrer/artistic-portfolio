@@ -4,12 +4,27 @@ import type { GalleryImage } from "@/data/types"
 interface Props {
   images: GalleryImage[]
   label?: string
+  /** View-transition name for the cover print: pass the name its catalogue card uses and the cover morphs between pages. */
+  coverTransitionName?: string
 }
 
-const { images, label = "Artwork gallery" } = Astro.props
+const { images, label = "Artwork gallery", coverTransitionName } = Astro.props
 if (!images?.length) {
   throw new Error("Collage requires an explicit, nonempty credited gallery")
 }
+
+// One set of attributes for the named and the plain print, so the two branches below never drift apart.
+const artwork = (image: GalleryImage, isCover: boolean) =>
+  ({
+    src: image.src,
+    alt: image.alt,
+    width: image.width,
+    height: image.height,
+    class: "block h-auto w-full",
+    loading: isCover ? "eager" : "lazy",
+    fetchpriority: isCover ? "high" : undefined,
+    decoding: "async",
+  }) as const
 ---
 
 <section
@@ -23,21 +38,19 @@ if (!images?.length) {
         <figure
           class:list={["min-w-0", (index === 0 || image.size === "large") && "md:col-span-2"]}
           data-project-cover={index === 0 ? "" : undefined}
-          data-reveal="card"
+          data-reveal={index === 0 ? undefined : "card"}
         >
+          {/* The cover arrives by morphing from its card, so it has no data-reveal entrance of its own; the other prints keep their calm settle. */}
           {/* Gallery artwork keeps its natural ratio inside the print mount: never cropped. */}
-          <div class="print">
-            <img
-              src={image.src}
-              alt={image.alt}
-              width={image.width}
-              height={image.height}
-              class="block h-auto w-full"
-              loading={index === 0 ? "eager" : "lazy"}
-              fetchpriority={index === 0 ? "high" : undefined}
-              decoding="async"
-            />
-          </div>
+          {index === 0 && coverTransitionName ? (
+            <div class="print" transition:name={coverTransitionName} transition:animate="initial">
+              <img {...artwork(image, true)} />
+            </div>
+          ) : (
+            <div class="print">
+              <img {...artwork(image, index === 0)} />
+            </div>
+          )}
           <figcaption class="mt-4 space-y-1">
             <p class="copy-small">{image.caption}</p>
             <p class="caption">

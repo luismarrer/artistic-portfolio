@@ -32,7 +32,15 @@ const isSelection = variant === "selection"
       return (
         <article class="project-entry min-w-0" data-project-entry={project.id}>
           <a href={`/projects/${project.id}`} class="project-card">
-            <div class="project-artwork print">
+            {/*
+              The whole mounted print travels to the case cover (same name as in Collage.astro). "initial" keeps
+              the browser's own morph, which global.css times and fits; the router's default fade would end early.
+            */}
+            <div
+              class="project-artwork print"
+              transition:name={`project-cover-${project.id}`}
+              transition:animate="initial"
+            >
               <img
                 src={cover.src}
                 alt={cover.alt}
@@ -47,7 +55,8 @@ const isSelection = variant === "selection"
               <p class="label">{project.category}</p>
               <h3>{project.title}</h3>
               <p class:list={["project-context", isSelection ? "copy" : "copy-small"]}>{project.description}</p>
-              <span class="case-link">{site.portfolio.caseLinkLabel} <span aria-hidden="true">→</span></span>
+              {/* The card is the link, so its label is a span: it draws when the card is hovered or focused. */}
+              <span class="case-link annotate">{site.portfolio.caseLinkLabel}</span>
             </div>
           </a>
           <p class="cover-credit caption">
@@ -61,7 +70,7 @@ const isSelection = variant === "selection"
   </div>
   {isSelection && (
     <p class="catalogue-link">
-      <a href="/portfolio">{site.portfolio.catalogueLinkLabel} <span aria-hidden="true">→</span></a>
+      <a href="/portfolio"><span class="annotate">{site.portfolio.catalogueLinkLabel}</span></a>
     </p>
   )}
 </section>
@@ -126,13 +135,11 @@ const isSelection = variant === "selection"
     margin-top: 0.75rem;
     color: var(--color-muted);
   }
+  /* Underline and drawn stroke come from .annotate (global.css); this rule must not set text-decoration. */
   .case-link {
-    display: inline-block;
     margin-top: 1rem;
     font-weight: 600;
     color: var(--color-accent);
-    text-decoration: underline;
-    text-underline-offset: 0.25rem;
   }
   .cover-credit {
     margin-top: 0.75rem;
@@ -146,15 +153,13 @@ const isSelection = variant === "selection"
   .catalogue-link {
     margin-top: 1.5rem;
   }
+  /* The link keeps its 44px hit area; the inner .annotate label carries the underline and the stroke. */
   .catalogue-link a {
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
     min-height: 2.75rem;
     font-weight: 600;
     color: var(--color-accent);
-    text-decoration: underline;
-    text-underline-offset: 0.25rem;
   }
   @media (min-width: 48rem) {
     .projects-grid:not(.selection-grid) {
@@ -171,11 +176,6 @@ const isSelection = variant === "selection"
     }
     .portfolio-section {
       padding-bottom: 4rem;
-    }
-  }
-  @media (hover: hover) and (pointer: fine) {
-    .project-card:hover .case-link {
-      text-decoration-thickness: 0.15em;
     }
   }
 </style>
