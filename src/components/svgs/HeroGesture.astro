@@ -1,0 +1,41 @@
+---
+interface Props {
+    class?: string
+}
+
+const { class: className = "" } = Astro.props
+const ink = "#6B1520"
+---
+
+<figure class:list={["signature-block", className]} aria-hidden="true">
+    <svg
+        class="js-signature"
+        data-variant="hero"
+        viewBox="0 0 280 108"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true"
+        focusable="false"
+    >
+        <defs>
+            <filter id="hero-gesture-ink" x="-12%" y="-24%" width="124%" height="148%">
+                <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" result="noise"></feTurbulence>
+                <feDisplacementMap in="SourceGraphic" in2="noise" scale="1.05" xChannelSelector="R" yChannelSelector="G"></feDisplacementMap>
+            </filter>
+        </defs>
+        <path
+            data-draw
+            d="M28 61 C52 26 73 29 87 50 C101 72 85 86 67 78 C49 69 54 45 81 35 C109 24 132 43 151 58 C176 78 208 78 238 49 C252 36 265 41 268 53"
+            stroke={ink}
+            stroke-width="3.2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            filter="url(#hero-gesture-ink)"
+        ></path>
+        <g class="signature-pen" aria-hidden="true">
+            <rect x="-3.2" y="-22" width="6.4" height="18" rx="1.2" fill={ink}></rect>
+            <rect x="-3.2" y="-26" width="6.4" height="5" rx="1" fill="#3f0c12"></rect>
+            <path d="M0 4 L-3.4 -4 H3.4 Z" fill="#1f080a"></path>
+        </g>
+    </svg>
+</figure>

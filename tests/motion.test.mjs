@@ -288,7 +288,7 @@ test('catalogue ink reaches the outer grid margin before the first artwork, incl
 
 // ── One written intro, within budget ────────────────────────────────────────
 // A hero as the controller sees it: headline words, signature, CTA and scroll hint.
-function heroPage({ variant = 'hero', words = 5, top = 0, writing = true } = {}) {
+function heroPage({ variant = 'hero', words = 5, top = 0, writing = true, pathOnly = false } = {}) {
   const wordElements = Array.from({ length: words }, () => new ElementDouble())
   const hint = new ElementDouble()
   const cta = new ElementDouble({ id: 'start', tagName: 'A', top: 330, width: 224, height: 52 })
@@ -301,11 +301,15 @@ function heroPage({ variant = 'hero', words = 5, top = 0, writing = true } = {})
   const signature = new ElementDouble({ top })
   signature.dataset.variant = variant
   Object.assign(signature.selectors, {
-    '[data-draw]': [parts.underline], '.signature-clip': parts.clip,
-    '.signature-pen': parts.pen, '.signature-word': parts.word,
+    '[data-draw]': [parts.underline], '.signature-pen': parts.pen,
   })
-  // A custom signature may have no writing path for the pen to follow.
-  if (writing) signature.selectors['.signature-write-path'] = parts.writePath
+  if (!pathOnly) {
+    Object.assign(signature.selectors, {
+      '.signature-clip': parts.clip, '.signature-word': parts.word,
+    })
+    // A custom signature may have no writing path for the pen to follow.
+    if (writing) signature.selectors['.signature-write-path'] = parts.writePath
+  }
   const singles = { '#start': cta, '.js-scroll-hint': hint }
   const lists = { '.js-hero-title span': wordElements, '.js-signature': [signature], '[data-magnetic]': [cta] }
   const document = {
@@ -392,6 +396,21 @@ test('the signature clip starts closed and wipes open in step with the pen along
   assert.equal(wipe.vars.duration, pen.vars.duration, 'and take the same time')
   assert.ok(wipe.vars.ease, 'the ease is named on the wipe')
   assert.equal(wipe.vars.ease, pen.vars.ease, 'and is the same ease, so they cannot drift apart')
+})
+
+test('a path-only hero gesture takes the full writing-and-underline time, rather than flashing like an underline', () => {
+  const page = heroPage({ pathOnly: true })
+  const [timeline] = page.timelines
+  const draw = timeline.entries.find(({ target, vars }) => target === page.underline && vars.strokeDashoffset === 0)
+  const pen = timeline.entries.find(({ target, vars }) => target === page.pen && vars.motionPath?.path === page.underline)
+  assert.ok(draw, 'the decorative path is drawn')
+  assert.equal(draw.at, 0.4, 'the gesture joins the last headline words')
+  assert.equal(draw.vars.duration, 0.72, 'path-only hero drawing reuses the 0.5 s writing plus 0.22 s underline rhythm')
+  assert.ok(pen, 'the pen follows the complete drawn gesture')
+  assert.equal(pen.vars.duration, draw.vars.duration, 'the pen and path stay synchronized')
+  assert.equal(entryEnd(draw), 1.12, 'the path itself ends inside the existing intro budget')
+  const lift = timeline.entries.find(({ target, vars }) => target === page.pen && vars.autoAlpha === 0)
+  assert.ok(lift && entryEnd(lift) <= 1.25, 'the pen lifts after the path without exceeding the intro budget')
 })
 
 test('a signature with nothing to write along keeps its clip as authored, so its word is never left hidden', () => {

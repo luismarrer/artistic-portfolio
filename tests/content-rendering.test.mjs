@@ -290,6 +290,19 @@ test('the hero retains readable anchor controls and its dark-ink visual contract
   assert.ok(!css.includes('.has-motion #start'), 'the CTA must stay visible before motion initialization')
 })
 
+test('the hero replaces the duplicate wordmark with an accessible non-verbal ink gesture', () => {
+  const html = page('.')
+  const hero = html.match(/<section\b[^>]*data-hero[^>]*>([\s\S]*?)<\/section>/)
+  assert.ok(hero)
+  const gesture = hero[1].match(/<svg\b(?=[^>]*\bdata-variant="hero")[^>]*>([\s\S]*?)<\/svg>/)
+  assert.ok(gesture, 'the hero renders its dedicated drawing hook')
+  assert.ok(gesture[0].includes('js-signature'), 'the existing drawing controller owns the gesture')
+  assert.ok(gesture[0].includes('aria-hidden="true"'), 'the decorative gesture is omitted from accessibility semantics')
+  assert.ok(gesture[0].includes('focusable="false"'), 'the decorative SVG cannot receive keyboard focus')
+  assert.match(gesture[0], /<path\b[^>]*\bdata-draw\b/, 'the gesture has a drawable ink path')
+  assert.ok(!/<(?:text|title)\b|Musea/.test(gesture[0]), 'the hero gesture is not a second brand wordmark')
+})
+
 // ── Paper and print system ──────────────────────────────────────────────────
 // Rendered and built-CSS assertions stay in this module: it owns the one `pnpm build` of the current
 // source, and a second building test file would race on `dist`.

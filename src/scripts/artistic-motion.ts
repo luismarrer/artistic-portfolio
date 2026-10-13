@@ -619,8 +619,11 @@ function initSignatures() {
             cursor += write
         }
 
-        // Then the underline is drawn, with the pen riding it.
-        const stroke = underline / Math.max(1, paths.length)
+        // A non-verbal hero path replaces both word-writing and underline phases, so it keeps their full rhythm.
+        const drawDuration = variant === "hero" && !clipRect && !writePath && !word
+            ? write + underline
+            : underline
+        const stroke = drawDuration / Math.max(1, paths.length)
         paths.forEach((path) => {
             if (pen) {
                 timeline.to(
