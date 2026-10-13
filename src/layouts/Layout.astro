@@ -13,6 +13,8 @@ interface Props {
   description?: string
   image?: LocalImage
   class?: string
+  /** The scroll-linked ink trail. Only the home page draws it: on every route it grew repetitive. */
+  inkTrail?: boolean
 }
 
 const {
@@ -20,6 +22,7 @@ const {
   description = site.description,
   image = site.socialImage,
   class: className,
+  inkTrail = false,
 } = Astro.props
 // Directory output includes a slash at build time; publication uses the existing slashless routes.
 const canonicalPath = Astro.url.pathname.replace(/\/$/, '') || '/'
@@ -92,7 +95,7 @@ const socialImageUrl = new URL(socialImage.src, site.publicUrl)
   <body class="font-sans antialiased">
     {/* First stop for a keyboard: it lets a visitor leave the brand and navigation behind. Shown only on focus (global.css). */}
     <a class="skip-link" href="#main">Skip to content</a>
-    <InkTrail />
+    {inkTrail && <InkTrail />}
     <Header />
     {/* tabindex="-1" makes <main> a programmatic focus target, so following the skip link moves focus there in every browser. */}
     <main id="main" tabindex="-1" class:list={["relative", className]}>

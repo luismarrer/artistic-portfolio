@@ -87,7 +87,8 @@ const filterId = `sig-ink-${variant}`
                 stroke-linejoin="round"
                 filter={`url(#${filterId})`}></path>
 
-            <DrawingPen class="signature-pen" />
+            {/* This 560-unit viewBox renders near 0.4px per unit: the pen scales up to match the hero gesture's on screen. */}
+            <DrawingPen class="signature-pen" scale={2.4} />
         </svg>
     </figure>
 )}

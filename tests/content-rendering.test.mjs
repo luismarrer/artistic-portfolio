@@ -335,11 +335,24 @@ test('all visible drawing ink uses one full-opacity token and one slender shared
   }
   assert.ok(!/ink-gradient|linearGradient|#6A4C93|#B22222/.test(html), 'the rendered trail has no tinted gradient or faded accent stroke')
   const sharedPen = read(new URL('../src/components/svgs/DrawingPen.astro', import.meta.url))
-  assert.match(sharedPen, /<path\b[^>]*d="M0 4/, 'the shared pen has a shaped nib')
-  assert.match(sharedPen, /M-2\.2 -22 H2\.2 L1\.7 -4/, 'the pen barrel remains slender and tapered')
+  assert.match(sharedPen, /<path\b[^>]*d="M0 0 C/, 'the nib tip sits on the pen origin, where the motion path carries it')
+  assert.match(sharedPen, /<circle\b[^>]*cy="-7\.3"/, 'a split dip-pen nib with its breather hole, not an arrowhead')
+  assert.match(sharedPen, /transform="rotate\(32\)"/, 'the pen keeps a fixed hand lean')
+  assert.match(sharedPen, /data-pen-scale/, 'each host sizes the pen without moving its tip')
+  const motion = read(new URL('../src/scripts/artistic-motion.ts', import.meta.url))
+  for (const option of ['autoRotate', 'alignOrigin']) {
+    assert.ok(!motion.includes(option), `no pen turns with the stroke like an arrow (${option})`)
+  }
   for (const name of ['Signature.astro', 'HeroGesture.astro', 'InkTrail.astro']) {
     const component = read(new URL(`../src/components/svgs/${name}`, import.meta.url))
     assert.match(component, /import DrawingPen/, `${name} reuses the common instrument`)
+  }
+})
+
+test('only the home page draws the scroll-linked ink trail', () => {
+  for (const route of routes) {
+    const trails = [...documentFor(route).matchAll(/\bid="ink-trail"/g)].length
+    assert.equal(trails, route === '/' ? 1 : 0, `${route}: ${trails} ink trail(s)`)
   }
 })
 

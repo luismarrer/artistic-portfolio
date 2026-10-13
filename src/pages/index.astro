@@ -10,7 +10,7 @@ import { projects } from "@/data/projects"
 const selectedProject = projects.find(({ featured }) => featured) ?? projects[0]
 ---
 
-<Layout title={site.pages.home.title} description={site.pages.home.description}>
+<Layout title={site.pages.home.title} description={site.pages.home.description} inkTrail>
   <Hero />
   <PortfolioComponent items={[selectedProject]} variant="selection" />
   <About />
