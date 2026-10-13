@@ -587,12 +587,9 @@ function initSignatures() {
             paused: true,
             defaults: { ease: WRITING_EASE },
         })
-        const follow = (path: SVGPathElement) => ({
-            path,
-            align: path,
-            alignOrigin: [0.5, 0.12],
-            autoRotate: 90,
-        })
+        // The pen's tip is its origin and it shares the path's user space, so the raw path
+        // coordinates put the tip on the ink. It keeps its lean instead of turning with the stroke.
+        const follow = (path: SVGPathElement) => ({ path })
 
         // Absolute times, so the whole schedule can be read (and budgeted) at a glance.
         let cursor = start
@@ -814,26 +811,16 @@ function initInkTrail() {
     const stroke = L.mobile ? 1.7 : L.vw < 1024 ? 2.1 : 2.6
     path.setAttribute("stroke-width", `${stroke}`)
 
-    const penScale = L.mobile ? 1.25 : L.vw < 1024 ? 1.45 : 1.65
-    gsap.set(pen, { autoAlpha: 0, scale: penScale, transformOrigin: "50% 18%" })
+    const penScale = L.mobile ? 0.85 : L.vw < 1024 ? 1 : 1.15
+    pen.querySelector("[data-pen-scale]")?.setAttribute("transform", `scale(${penScale})`)
+    gsap.set(pen, { autoAlpha: 0 })
 
     // The timeline is linear in path length; scroll drives its progress
     // through the depth lookup below.
     const timeline = gsap.timeline({ paused: true, defaults: { ease: "none" } })
     timeline.to(path, { strokeDashoffset: 0, duration: 1 }, 0)
-    timeline.to(
-        pen,
-        {
-            motionPath: {
-                path,
-                align: path,
-                alignOrigin: [0.5, 0.18],
-                autoRotate: 90,
-            },
-            duration: 1,
-        },
-        0,
-    )
+    // Raw path coordinates carry the pen's tip (its origin) along the ink, at its fixed lean.
+    timeline.to(pen, { motionPath: { path }, duration: 1 }, 0)
     // The pen shows up as soon as it starts moving and lifts once it has
     // handed the stroke over to the footer signature.
     timeline.fromTo(pen, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.012 }, 0.0005)
@@ -1000,9 +987,10 @@ function initReveals() {
     })
 }
 
-/** Motion that answers a person's action: a gentle pull toward the pointer, and a short scroll. */
+/** Motion that answers a person's action: a gentle pull toward the pointer, and an unhurried scroll. */
 const MAGNETIC_PULL = 0.12
-const CTA_SCROLL_DURATION = 0.9
+// The production pace: at 0.9s the eased scroll covered the first screen too quickly to follow.
+const CTA_SCROLL_DURATION = 1.55
 
 function initCtaAndHover(signal: AbortSignal) {
     const cta = document.querySelector<HTMLAnchorElement>("#start")
