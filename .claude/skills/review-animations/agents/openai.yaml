@@ -1,0 +1,4 @@
+# Codex ignores `disable-model-invocation` in SKILL.md; this keeps the skill
+# manual-only there too ($review-animations), as upstream intends.
+policy:
+  allow_implicit_invocation: false
