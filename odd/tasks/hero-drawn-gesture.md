@@ -46,7 +46,8 @@ RDD: off, decided by global preference; ordinary verification applies.
 - Browser visual QA: desktop 1280x720 and mobile 390x844; no duplicate hero brand text, balanced composition, complete path visible, pen hidden at completion. After reload, observed the path's stroke offset at 397.832px, then at 0px with opacity 1; final pen opacity 0/visibility hidden. No captured browser errors. Temporary viewport override reset.
 - No-JS and reduced-motion behavior were checked through static markup and deterministic tests, not through browser media emulation (unavailable in the exposed controls).
 - Screenshot: desktop proof saved in the session visualization directory as `hero-gesture-desktop.jpg`.
-- Commit identity and final authored line count pending.
+- T1 work-unit commit: `7070395aa22029af0b5edc1e0d35cfabec0457cc` — `feat(hero): replace repeated wordmark with drawn ink gesture`.
+- Authored count for the work unit: 146 lines (137 additions + 9 deletions), generated files excluded; below the delivery-slicing forecast. The original 16-line mobile trail diff remains unstaged and was not included in the commit.
 
 ## Next step
-Commit the verified work unit, record its identity, and keep the user's original mobile trail diff unstaged. No remote delivery is authorized.
+No implementation remains for T1. Keep the local preview available for visual feedback and the user's original mobile trail diff unstaged. No push, PR, merge, or deployment was performed or authorized.
