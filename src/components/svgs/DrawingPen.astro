@@ -1,0 +1,16 @@
+---
+interface Props {
+    id?: string
+    class?: string
+}
+
+const { id, class: className } = Astro.props
+---
+
+<g id={id} class={className} aria-hidden="true">
+    <path d="M-2.2 -22 H2.2 L1.7 -4 H-1.7 Z" fill="var(--color-drawing-ink)"></path>
+    <path d="M-2.2 -26 H2.2 V-22 H-2.2 Z" fill="#3f0c12"></path>
+    <path d="M-1.15 -19.5 H-0.35 L-0.15 -7.5 H-1 Z" fill="#FFFDD0" opacity="0.35"></path>
+    <path d="M0 4 L-2.8 -4 H2.8 Z" fill="#1f080a"></path>
+    <path d="M0 2.2 V-2.6" stroke="#FFFDD0" stroke-width="0.45" stroke-linecap="round" opacity="0.45"></path>
+</g>

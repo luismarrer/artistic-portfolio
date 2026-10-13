@@ -1,10 +1,12 @@
 ---
+import DrawingPen from "@/components/svgs/DrawingPen.astro"
+
 interface Props {
     class?: string
 }
 
 const { class: className = "" } = Astro.props
-const ink = "#6B1520"
+const ink = "var(--color-drawing-ink)"
 ---
 
 <figure class:list={["signature-block", className]} aria-hidden="true">
@@ -32,10 +34,6 @@ const ink = "#6B1520"
             stroke-linejoin="round"
             filter="url(#hero-gesture-ink)"
         ></path>
-        <g class="signature-pen" aria-hidden="true">
-            <rect x="-3.2" y="-22" width="6.4" height="18" rx="1.2" fill={ink}></rect>
-            <rect x="-3.2" y="-26" width="6.4" height="5" rx="1" fill="#3f0c12"></rect>
-            <path d="M0 4 L-3.4 -4 H3.4 Z" fill="#1f080a"></path>
-        </g>
+        <DrawingPen class="signature-pen" />
     </svg>
 </figure>

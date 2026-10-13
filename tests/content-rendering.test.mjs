@@ -303,6 +303,26 @@ test('the hero replaces the duplicate wordmark with an accessible non-verbal ink
   assert.ok(!/<(?:text|title)\b|Musea/.test(gesture[0]), 'the hero gesture is not a second brand wordmark')
 })
 
+test('all visible drawing ink uses one full-opacity token and one slender shared instrument', () => {
+  const html = page('.')
+  const footer = html.match(/<footer\b[^>]*>([\s\S]*?)<\/footer>/)?.[1]
+  const hero = html.match(/<section\b[^>]*data-hero[^>]*>([\s\S]*?)<\/section>/)?.[1]
+  assert.ok(footer && hero)
+  const css = stylesheetFor('/')
+  assert.match(css, /--color-drawing-ink:\s*#6b1520/i)
+  for (const markup of [hero, footer, html]) {
+    assert.ok(markup.includes('var(--color-drawing-ink)'), 'every rendered drawing uses the shared ink token')
+  }
+  assert.ok(!/ink-gradient|linearGradient|#6A4C93|#B22222/.test(html), 'the rendered trail has no tinted gradient or faded accent stroke')
+  const sharedPen = read(new URL('../src/components/svgs/DrawingPen.astro', import.meta.url))
+  assert.match(sharedPen, /<path\b[^>]*d="M0 4/, 'the shared pen has a shaped nib')
+  assert.match(sharedPen, /M-2\.2 -22 H2\.2 L1\.7 -4/, 'the pen barrel remains slender and tapered')
+  for (const name of ['Signature.astro', 'HeroGesture.astro', 'InkTrail.astro']) {
+    const component = read(new URL(`../src/components/svgs/${name}`, import.meta.url))
+    assert.match(component, /import DrawingPen/, `${name} reuses the common instrument`)
+  }
+})
+
 // ── Paper and print system ──────────────────────────────────────────────────
 // Rendered and built-CSS assertions stay in this module: it owns the one `pnpm build` of the current
 // source, and a second building test file would race on `dist`.

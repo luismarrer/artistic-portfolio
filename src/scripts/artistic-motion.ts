@@ -4,8 +4,7 @@ import { ScrollToPlugin } from "gsap/ScrollToPlugin"
 import { ScrollTrigger } from "gsap/ScrollTrigger"
 
 gsap.registerPlugin(MotionPathPlugin, ScrollToPlugin, ScrollTrigger)
-
-const SVG_NS = "http://www.w3.org/2000/svg"
+ScrollTrigger.config?.({ ignoreMobileResize: true })
 
 let motionCtx: gsap.Context | undefined
 let listeners: AbortController | undefined
@@ -98,8 +97,6 @@ interface Box {
 interface Anchor {
     x: number
     y: number
-    /** Leave a couple of ink drops where the pen pauses or turns. */
-    blot?: boolean
 }
 
 interface TrailLayout {
@@ -179,11 +176,10 @@ function laneRight(contentRight: number, width: number) {
 
 function buildTrailRoute(L: TrailLayout): Anchor[] {
     const pts: Anchor[] = []
-    const add = (x: number, y: number, blot = false) => {
+    const add = (x: number, y: number) => {
         pts.push({
             x: clamp(x, EDGE_MIN, L.width - EDGE_MIN),
             y: clamp(y, 12, L.height - 12),
-            blot,
         })
     }
     /** Straight run down a lane with a faint hand wobble kept inside `room`. */
@@ -223,7 +219,7 @@ function buildTrailRoute(L: TrailLayout): Anchor[] {
         const y = (bandTop + Math.max(bandBottom, bandTop + 40)) / 2
         leadOut(bandTop)
         add(L.width * 0.66, y - 8)
-        add(L.width * 0.3, y + 6, true)
+        add(L.width * 0.3, y + 6)
         add(landX + inward(landRoom), landY)
         side = "left"
         laneRoom = landRoom
@@ -265,7 +261,7 @@ function buildTrailRoute(L: TrailLayout): Anchor[] {
             add(cta.left - 30, cta.top + cta.height * 0.15)
             add(cta.left - 18, cta.bottom + 4)
             add(cta.left + cta.width * 0.3, cta.bottom + 17)
-            add(cta.right + 4, cta.bottom + 9, true)
+            add(cta.right + 4, cta.bottom + 9)
             add(cta.right + 34, cta.bottom + 34)
         }
 
@@ -279,7 +275,7 @@ function buildTrailRoute(L: TrailLayout): Anchor[] {
             : null
         const nextContentLeft = nextContent && nextContent.left > 1 ? nextContent.left : L.gutter
         const nextLeft = laneLeft(nextContentLeft)
-        add(hero.cx + L.width * 0.05, glideFrom + (hero.bottom - glideFrom) * 0.5, true)
+        add(hero.cx + L.width * 0.05, glideFrom + (hero.bottom - glideFrom) * 0.5)
         add(nextLeft + inward(nextContentLeft - nextLeft, 10), hero.bottom - 20)
         contentBottom = hero.bottom
         started = true
@@ -366,7 +362,7 @@ function buildTrailRoute(L: TrailLayout): Anchor[] {
         if (side === "left") {
             const fromX = pts[pts.length - 1]?.x ?? 0
             leadOut(bandTop)
-            add(Math.max(L.width * 0.42, fromX + 60), sweepY - 6, true)
+            add(Math.max(L.width * 0.42, fromX + 60), sweepY - 6)
             add(L.width * 0.72, sweepY + 4)
         } else {
             add(rx, sweepY)
@@ -534,8 +530,8 @@ const WORD_WIPE = {
  * the footer one plays on arrival, with the same character, a little slower.
  */
 const SIGNATURE_TIMING = {
-    hero: { start: 0.4, write: 0.5, underline: 0.22, lift: 0.12 },
-    footer: { start: 0.05, write: 0.7, underline: 0.3, lift: 0.15 },
+    hero: { start: 0.4, write: 1.7, underline: 0.5, lift: 0.14 },
+    footer: { start: 0.05, write: 1.9, underline: 0.75, lift: 0.16 },
 }
 /** The pen starts lifting this long before the underline ends, as the stroke closes. */
 const PEN_LIFT_OVERLAP = 0.05
@@ -555,7 +551,7 @@ const PINNED_SCROLL_HINT = {
 /** Secondary reveals and cards settle from at most this many pixels below: a hint, not an entrance. */
 const REVEAL_RISE = 12
 
-const WRITING_EASE = "power1.inOut"
+const WRITING_EASE = "none"
 
 function initSignatures() {
     const signatures = document.querySelectorAll<SVGSVGElement>(".js-signature")
@@ -673,11 +669,6 @@ function initSignatures() {
 // horizontal flourishes therefore never make the pen lag behind or race ahead
 // of the visible area.
 
-/** A blot's radius as a multiple of the stroke width: a pool just wider than the line. */
-const BLOT_RADIUS = 1.1
-/** Opacity of a revealed blot, close to the stroke's own so it reads as the same ink. */
-const BLOT_OPACITY = 0.7
-
 interface InkTrail {
     timeline: gsap.core.Timeline
     trigger: ScrollTrigger
@@ -700,8 +691,6 @@ function buildDepthLookup(path: SVGPathElement, length: number) {
     const n = Math.max(2, Math.ceil(length / 6))
     const lens = new Float32Array(n + 1)
     const depth = new Float32Array(n + 1)
-    const xs = new Float32Array(n + 1)
-    const ys = new Float32Array(n + 1)
     let maxY = -Infinity
     for (let i = 0; i <= n; i++) {
         const l = (i / n) * length
@@ -709,8 +698,6 @@ function buildDepthLookup(path: SVGPathElement, length: number) {
         if (pt.y > maxY) maxY = pt.y
         lens[i] = l
         depth[i] = maxY
-        xs[i] = pt.x
-        ys[i] = pt.y
     }
     const startY = depth[0]
     const endY = depth[n]
@@ -730,19 +717,7 @@ function buildDepthLookup(path: SVGPathElement, length: number) {
         const t = y1 > y0 ? (y - y0) / (y1 - y0) : 1
         return lens[i0] + (lens[lo] - lens[i0]) * t
     }
-    const lengthNear = (x: number, y: number) => {
-        let nearest = 0
-        let best = Infinity
-        for (let i = 0; i <= n; i++) {
-            const distance = (xs[i] - x) ** 2 + (ys[i] - y) ** 2
-            if (distance < best) {
-                best = distance
-                nearest = i
-            }
-        }
-        return lens[nearest]
-    }
-    return { startY, endY, lengthAt, lengthNear }
+    return { startY, endY, lengthAt }
 }
 
 function killInkTrail() {
@@ -768,9 +743,12 @@ function resolveGutter(vw: number) {
 /**
  * Fingerprint of the layout the trail was built for. Uses the body's own
  * height so the page-long overlay cannot mask a document that grew or shrank.
+ * On mobile, ignore dynamic URL bar height fluctuations to avoid rebuilding mid-scroll.
  */
 function layoutKey() {
-    return `${document.documentElement.clientWidth}x${document.body.offsetHeight}x${window.innerHeight}`
+    const isMobile = document.documentElement.clientWidth < 640
+    const vhKey = isMobile ? 0 : window.innerHeight
+    return `${document.documentElement.clientWidth}x${document.body.offsetHeight}x${vhKey}`
 }
 
 function trailLayout(): TrailLayout {
@@ -794,10 +772,8 @@ function initInkTrail() {
     const root = document.querySelector<HTMLElement>("#ink-trail")
     const svg = root?.querySelector<SVGSVGElement>("svg")
     const path = root?.querySelector<SVGPathElement>("#ink-path")
-    const pathShadow = root?.querySelector<SVGPathElement>("#ink-path-shadow")
     const pen = root?.querySelector<SVGGElement>("#ink-pen")
-    const splatters = root?.querySelector<SVGGElement>("#ink-splatters")
-    if (!root || !svg || !path || !pen || !splatters) return
+    if (!root || !svg || !path || !pen) return
 
     // Drop any previous explicit height before measuring so a stale value
     // cannot keep the document artificially tall after a resize.
@@ -828,38 +804,15 @@ function initInkTrail() {
     const anchors = buildTrailRoute(L)
     const d = toSmoothPath(anchors)
     path.setAttribute("d", d)
-    if (pathShadow) pathShadow.setAttribute("d", d)
-
     const length = path.getTotalLength()
     if (!length) return
 
     prepDraw(path)
-    if (pathShadow) prepDraw(pathShadow)
 
-    const { startY, endY, lengthAt, lengthNear } = buildDepthLookup(path, length)
+    const { startY, endY, lengthAt } = buildDepthLookup(path, length)
 
     const stroke = L.mobile ? 1.7 : L.vw < 1024 ? 2.1 : 2.6
     path.setAttribute("stroke-width", `${stroke}`)
-    if (pathShadow) pathShadow.setAttribute("stroke-width", `${stroke + 2.4}`)
-
-    // One ink pool where the pen pauses or turns, revealed as it passes by. The
-    // route runs exactly through its anchors (they are the end points of the
-    // spline's segments), so a blot centred on an anchor sits on the stroke
-    // instead of floating beside it.
-    splatters.replaceChildren()
-    const blots: { circle: SVGCircleElement; at: number }[] = []
-    anchors.forEach((anchor) => {
-        if (!anchor.blot) return
-        const circle = document.createElementNS(SVG_NS, "circle")
-        // Rounded like the path data, so the centre is the path's own vertex.
-        circle.setAttribute("cx", anchor.x.toFixed(1))
-        circle.setAttribute("cy", anchor.y.toFixed(1))
-        circle.setAttribute("r", `${(stroke * BLOT_RADIUS).toFixed(2)}`)
-        circle.style.fill = "var(--color-accent)"
-        circle.setAttribute("opacity", "0")
-        splatters.appendChild(circle)
-        blots.push({ circle, at: clamp(lengthNear(anchor.x, anchor.y) / length, 0, 0.98) })
-    })
 
     const penScale = L.mobile ? 1.25 : L.vw < 1024 ? 1.45 : 1.65
     gsap.set(pen, { autoAlpha: 0, scale: penScale, transformOrigin: "50% 18%" })
@@ -867,7 +820,6 @@ function initInkTrail() {
     // The timeline is linear in path length; scroll drives its progress
     // through the depth lookup below.
     const timeline = gsap.timeline({ paused: true, defaults: { ease: "none" } })
-    if (pathShadow) timeline.to(pathShadow, { strokeDashoffset: 0, duration: 1 }, 0)
     timeline.to(path, { strokeDashoffset: 0, duration: 1 }, 0)
     timeline.to(
         pen,
@@ -886,15 +838,13 @@ function initInkTrail() {
     // handed the stroke over to the footer signature.
     timeline.fromTo(pen, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.012 }, 0.0005)
     timeline.to(pen, { autoAlpha: 0, duration: 0.015 }, 0.985)
-    blots.forEach(({ circle, at }) => {
-        timeline.to(circle, { opacity: BLOT_OPACITY, duration: 0.02 }, at)
-    })
-
     const progressFor = (scroll: number) => {
         const p = clamp(scroll / maxScroll, 0, 1)
-        // Pen tip a little below mid-viewport, drifting to the bottom edge so
-        // the very end of the page is reached before scrolling stops.
-        const lead = L.vh * (0.55 + 0.45 * p * p)
+        // Pen tip sits in the upper half on mobile or below mid-viewport on desktop,
+        // drifting toward the bottom edge near the end of the page.
+        const leadBase = L.mobile ? 0.24 : 0.55
+        const leadDrift = L.mobile ? 0.44 : 0.45
+        const lead = L.vh * (leadBase + leadDrift * p * p)
         // Nothing is drawn until the reader actually starts scrolling.
         const ramp = smoothstep(scroll / Math.max(120, L.vh * 0.22))
         const depth = clamp(startY + (scroll + lead - startY) * ramp, startY, endY)
@@ -904,7 +854,7 @@ function initInkTrail() {
     const proxy = { p: 0 }
     const apply = () => timeline.progress(proxy.p)
     const glide = gsap.quickTo(proxy, "p", {
-        duration: 0.6,
+        duration: L.mobile ? 0.35 : 0.6,
         ease: "power2.out",
         onUpdate: apply,
     })
@@ -1117,7 +1067,7 @@ function initCtaAndHover(signal: AbortSignal) {
 function showStaticFallback() {
     document
         .querySelectorAll<SVGPathElement>(
-            ".js-signature [data-draw], #ink-path, #ink-path-shadow",
+            ".js-signature [data-draw], #ink-path",
         )
         .forEach((path) => {
             path.style.strokeDashoffset = "0"

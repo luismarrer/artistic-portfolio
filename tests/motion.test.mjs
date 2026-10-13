@@ -363,24 +363,21 @@ test('a long headline tightens its stagger so it is still written by 0.85 s', ()
   }
 })
 
-test('the 1.25 s intro budget covers words, signature, underline and pen lift; the arrow follows its own pinned timing', () => {
-  const page = heroPage()
+test('the hero keeps content quick while its path-only ink receives a deliberate 2.2 second draw', () => {
+  const page = heroPage({ pathOnly: true })
   const [timeline] = page.timelines
-  assert.ok(timeline.entries.length > 0 && timeline.entries.every(({ at }) => typeof at === 'number'),
-    'every signature tween sits at an absolute time')
   const { to: words } = wordWipe(page)
-  const lastWordStart = (words.delay ?? 0) + (page.wordElements.length - 1) * words.stagger
-  const wordsEnd = lastWordStart + words.duration
-  const signatureStart = Math.min(...timeline.entries.map(({ at }) => at))
-  const signatureEnd = Math.max(...timeline.entries.map(entryEnd))
-  // The arrow under the hero is outside this budget: it keeps its production timing, pinned by its own guard test below.
-  const end = Math.max(wordsEnd, signatureEnd)
-  assert.ok(end <= 1.25, `the intro ends at ${end.toFixed(2)} s`)
-  assert.ok(end >= 1.1, `the intro really uses its budget (ends at ${end.toFixed(2)} s)`)
-  assert.ok(signatureStart >= lastWordStart && signatureStart < wordsEnd,
-    'the signature starts while the last words are still being written')
-  const arrow = page.calls.find(({ kind, target }) => kind === 'fromTo' && target === page.hint)
-  assert.ok(arrow.to.delay > end, 'the arrow enters after the written intro is over, on its own timing')
+  const wordsEnd = (words.delay ?? 0) + (page.wordElements.length - 1) * words.stagger + words.duration
+  assert.ok(wordsEnd <= 0.85, `headline remains quick at ${wordsEnd.toFixed(2)} s`)
+  const draw = timeline.entries.find(({ target, vars }) => target === page.underline && vars.strokeDashoffset === 0)
+  const pen = timeline.entries.find(({ target, vars }) => target === page.pen && vars.motionPath?.path === page.underline)
+  assert.ok(draw && pen, 'the gesture path and pen are both scheduled')
+  assert.ok(draw.vars.duration >= 2.15 && draw.vars.duration <= 2.25, `hero draw lasts ${draw.vars.duration} s`)
+  assert.equal(draw.vars.ease, 'none', 'the expressive path travels continuously')
+  assert.equal(pen.vars.duration, draw.vars.duration, 'pen travel matches the ink stroke')
+  assert.equal(pen.vars.ease, draw.vars.ease, 'pen and ink use one continuous ease')
+  const lift = timeline.entries.find(({ target, vars }) => target === page.pen && vars.autoAlpha === 0)
+  assert.ok(lift && entryEnd(lift) > entryEnd(draw) && entryEnd(lift) < 2.8, 'the pen lifts after the long hero draw')
 })
 
 test('the signature clip starts closed and wipes open in step with the pen along the writing path', () => {
@@ -398,19 +395,16 @@ test('the signature clip starts closed and wipes open in step with the pen along
   assert.equal(wipe.vars.ease, pen.vars.ease, 'and is the same ease, so they cannot drift apart')
 })
 
-test('a path-only hero gesture takes the full writing-and-underline time, rather than flashing like an underline', () => {
+test('a path-only hero gesture takes the deliberate 2.2 second drawing rhythm', () => {
   const page = heroPage({ pathOnly: true })
   const [timeline] = page.timelines
   const draw = timeline.entries.find(({ target, vars }) => target === page.underline && vars.strokeDashoffset === 0)
   const pen = timeline.entries.find(({ target, vars }) => target === page.pen && vars.motionPath?.path === page.underline)
-  assert.ok(draw, 'the decorative path is drawn')
-  assert.equal(draw.at, 0.4, 'the gesture joins the last headline words')
-  assert.equal(draw.vars.duration, 0.72, 'path-only hero drawing reuses the 0.5 s writing plus 0.22 s underline rhythm')
-  assert.ok(pen, 'the pen follows the complete drawn gesture')
-  assert.equal(pen.vars.duration, draw.vars.duration, 'the pen and path stay synchronized')
-  assert.equal(entryEnd(draw), 1.12, 'the path itself ends inside the existing intro budget')
-  const lift = timeline.entries.find(({ target, vars }) => target === page.pen && vars.autoAlpha === 0)
-  assert.ok(lift && entryEnd(lift) <= 1.25, 'the pen lifts after the path without exceeding the intro budget')
+  assert.ok(draw && pen, 'the decorative path and pen are drawn together')
+  assert.equal(draw.at, 0.4, 'the gesture still joins the last headline words')
+  assert.ok(draw.vars.duration >= 2.15 && draw.vars.duration <= 2.25, `gesture draw lasts ${draw.vars.duration} s`)
+  assert.equal(draw.vars.ease, 'none')
+  assert.equal(pen.vars.duration, draw.vars.duration, 'the pen follows the entire gesture')
 })
 
 test('a signature with nothing to write along keeps its clip as authored, so its word is never left hidden', () => {
@@ -441,7 +435,7 @@ test('the signature pen is hidden before it plays, shown only while it writes, a
   }
 })
 
-test('the footer signature keeps the hero character, a little slower, and waits to scroll into view', () => {
+test('the footer signature waits to scroll into view and takes a deliberate 2.65 second drawing sequence', () => {
   const footer = heroPage({ variant: 'footer', top: 2400 })
   assert.equal(footer.calls.some(({ kind }) => kind === 'play'), false, 'below the fold it waits')
   const trigger = footer.triggers.find(({ config }) => config.trigger === footer.signature)
@@ -449,10 +443,17 @@ test('the footer signature keeps the hero character, a little slower, and waits 
   assert.equal(trigger.config.start, 'top 99%')
   trigger.config.onEnter()
   assert.equal(footer.calls.filter(({ kind }) => kind === 'play').length, 1)
-  const [footerWrite, heroWrite] = [footer, heroPage()].map(penWrite)
-  assert.ok(footerWrite.vars.duration >= 0.6 && footerWrite.vars.duration <= 0.8, 'about 0.7 s')
-  assert.ok(footerWrite.vars.duration > heroWrite.vars.duration)
-  assert.equal(footerWrite.vars.ease, heroWrite.vars.ease, 'the same character')
+  const entries = footer.timelines[0].entries
+  const wordPen = entries.find(({ target, vars }) => target === footer.pen && vars.motionPath?.path === footer.writePath)
+  const clip = entries.find(({ target }) => target === footer.clip)
+  const underline = entries.find(({ target, vars }) => target === footer.underline && vars.strokeDashoffset === 0)
+  assert.ok(wordPen && clip && underline, 'footer word, clip and underline are all synchronized')
+  assert.ok(wordPen.vars.duration >= 1.85 && wordPen.vars.duration <= 1.95, `footer word takes ${wordPen.vars.duration} s`)
+  assert.ok(underline.vars.duration >= 0.7 && underline.vars.duration <= 0.8, `footer underline takes ${underline.vars.duration} s`)
+  assert.equal(clip.vars.duration, wordPen.vars.duration, 'the clip follows the pen for the full word')
+  for (const entry of [wordPen, clip, underline]) assert.equal(entry.vars.ease, 'none', 'footer ink travels continuously')
+  const lift = entries.find(({ target, vars }) => target === footer.pen && vars.autoAlpha === 0)
+  assert.ok(lift && entryEnd(lift) > 2.65 && entryEnd(lift) < 2.9, 'the pen lifts once the long footer drawing completes')
 })
 
 test('the only endless tween is the arrow bounce, and everything else stays finite', () => {
@@ -652,31 +653,22 @@ function trailPage(width) {
   }
   const runtime = controller(document, { window: { scrollY: 0, innerWidth: width, innerHeight: 900 } })
   const layout = { width, height, vw: width, vh: 900, gutter: Math.min(48, Math.max(20, width * 0.04)), mobile: width < 640 }
-  return { ...runtime, path, splatters, layout }
+  return { ...runtime, document, path, splatters, layout }
 }
 
-test('ink blots sit exactly on the stroke: one per turn, sized to the line, revealed as the pen passes', () => {
+test('the continuous ink trail creates no dot or splatter elements across rebuilds', () => {
   for (const width of [1440, 390]) {
-    const { api, path, splatters, layout, timelines } = trailPage(width)
+    const { api, document, splatters, timelines } = trailPage(width)
     api.initInkTrail()
-    const turns = api.buildTrailRoute(layout).filter(({ blot }) => blot)
-    assert.ok(turns.length >= 2, `${width}px: the route has turns to mark`)
-    const blots = splatters.children
-    assert.equal(blots.length, turns.length, `${width}px: exactly one blot per marked turn`)
-    const stroke = Number(path.attributes['stroke-width'])
-    const curve = sampleCurve(path.attributes.d)
-    blots.forEach((blot, index) => {
-      const gap = Math.min(...curve.map(({ x, y }) => Math.hypot(x - Number(blot.attributes.cx), y - Number(blot.attributes.cy))))
-      assert.ok(gap < 0.1, `${width}px: blot ${index} floats ${gap.toFixed(2)}px off the stroke`)
-      const radius = Number(blot.attributes.r)
-      assert.ok(radius >= stroke * 0.9 && radius <= stroke * 1.2, `${width}px: radius ${radius} against a ${stroke}px line`)
-      assert.equal(blot.style.fill, 'var(--color-accent)', 'accent ink, from the token')
-      assert.equal(blot.attributes.opacity, '0', 'a blot starts hidden')
-    })
-    const reveals = timelines.at(-1).entries.filter(({ target }) => blots.includes(target))
-    assert.equal(reveals.length, blots.length, 'each blot is revealed once, by the pen')
-    for (const { vars } of reveals) assert.ok(Math.abs(vars.opacity - 0.7) <= 0.05, `revealed at ink opacity, got ${vars.opacity}`)
+    document.body.offsetHeight += 120
+    document.documentElement.scrollHeight += 120
+    api.initInkTrail()
+    assert.equal(splatters.children.length, 0, `${width}px: no decorative circles are generated after a rebuild`)
+    assert.ok(!timelines.flatMap(({ entries }) => entries).some(({ target }) => splatters.children.includes(target)),
+      `${width}px: no timeline animates removed dots`)
   }
+  assert.doesNotMatch(source, /BLOT_(?:RADIUS|OPACITY)|lengthNear|ink-splatters|createElementNS\([^)]*circle/,
+    'the removed dot machinery no longer survives in the controller')
 })
 
 test('the legacy sketch animation and its orphan component are gone', () => {
@@ -763,7 +755,7 @@ function lifecycle({ reduced = false } = {}) {
     '#ink-pen': pen, '#ink-splatters': new ElementDouble(),
   })
   const visibleContent = [copy, word, cta, hint, signatureWord]
-  const paths = [signaturePath, path, shadow]
+  const paths = [signaturePath, path]
   visibleContent.forEach((element) => Object.assign(element.style, { opacity: '0', transform: 'translateY(42px)' }))
   paths.forEach((element) => Object.assign(element.style, { strokeDashoffset: '100', strokeDasharray: '100' }))
   // Nothing but JavaScript hides the pen in this state: an unstyled pen is fully visible.
@@ -772,7 +764,7 @@ function lifecycle({ reduced = false } = {}) {
   const collections = {
     '.js-signature': [signature], '.js-hero-title span': [word], '[data-reveal]': [copy],
     '[data-magnetic]': [cta], '.signature-clip': [clip], '.js-signature .signature-pen': [signaturePen],
-    '.js-signature [data-draw], #ink-path, #ink-path-shadow': paths,
+    '.js-signature [data-draw], #ink-path': [signaturePath, path],
     '[data-reveal], .js-hero-title span, #start, .js-scroll-hint, .js-signature .signature-word': visibleContent,
   }
   document.querySelector = (selector) => singles[selector] ?? null
