@@ -29,6 +29,12 @@ function htmlRoutes(directory = dist) {
   })
 }
 
+function distFiles(directory = dist) {
+  return readdirSync(directory, { recursive: true, withFileTypes: true })
+    .filter((entry) => entry.isFile())
+    .map((entry) => resolve(entry.parentPath, entry.name))
+}
+
 function localAsset(path) {
   const file = resolve(dist, `.${decodeURIComponent(path)}`)
   assert.ok(file.startsWith(`${dist}${sep}`), `asset must remain inside dist: ${path}`)
@@ -104,6 +110,20 @@ test('all rendered local resources and internal navigation destinations exist', 
   }
   const manifest = JSON.parse(readFileSync(localAsset('/site.webmanifest'), 'utf8'))
   for (const { src } of manifest.icons) localAsset(src)
+})
+
+test('every published image is referenced by the built site', () => {
+  // SVG files are images themselves, so they never count as referrers.
+  const textOutputs = distFiles().filter((file) => /\.(?:html|css|js|mjs|json|xml|txt|webmanifest)$/.test(file))
+  const referrers = textOutputs.map((file) => readFileSync(file, 'utf8')).join('\n')
+  // Markup may percent-encode file names (spaces, for instance), so accept either spelling.
+  const isReferenced = (path) => [path, encodeURI(path)].some((spelling) => referrers.includes(spelling))
+  const images = resolve(dist, 'images')
+  const unreferenced = (existsSync(images) ? distFiles(images) : [])
+    .map((file) => file.slice(dist.length).split(sep).join('/'))
+    .filter((path) => !isReferenced(path))
+    .sort()
+  assert.deepEqual(unreferenced, [], 'delete these files from public/images or reference them from a page')
 })
 
 test('generated sitemap and robots use the configured origin and only the six HTML routes', () => {
