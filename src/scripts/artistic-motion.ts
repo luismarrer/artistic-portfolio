@@ -1000,9 +1000,10 @@ function initReveals() {
     })
 }
 
-/** Motion that answers a person's action: a gentle pull toward the pointer, and a short scroll. */
+/** Motion that answers a person's action: a gentle pull toward the pointer, and an unhurried scroll. */
 const MAGNETIC_PULL = 0.12
-const CTA_SCROLL_DURATION = 0.9
+// The production pace: at 0.9s the eased scroll covered the first screen too quickly to follow.
+const CTA_SCROLL_DURATION = 1.55
 
 function initCtaAndHover(signal: AbortSignal) {
     const cta = document.querySelector<HTMLAnchorElement>("#start")

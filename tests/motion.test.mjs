@@ -590,7 +590,7 @@ test('the CTA is simply present, pulls gently toward the pointer and returns wit
   assert.ok(settle.to.duration >= 0.4 && settle.to.duration <= 0.5)
 })
 
-test('activating the CTA moves focus to its target at once, before a sub-second scroll', () => {
+test('activating the CTA moves focus to its target at once, then scrolls there at the production pace', () => {
   const cta = new ElementDouble({ id: 'start' })
   cta.href = '#projects'
   const destination = new ElementDouble({ id: 'projects', top: 460, width: 390, height: 440 })
@@ -613,7 +613,8 @@ test('activating the CTA moves focus to its target at once, before a sub-second 
   assert.equal(scrollsWhenFocused, 0, 'focus never waits for the scroll animation')
   const scroll = calls.find(({ to }) => to?.scrollTo)
   assert.equal(scroll.to.scrollTo.y, 444)
-  assert.ok(scroll.to.duration <= 1, `the scroll takes ${scroll.to.duration}s`)
+  assert.equal(scroll.to.duration, 1.55, 'the scroll keeps the production 1.55s; 0.9s felt rushed')
+  assert.equal(scroll.to.ease, 'power2.inOut')
   assert.equal(destination.attributes.tabindex, '-1', 'a target that cannot take focus yet becomes a programmatic focus target')
   destination.attributes.tabindex = '0'
   cta.dispatch('click')
